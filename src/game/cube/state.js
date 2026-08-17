@@ -12,7 +12,9 @@
 const moment = require('moment');
 require('moment-timezone');
 
-const { LEVELS, SPECIALS, cube: config } = require('./tuning.js');
+const {
+    LEVELS, SPECIALS, TREE, TREES, cube: config,
+} = require('./tuning.js');
 const engine = require('./engine.js');
 
 const { specialById } = engine;
@@ -288,10 +290,19 @@ exports.cubeState = function (user_profile) {
         rerolls: stock,
         buyReroll: !!c.buyReroll,
         rerollCost: rerollCostFor(prestige, stock),
+        // Salvage Rights, off The Junker, and Double or Nothing, off The Gambler. Read defensively
+        // like every other pick on the rack: a profile written before either existed has neither.
+        salvage: !!c.salvage,
+        double: !!c.double,
         // The weld press: how far up it the player has bought, what a reroll costs in truguts, how
         // many cubes it takes at that tier, and what each pairing has already thrown.
         pressTier,
         pressCubes: pressTier >= 3 ? 3 : 2,
+        // The two picks off The Forger that are not rungs. The Keeper names a face the cut must
+        // carry; The Heavy Half names the parent the major share lands on, which `weldSplits`
+        // otherwise decides with a coin flip.
+        keeper: !!c.keeper,
+        heavy: !!c.heavy,
         weldRerollCost: weldRerollCostFor(prestige),
         weldSeen,
         // Lifetime tie tallies, by how each one was settled. Read defensively for the same reason
@@ -698,102 +709,211 @@ exports.awardClear = function (s, patch) {
 // Prestige rewards
 // ---------------------------------------------------------------------------
 
-// What a prestige point buys: any special cube you don't own yet, or — once each — the right to buy
-// rerolls and the two tie picks. The stake ceiling comes with the prestige itself, so this is the
-// choice, not the payment.
+// What each pick looks like once it is owned.
 //
-// **The list is finite and it empties.** Every entry here is a thing that changes a roll, and once
-// they are all taken a prestige is worth its stake ceiling and nothing else. That is deliberate: the
-// alternative was the `+1 slot` pick, which never ran out precisely because it had stopped doing
-// anything. See the note where it used to be pushed.
+// `TREE` is keyed by reward value, so this is the one place a node id turns into a question about
+// the profile — and it is why the tree table can name a prerequisite without knowing whether it is a
+// cube, a perk or a rung. `press` is the odd one: it is a single value bought `weldTiers.length`
+// times, so it counts as held only once the ladder is finished.
+const HELD = {
+    reroll: s => s.buyReroll,
+    nudge: s => s.nudge,
+    bribe: s => s.bribe,
+    salvage: s => s.salvage,
+    double: s => s.double,
+    keeper: s => s.keeper,
+    heavy: s => s.heavy,
+    press: s => s.pressTier >= config.weldTiers.length,
+};
+
+const holds = function (s, value) {
+    if (value.startsWith('cube:')) return s.cubes.includes(value.slice(5));
+    const test = HELD[value];
+    return test ? !!test(s) : false;
+};
+exports.holds = holds;
+
+// The copy for everything that isn't a cube. Cubes carry their own name and blurb in `SPECIALS`, so
+// only the perks need it written out — here, where the numbers they quote live.
+const PERKS = {
+    reroll: {
+        kind: 'reroll',
+        label: 'Purchase Rerolls',
+        description: 'Buy rerolls with truguts and bank them for a losing roll.',
+    },
+    nudge: {
+        kind: 'nudge',
+        label: "Qui-Gon's Nudge",
+        // Reads off `nudgeLean`, not `tieLean`. The Nudge holds its own weight rather than turning
+        // his around, so quoting his numbers here would promise a 60/40 the pick no longer pays.
+        description: `Watto's tie-breaker leans ${Math.round(config.nudgeLean * 100)}/${Math.round((1 - config.nudgeLean) * 100)} your way instead of his.`,
+    },
+    bribe: {
+        kind: 'bribe',
+        label: 'Bribe Ties',
+        description: 'Buy a tie off him outright instead of trusting his cube.',
+    },
+    salvage: {
+        kind: 'salvage',
+        label: 'Salvage Rights',
+        description: `A busted run hands back ${Math.round(config.salvageShare * 100)}% of the stake instead of all of it.`,
+    },
+    double: {
+        kind: 'double',
+        label: 'Double or Nothing',
+        description: 'Once a climb, double the stake on a rung. A loss takes all of it.',
+    },
+    keeper: {
+        kind: 'keeper',
+        label: 'The Keeper',
+        description: 'Name one face the press must carry through the cut.',
+    },
+    heavy: {
+        kind: 'heavy',
+        label: 'The Heavy Half',
+        description: 'Name the parent the major share of an uneven cut lands on, instead of rolling for it.',
+    },
+};
+
+// Whether a tree is open at all.
 //
-// Returned as plain data. The description is copy, so it is built here where the numbers it
-// quotes live, but nothing about the shape assumes a select menu — the fourteen entries happen to
-// fit one, and that is the client's good luck rather than this function's contract.
-exports.rewardChoices = function (s) {
-    const out = SPECIALS
-        .filter(sp => !s.cubes.includes(sp.id) && !OFF_RACK.has(sp.id))
-        .map(sp => ({
-            value: `cube:${sp.id}`, kind: 'cube', id: sp.id, label: sp.name, description: sp.blurb,
-        }));
-    // **`+1 Special Cube Slot` used to be here, and it is gone.** It was the only entry on the rack
-    // that was worth nothing on its own — a slot needs a benched cube and a benched cube needs a slot,
-    // so the two of them ate a prestige each to deliver one cube's worth of change, and the pick was
-    // never a choice: whichever you were short of was the answer. Past `bagSize()` it stopped even
-    // being that, because there is nothing above the bag to sell.
-    //
-    // So the cap survived and the *purchase* didn't. Every rack fields `bagSize()` from the first
-    // prestige onwards, which is the number the bag was always going to allow — the pick was only ever
-    // charging a prestige for the right to reach it.
-    //
-    // Which leaves the rack **finite**: every cube, then three perks, then nothing. A player who takes
-    // every pick has taken every pick, and a prestige past that is worth its stake ceiling and no more
-    // — which is a cleaner endgame than an infinitely repeatable pick that did nothing.
-    if (!s.buyReroll) {
-        out.push({
-            value: 'reroll',
-            kind: 'reroll',
-            label: 'Purchase Rerolls',
-            description: 'Buy rerolls with truguts and bank them for a losing roll.',
-        });
-    }
-    // Both of these only ever fire on a tie, which nothing but a destructive special can cause —
-    // so they are worth exactly as much as the rack that causes them, and worth nothing on their
-    // own. They are offered once each, like the reroll perk.
-    if (!s.nudge) {
-        out.push({
-            value: 'nudge',
-            kind: 'nudge',
-            label: "Qui-Gon's Nudge",
-            // Reads off `nudgeLean`, not `tieLean`. The Nudge holds its own weight rather than turning
-            // his around, so quoting his numbers here would promise a 60/40 the pick no longer pays.
-            description: `Watto's tie-breaker leans ${Math.round(config.nudgeLean * 100)}/${Math.round((1 - config.nudgeLean) * 100)} your way instead of his.`,
-        });
-    }
-    if (!s.bribe) {
-        out.push({
-            value: 'bribe',
-            kind: 'bribe',
-            label: 'Bribe Ties',
-            description: 'Buy a tie off him outright instead of trusting his cube.',
-        });
-    }
-    // **The press, one rung at a time**, and it is what stops the paragraph above being the end of the
-    // story. The rack was finite by design and that was the whole problem: a player past every pick
-    // had a prestige worth a stake ceiling they could already not reach. Four rungs is not an infinite
-    // rack either — but what the last one hands over is a *press*, and rerolling one is the sink that
-    // does not run out.
-    //
-    // Offered strictly in order, one at a time, so the menu never asks a question with four answers
-    // that all have to be taken anyway.
-    if (s.pressTier < config.weldTiers.length) {
+// Only The Forger has a condition and it is not a number: `overflow` is `cubes > bagSize()`, so the
+// press tab appears on the first cube you own that you cannot field. That is the whole argument for
+// the press stated as a gate — before it, the tab answers a question nobody has asked; after it, it
+// is the only answer there is. Derived rather than written down, so it moves if the bag ever does.
+const treeOpen = function (s, id) {
+    const tree = TREES.find(t => t.id === id);
+    if (!tree || !tree.opens) return true;
+    if (tree.opens === 'overflow') return s.cubes.length > engine.bagSize();
+    return true;
+};
+exports.treeOpen = treeOpen;
+
+const reachable = function (s, node) {
+    if (node.requires && !node.requires.every(v => holds(s, v))) return false;
+    if (node.requiresAny && !node.requiresAny.some(v => holds(s, v))) return false;
+    if (node.pressTier && s.pressTier < node.pressTier) return false;
+    return true;
+};
+
+// One entry, dressed. Cubes read off `SPECIALS`, perks off `PERKS`, and the press off whichever rung
+// is next — which is also where its tier comes from, since it has no fixed one.
+const entryOf = function (s, value, node) {
+    if (node.ladder === 'weldTiers') {
         const next = config.weldTiers[s.pressTier];
+        return {
+            value, kind: 'press', tier: s.pressTier + 1, label: next.name, description: next.blurb,
+        };
+    }
+    if (value.startsWith('cube:')) {
+        const sp = specialById(value.slice(5));
+        return {
+            value, kind: 'cube', id: sp.id, tier: node.tier, label: sp.name, description: sp.blurb,
+        };
+    }
+    const perk = PERKS[value];
+    return {
+        value, kind: perk.kind, tier: node.tier, label: perk.label, description: perk.description,
+    };
+};
+
+// What a prestige point buys **right now**: every node in `TREE` whose tree is open, whose
+// prerequisites are all owned, and which isn't owned already.
+//
+// **The rack is the same rack.** Nothing here is new content and nothing is priced differently — the
+// list is still finite and it still empties, and the press is still the sink at the end that does
+// not. What changed is that it now has an order, and the order is what turns a point into a decision
+// instead of a shopping trip. The reasoning for every edge lives on the table in `tuning.js`.
+//
+// **Prerequisites gate the offer, never the ownership.** A profile that bought its cubes off the old
+// flat list keeps every one of them; `s.cubes` is read exactly as it always was. A player who owns
+// Guide without owning the Wild simply sees Guide as held and the Wild as still on the rack, which is
+// the right answer — nothing was taken away and nothing is granted for free.
+//
+// Returned as plain data, with `tree` and `tier` on every entry so a client can lay the graph out
+// without holding a second copy of it. The Discord select menu this also feeds caps at 25 options and
+// the flat list had grown to 21 of them; gated, it never returns close to that.
+exports.rewardChoices = function (s) {
+    const out = [];
+    for (const [value, node] of Object.entries(TREE)) {
+        if (!treeOpen(s, node.tree)) continue;
+        if (holds(s, value)) continue;
+        if (!reachable(s, node)) continue;
+        out.push({ ...entryOf(s, value, node), tree: node.tree });
+    }
+    return out;
+};
+
+// The whole rack, dressed, with no player in it.
+//
+// `rewardChoices` answers *what can I buy now*; this answers *what is there*, which is a different
+// question and the one a tree drawing needs. A client that only knew about reachable nodes could not
+// draw a locked one — and the top of a tree you cannot see is a branch you cannot choose.
+//
+// **The press is expanded here and nowhere else.** Four rungs share one reward value, which is right
+// for a purchase and wrong for a drawing, so this is where they become four entries with a `rung`
+// apiece. Everything downstream — the tab layout, the owned test, the prerequisite label — reads
+// them as four ordinary nodes.
+exports.treeCatalogue = function () {
+    const out = [];
+    for (const [value, node] of Object.entries(TREE)) {
+        const common = {
+            value,
+            tree: node.tree,
+            requires: node.requires || [],
+            requiresAny: node.requiresAny || [],
+        };
+        if (node.ladder === 'weldTiers') {
+            config.weldTiers.forEach((rung, i) => out.push({
+                ...common, kind: 'press', rung: i + 1, tier: i + 1, label: rung.name, description: rung.blurb,
+            }));
+            continue;
+        }
+        if (value.startsWith('cube:')) {
+            const sp = specialById(value.slice(5));
+            out.push({
+                ...common, kind: 'cube', id: sp.id, tier: node.tier, label: sp.name, description: sp.blurb,
+            });
+            continue;
+        }
+        const perk = PERKS[value];
         out.push({
-            value: 'press',
-            kind: 'press',
-            tier: s.pressTier + 1,
-            label: next.name,
-            description: next.blurb,
+            ...common,
+            kind: perk.kind,
+            tier: node.tier,
+            // A node that needs a press rung is drawn hanging off that rung, so the prerequisite has
+            // to survive as something a client can name — see `pressTier` in `TREE`.
+            pressTier: node.pressTier || 0,
+            label: perk.label,
+            description: perk.description,
         });
     }
     return out;
 };
 
+// Which profile flag each once-only perk sets. Every one of them is a plain boolean — the perk is
+// either on the rack or on the profile — so they are a table rather than seven near-identical
+// branches, and adding an eighth is a line here and a line in `TREE`.
+//
+// `buyReroll` is the one name that doesn't match its reward value, and it stays that way: the value
+// is what a stale client sends and the flag is what a stored profile already holds, so neither is
+// free to move.
+const FLAGS = {
+    reroll: 'buyReroll',
+    nudge: 'nudge',
+    bribe: 'bribe',
+    salvage: 'salvage',
+    double: 'double',
+    keeper: 'keeper',
+    heavy: 'heavy',
+};
+
 // Grants one reward. Reached only through `spendPoint`, which is what charges for it.
 const grantReward = function (s, patch, value) {
-    if (value === 'reroll') {
-        s.buyReroll = true;
-        patch.buyReroll = true;
-        return;
-    }
-    if (value === 'nudge') {
-        s.nudge = true;
-        patch.nudge = true;
-        return;
-    }
-    if (value === 'bribe') {
-        s.bribe = true;
-        patch.bribe = true;
+    const flag = FLAGS[value];
+    if (flag) {
+        s[flag] = true;
+        patch[flag] = true;
         return;
     }
     // One rung up the press. Clamped rather than trusted: a stale menu holding `press` after the last

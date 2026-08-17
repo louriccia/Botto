@@ -18,7 +18,7 @@ const pstate = require('../game/cube/state.js');
 const persist = require('../game/cube/persist.js');
 const actions = require('../game/cube/actions.js');
 const {
-    LEVELS, SPECIALS, SIDES, WATTO, cube: config,
+    LEVELS, SPECIALS, SIDES, WATTO, TREE, TREES, cube: config,
 } = require('../game/cube/tuning.js');
 
 // Balance is derived, never stored — the profile keeps two lifetime counters and the difference
@@ -164,6 +164,19 @@ module.exports = function mountCube(app, ctx) {
         sides: SIDES,
         watto: WATTO,
         config: wireConfig,
+        // The shape of the rack: five trees and every node's tier and prerequisites. Static, so it
+        // belongs here beside `specials` rather than on the board — what changes per player is which
+        // of these are *offered*, and that is `choices`.
+        //
+        // Sent whole, including nodes the player will never see this prestige, because a client that
+        // only knew about reachable nodes could not draw a locked one — and a tree you cannot see the
+        // top of is a tree you cannot choose a branch of. Locked nodes are the point.
+        //
+        // Dressed by `treeCatalogue` rather than sent raw, so the copy on a locked node comes from
+        // the same place as the copy on an offered one. The alternative was a client holding its own
+        // table of perk names, which is two answers to what a thing is called.
+        trees: TREES,
+        tree: pstate.treeCatalogue(),
     }));
 
     // -----------------------------------------------------------------------

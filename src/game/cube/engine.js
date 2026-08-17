@@ -199,6 +199,42 @@ const pickIdx = function (n, take, from) {
     return all.slice(0, take).sort((a, b) => a - b);
 };
 
+// Which parent gets which share of the cut.
+//
+// `take` is written biggest-first, so the parent whose entry here is `0` takes the major share. Left
+// alone that is a shuffle — see the note on `rollWeld` for why the press is not precision equipment.
+// **The Heavy Half is what buys the choice**, and it buys exactly one: the named parent takes the
+// major share and the rest are still shuffled below it, so a 3+2+1 is half-decided rather than
+// arranged. Nothing here checks whether the perk is owned; `weldCubes` in `actions.js` is the gate,
+// for the same reason it is the gate on everything else a client can ask for.
+const orderFor = function (n, major) {
+    const idx = Array.from({ length: n }, (_, i) => i);
+    if (!Number.isInteger(major) || major < 0 || major >= n) return shuffle(idx);
+    const order = [];
+    order[major] = 0;
+    shuffle(idx.filter(i => i !== major)).forEach((p, i) => { order[p] = i + 1; });
+    return order;
+};
+
+// `take` positions off one parent with a named face guaranteed among them — The Keeper.
+//
+// It names a **face id**, not a position, so any position carrying that id satisfies it and a cube
+// with five wilds is not five times harder to keep a wild from. A face the parent doesn't carry is
+// ignored rather than refused: the draw falls back to the ordinary one, which is what a stale client
+// naming a face off the wrong cube should get.
+//
+// **It does not touch `weldPurity`.** The anchor is drawn from the same pool as everything else, so
+// on a pure press it is confined to the good faces with the rest, and on an ordinary one the
+// remaining positions still roll for a downside exactly as they did.
+const pickWith = function (parent, want, from, faceId) {
+    const pool = from || Array.from({ length: parent.faces.length }, (_, i) => i);
+    const hits = pool.filter(i => parent.faces[i].id === faceId);
+    if (!hits.length || want < 1) return pickIdx(parent.faces.length, want, from);
+    const anchor = hits[crypto.randomInt(0, hits.length)];
+    const rest = pool.filter(i => i !== anchor);
+    return [anchor, ...pickIdx(parent.faces.length, want - 1, rest)].sort((a, b) => a - b);
+};
+
 // How many **distinct** halves a cube can give up, which is far fewer than the positions suggest
 // because its faces repeat: Wild is five identical wilds and a mine, so three-of-six is either three
 // wilds or two and the mine. Two outcomes, not twenty.
@@ -274,11 +310,16 @@ exports.weldDrawSpace = ids => spaceOf(ids, true);
 // The major share of an uneven split goes to a **rolled** parent, not a chosen one. That halves how
 // often a rare split lands where the player wanted it, which is deliberate: the press is not
 // precision equipment, and a 5+1 on the wrong cube is exactly the kind of near-miss that makes the
-// next reroll worth buying.
+// next reroll worth buying. `major` is the one thing that buys the coin flip back — see `orderFor`.
+//
+// `keep` is The Keeper: `{ parent, faceId }`, one face the cut has to carry. Both of these arrive
+// already checked against the profile; this function honours what it is handed.
 //
 // A split asking for more faces than a parent has is clamped rather than refused — nothing weldable
 // has fewer than six faces today, so this is a guard against a future cube rather than a live path.
-exports.rollWeld = function (ids, { seen = [], tier = 1 } = {}) {
+exports.rollWeld = function (ids, {
+    seen = [], tier = 1, major = null, keep = null,
+} = {}) {
     if (!Array.isArray(ids) || ids.length < 2) return null;
     if (new Set(ids).size !== ids.length) return null;
     const parents = ids.map(baseById);
@@ -330,7 +371,7 @@ exports.rollWeld = function (ids, { seen = [], tier = 1 } = {}) {
         // arrangement of 3+2+1. Either way the player chose the cubes and the press chose the rest.
         // Fisher-Yates off the same CSPRNG as everything else — a comparator that returns random
         // numbers is not a shuffle and is biased in ways that depend on the sort implementation.
-        const order = shuffle(parents.map((_, i) => i));
+        const order = orderFor(parents.length, major);
         const picks = parents.map((p, k) => {
             const want = Math.min(take[order[k]] ?? take[take.length - 1], p.faces.length);
             // A cut deeper than the parent has good faces cannot be pure — five off the Reroll Cube,
@@ -338,7 +379,13 @@ exports.rollWeld = function (ids, { seen = [], tier = 1 } = {}) {
             // carrying one. That is the right answer rather than an edge case: some cuts have no clean
             // version, and it only nudges the effective rate below `weldPurity` on the rarest splits.
             const from = pure && goodIdx[k].length >= want ? goodIdx[k] : null;
-            return { id: p.id, idx: pickIdx(p.faces.length, want, from) };
+            const anchor = keep && keep.parent === k ? keep.faceId : null;
+            return {
+                id: p.id,
+                idx: anchor
+                    ? pickWith(p, want, from, anchor)
+                    : pickIdx(p.faces.length, want, from),
+            };
         });
         // Read off the drawn positions rather than the id, because `weldId` canonicalises — which maps
         // positions onto the same *face ids* and so preserves whether a downside is among them, but

@@ -1,0 +1,126 @@
+{
+  "takenAt": "2026-08-16T22:14:25.365Z",
+  "discordId": "256236315144749059",
+  "userKey": "-N8PFNb3Bmoi7zfk_cP4",
+  "name": "LightningPirate",
+  "cube": {
+    "bestAt": {
+      "cubes": 1786899771933,
+      "multiple": 1786887999378,
+      "streak": 1786891318914
+    },
+    "bestCubes": 10,
+    "bestLevel": 4,
+    "bestMultiple": 49.3836408224,
+    "bestStanding": 4938,
+    "bestStreak": 9,
+    "bribes": 0,
+    "calls": {
+      "blue": 83,
+      "red": 1535
+    },
+    "clears": 3,
+    "cubes": {
+      "binder": true,
+      "gungan": true,
+      "octahedron": true,
+      "reroll": true,
+      "sebulba": true,
+      "shmi": true,
+      "shortcut": true,
+      "wild": true
+    },
+    "equipped": [
+      "shmi",
+      "sebulba",
+      "binder",
+      "gungan"
+    ],
+    "faces": {
+      "binder": {
+        "burn": 54,
+        "clone": 47
+      },
+      "gungan": {
+        "shield": 24
+      },
+      "reroll": {
+        "broken": 16,
+        "end": 7,
+        "reroll": 18
+      },
+      "sebulba": {
+        "broken": 43,
+        "engine:left": 32,
+        "engine:right": 44
+      },
+      "shmi": {
+        "broken": 43,
+        "side:blue": 49,
+        "side:red": 157
+      },
+      "shortcut": {
+        "end": 12,
+        "shortcut": 57
+      },
+      "wild": {
+        "end": 43,
+        "wild": 179
+      }
+    },
+    "month": {
+      "at": {
+        "cubes": 1786899771933,
+        "multiple": 1786887999378,
+        "streak": 1786891318914
+      },
+      "cubes": 10,
+      "id": "2026-08",
+      "multiple": 49.3836408224,
+      "streak": 9
+    },
+    "points": 0,
+    "prestige": 7,
+    "rerolls": 0,
+    "rolled": {
+      "blue": 1397,
+      "red": 1725
+    },
+    "stake": 733,
+    "streak": 0,
+    "ties": {
+      "blue": 41,
+      "boonta": 0,
+      "bribed": 0,
+      "lostBlue": 40,
+      "lostRed": 2,
+      "red": 28,
+      "rolled": 69,
+      "total": 69,
+      "won": 27,
+      "wonBlue": 1,
+      "wonRed": 26
+    },
+    "totalLost": 83741,
+    "totalWon": 71841,
+    "unlocked": 3,
+    "week": {
+      "at": {
+        "cubes": 1786899771933,
+        "multiple": 1786887999378,
+        "streak": 1786891318914
+      },
+      "cubes": 10,
+      "id": "2026-33",
+      "multiple": 49.3836408224,
+      "streak": 9
+    },
+    "wins": {
+      "blue": 39,
+      "red": 796
+    }
+  },
+  "trugutsEarned": 93619,
+  "trugutsSpent": 93619,
+  "ladder": null
+}

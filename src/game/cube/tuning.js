@@ -373,7 +373,16 @@ exports.SPECIALS = [
         ],
     },
     {
-        id: 'multiplier', name: 'Multiplier Cube',
+        // **The name is flavour and the id is not.** `multiplier` stays the id, `mult:red` and
+        // `mult:blue` stay the face ids, and `SPECIAL_EMOJI` and `FACE_EMOJI` are keyed off both — so
+        // the Discord side and every lookup in the engine are untouched by what it is called.
+        //
+        // It was "Multiplier Cube", which was the one name on the rack that was a stat rather than a
+        // thing, sitting between Greed and the Turbine and the Boost. A midi-chlorian count is a
+        // measure of latent potential, which is what this cube pays for: it doubles what was already
+        // there and pays nothing at all if you called the wrong side. It also pairs with the Symbiont
+        // Cube, which is the other half of the same speech.
+        id: 'multiplier', name: 'Midi-chlorian Cube',
         blurb: 'Four faces double the payout if their own side wins. Two break the cube.',
         faces: [
             ...rep(2, { kind: 'mult', side: 'red', id: 'mult:red' }),
@@ -668,6 +677,142 @@ exports.SPECIALS = [
         ],
     },
 ];
+
+// ---------------------------------------------------------------------------
+// The rack, as five trees
+// ---------------------------------------------------------------------------
+//
+// Watto's rack used to be one flat list: every cube you did not own, plus three perks and the next
+// press rung, all offered at once for one prestige point apiece. That list is still what a point
+// buys — nothing here is new content and nothing has been priced differently. What it is missing is
+// an **order**, and the order is what makes a point a decision instead of a shopping trip.
+//
+// **The dependencies were already written; they were just written in prose.** Half the notes in
+// `SPECIALS` above say some version of "this is worth nothing without the rack it is for" — the
+// Gungan Shield repairs a mine-heavy rack and barely moves Greed alone, Boost exists so the cubes
+// that lengthen a line finally have something to be *for*, the tie picks are "worth exactly as much
+// as the rack that causes them", the Scavenger is "worth exactly as much as the rest of the rack has
+// failed". A flat menu sells all four of those first, where they do nothing. This table is those
+// sentences made mechanical, and almost every edge in it can be traced back to one of them.
+//
+// **Five trees, and they do not touch.** No node in one tree ever requires a node in another. That
+// costs something real — Guide wants a long line and Boost wants a full table, and neither tree
+// contains the cubes that provide one — and it buys something worth more: the trees can be five tabs
+// on a phone, each legible on its own, with no line crossing between them and no tab that cannot be
+// walked without first walking another. The synergies did not go away; they moved from the unlock
+// graph to the loadout, which is where a player already makes that decision every run.
+//
+// **Every tree is six nodes and four tiers deep.** Not for symmetry — it is what fell out of putting
+// each cube where its own note says it belongs — but it means one layout renders all five, and a
+// tier reads as "minimum picks to own this".
+//
+// `requires` is all-of. `requiresAny` is at-least-one-of, and exactly one node uses it: Shmi and
+// Anakin are perfect mirrors of each other, so which of the two colours you lean is a choice with no
+// wrong answer and no reason to make it twice.
+//
+// `pressTier` is a floor on `s.pressTier` rather than an entry in `requires`, because the press is
+// four nodes sharing one reward value — see `weldTiers` below, and `rewardChoices` in `state.js`,
+// which offers the rungs strictly in order off that counter.
+exports.TREES = [
+    { id: 'swindler', name: 'The Swindler', blurb: 'Make your colour land.' },
+    { id: 'gambler', name: 'The Gambler', blurb: 'Make it pay.' },
+    { id: 'dealer', name: 'The Dealer', blurb: 'Decide what is standing on the line.' },
+    { id: 'junker', name: 'The Junker', blurb: 'Lose less of it.' },
+    // **The one tree that is not open from the start**, and the condition is the seat count rather
+    // than a number chosen to feel right: `opens: 'overflow'` is `cubes > bagSize()`, so the press
+    // appears on the first cube you own that you cannot field. Before that it answers a question
+    // nobody has asked yet; after it, it is the only answer there is.
+    { id: 'forger', name: 'The Forger', blurb: 'Two cubes, one seat.', opens: 'overflow' },
+];
+
+exports.TREE = {
+    // THE SWINDLER — the call. Bias it, then guarantee it, then force it, then get paid for it.
+    'cube:shmi': { tree: 'swindler', tier: 1 },
+    'cube:anakin': { tree: 'swindler', tier: 1 },
+    'cube:wild': { tree: 'swindler', tier: 2, requiresAny: ['cube:shmi', 'cube:anakin'] },
+    'cube:sebulba': { tree: 'swindler', tier: 3, requires: ['cube:wild'] },
+    // **Off the Wild rather than off Sebulba**, which is the one edge in this table that contradicts
+    // the obvious reading. Guide counts outward until it hits a position that is not a cube on the
+    // called side, and *"every other position stops it, effect faces included"* — so Sebulba's engine
+    // face breaks the run at its own square, and the Wild, which is always the side you called,
+    // extends it every time. Chaining Guide behind Sebulba would have charged a prestige for its
+    // worst neighbour on the way to it.
+    'cube:guide': { tree: 'swindler', tier: 3, requires: ['cube:wild'] },
+
+    // THE GAMBLER — every paying face in this tree is sideless, so it is also the tree that
+    // manufactures the most ties in the game. That is why a tie pick lives in it.
+    'cube:greed': { tree: 'gambler', tier: 1 },
+    'cube:multiplier': { tree: 'gambler', tier: 2, requires: ['cube:greed'] },
+    // The Midi-chlorian only pays *"if red/blue wins the line"*, and a tie is precisely the case
+    // where nobody won — so the cube above this one is the exact failure mode it repairs. Watto says
+    // as much on a bribe: "then it's a win. Whatever you say it is."
+    bribe: { tree: 'gambler', tier: 3, requires: ['cube:multiplier'] },
+    'cube:turbine': { tree: 'gambler', tier: 3, requires: ['cube:multiplier'] },
+    'cube:boost': { tree: 'gambler', tier: 4, requires: ['cube:turbine'] },
+    // **Double or Nothing belongs here and is not sold yet**, because no charge for it is a decision.
+    //
+    // The intent was the terminal fork's cheap half — Boost costs a seat out of `bagSize()` and a perk
+    // does not — with the perk doubling the increment on one rung a climb. Priced at a flat stake that
+    // is not a choice at any rung and is a faucet at the top:
+    //
+    //     rung        hold     push      doubled    gain at 50%, per stake of fee
+    //     L1          1.94     3.76       5.59      +0.85
+    //     L3          7.30    14.16      21.03      +3.21
+    //     L5         27.48    53.31      79.14     +12.09
+    //
+    // A fee that scales with the standing instead makes it a coin flip that clears no rung, and a
+    // *fair* one of those is the exact arbitrage `levelStep` shaves 3% off every push to prevent —
+    // so it has to pay below fair, at which point nobody takes it. The shape that works is a real
+    // balance question and the node stays off the rack until it has an answer. The profile flag,
+    // `FLAGS` and `PERKS` entries in `state.js` are already in place: this is one line when it does.
+    // double: { tree: 'gambler', tier: 4, requires: ['cube:turbine'] },
+
+    // THE DEALER — what is standing on the line. The spine is an escalation of reach: one neighbour,
+    // then everything behind you, then both neighbours plus insertions, then the whole bag.
+    'cube:binder': { tree: 'dealer', tier: 1 },
+    'cube:mirror': { tree: 'dealer', tier: 2, requires: ['cube:binder'] },
+    // Binder is the first cube in the tree that changes the *count* — a burn takes a position out of
+    // it — and changing the count is what flips parity into a line with no majority. So the free
+    // permanent lean is live the moment it is offered, and putting it here is also what stops this
+    // tab opening with three picks in a straight line.
+    nudge: { tree: 'dealer', tier: 2, requires: ['cube:binder'] },
+    'cube:symbiont': { tree: 'dealer', tier: 3, requires: ['cube:mirror'] },
+    'cube:pitdroid': { tree: 'dealer', tier: 4, requires: ['cube:symbiont'] },
+
+    // THE JUNKER — two mine-carriers, then the cube that answers mines, then the cube that recovers
+    // what died anyway. The only tree that hands you its own problem before it sells you the fix.
+    'cube:shortcut': { tree: 'junker', tier: 1 },
+    'cube:reroll': { tree: 'junker', tier: 2, requires: ['cube:shortcut'] },
+    // `reroll` the perk under `cube:reroll` the cube, and the order is the scarcity curve rather
+    // than the flavour: the cube costs a seat and carries Ratts, which is cheap when you own four
+    // cubes and have eight seats; the perk costs truguts, which you do not have yet. Early answer
+    // first, late answer second.
+    reroll: { tree: 'junker', tier: 3, requires: ['cube:reroll'] },
+    // The Shield stops mines **and** saves wipeouts, and the note above names the cubes it covers —
+    // the Reroll Cube among them. Its parent's entire downside is one mine and two wipeouts, so the
+    // child here is the complete answer to the node directly under it.
+    'cube:gungan': { tree: 'junker', tier: 3, requires: ['cube:reroll'] },
+    'cube:scavenger': { tree: 'junker', tier: 4, requires: ['cube:gungan'] },
+    salvage: { tree: 'junker', tier: 4, requires: ['cube:gungan'] },
+
+    // THE FORGER — the press ladder, plus the two things it does not currently sell. `press` is one
+    // reward value bought four times, so it has no `tier` of its own: the rung is `s.pressTier + 1`
+    // and the client lays the four out at tiers 1–4.
+    press: { tree: 'forger', ladder: 'weldTiers' },
+    // Names one face that must survive the cut. It is the only node in this tab that acts on *every*
+    // press rather than changing what is in the draw, which is why it forks off the first rung —
+    // and it has to, because The Heavy Half has nothing to name until an uneven cut exists.
+    //
+    // Worth knowing which way it scales: it guarantees a face that a 3-face share would have found
+    // half the time and a 1-face share one time in six, so it is worth **more** the further up the
+    // ladder you are, not less. That makes it the tab's balance risk rather than its safe pick.
+    keeper: { tree: 'forger', tier: 2, pressTier: 1 },
+    // Doubles the useful rate of every uneven cut by naming the parent the major share lands on —
+    // see `weldSplits`, where a useful 5+1 is "roughly one press in 220" precisely because that
+    // choice is currently a coin flip. Same shape as `double` in The Gambler, and placed by the same
+    // rule: a multiplier arrives when the thing it multiplies is finished.
+    heavy: { tree: 'forger', tier: 4, pressTier: 3 },
+};
 
 // The two faces of an ordinary cube, as a real face list.
 //
@@ -1374,4 +1519,26 @@ exports.cube = {
     // expensive fast and the price falls back on its own once they're spent. No extra counter
     // to keep: the stock *is* the escalation.
     rerollPriceStep: 1.5,
+    // What Salvage Rights hands back on a bust, as a share of the **stake**.
+    //
+    // A share of the *standing* was the obvious reading and it is the one that breaks the mode. The
+    // standing compounds at `LEVEL_STEP`, so a quarter of it at Level 4 is a rebate on 14× and the
+    // same perk at Level 2 is a rebate on 3.8× — which makes the deepest push the most profitable
+    // one and flatly contradicts the promise `levelStep` makes above, that *"3% is the same at all
+    // five rungs… no rung is looser than any other, and there is nothing to farm."*
+    //
+    // Off the stake it is flat, so it shrinks as a share of what is on the table and the ladder's
+    // edge is untouched at every rung:
+    //
+    //     rung 1   0.5 × 1.94   + 0.5 × 0.25  =  1.10  against  1.00 held
+    //     rung 4   0.5 × 27.48  + 0.5 × 0.25  = 13.87  against 14.16 held
+    //
+    // Worth about three points at the bottom of the ladder and under one at the top. It softens the
+    // cheap early pushes nobody agonises over and leaves the Level 4→5 decision — the one the whole
+    // mode is built around — still a losing bet you take on purpose.
+    //
+    // The ceiling is wherever the first push stops being interesting: at 0.5 it runs +22% and there
+    // is no reason to ever bank early. The stake itself climbs with `maxStakeStep`, so a flat share
+    // still grows across a career without ever growing inside one climb.
+    salvageShare: 0.25,
 };

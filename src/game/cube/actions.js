@@ -271,9 +271,15 @@ exports.settleThrow = settleThrow;
 
 // A bust. The whole stake leaves the economy — there is nothing to route a share of it into any
 // more, which is what makes the mode a clean sink rather than a faucet with a governor on it.
+//
+// **Salvage Rights is the one hole in that**, and it is deliberately cut against the *stake* rather
+// than the standing: the standing compounds at `LEVEL_STEP`, so a share of it would make the deepest
+// push the most profitable one and break the promise `levelStep` makes that no rung is looser than
+// any other. See `salvageShare`.
 const settleLoss = function (ctx, { run, res, thrown, patch }) {
-    const { s, db, database, discordId } = ctx;
-    pstate.recordLost(s, patch, run.stake);
+    const {
+        s, db, database, discordId, moveTruguts,
+    } = ctx;
     // Six ways to lose, reported as which one rather than as a sentence. A line with no majority only
     // reaches here once the tie-breaker has already gone the house's way.
     //
@@ -337,11 +343,32 @@ const settleLoss = function (ctx, { run, res, thrown, patch }) {
         persist.clearLadder(database, db, discordId);
     }
 
+    // **A banked reroll and Salvage Rights are the same consolation, so only one of them pays.**
+    //
+    // The branch above is the whole reason: with a reroll in stock the bust is not final — it is held
+    // open as an offer, and `spendReroll` can undo it. Paying here would hand back a quarter of the
+    // stake *and* let the roll be bought back, and the ledger reversal in `settleThrow` only unwinds
+    // the loss, not truguts that have already moved.
+    //
+    // Which of the two is worth more is not close: a reroll replays the rung with the whole standing
+    // intact, where this returns a fraction of the stake. So the stronger one takes precedence and a
+    // player who declines it declines the better offer. The alternative — pay here and claw it back in
+    // `spendReroll` — is one line longer in two places and can drive a balance negative if the
+    // truguts are spent in between.
+    const salvaged = s.salvage && s.rerolls < 1
+        ? Math.floor(run.stake * config.salvageShare)
+        : 0;
+    if (salvaged > 0) moveTruguts({ transaction: 'd', amount: salvaged });
+    // The ledger takes the net, because these totals are *"literally the sum of the result lines"*
+    // and the line the player is shown says a quarter of it came back.
+    pstate.recordLost(s, patch, run.stake - salvaged);
+
     return {
         outcome: 'bust',
         reason,
         lostStake: run.stake,
         lostStanding: run.standing || 0,
+        salvaged,
         ladder: null,
         ended: res.ended || null,
     };
@@ -716,7 +743,7 @@ exports.weldCubes = function (ctx, { ids }) {
     const stop = pressReady(ctx);
     if (stop) return stop;
     if (s.pressTier < 1) return refuse('no_press', "You haven't taken the press off Watto's rack.");
-    if (s.points < 1) return refuse('no_points', 'You have no prestige points to spend.');
+    if (s.points < 1) return refuse('no_points', 'You have no build points to spend. A prestige pays one.');
     // **How many cubes go in is a tier, not a constant.** Two until The Third Cube is bought, and the
     // refusal names the number rather than saying "wrong" — a player who has not bought that rung has
     // no way to know it exists otherwise.
@@ -754,7 +781,7 @@ exports.rerollWeld = function (ctx, { id, paying = 'truguts' }) {
     const points = paying === 'points';
     const cost = points ? 0 : s.weldRerollCost;
     const balance = balanceOf(profile);
-    if (points && s.points < 1) return refuse('no_points', 'You have no prestige points to spend.');
+    if (points && s.points < 1) return refuse('no_points', 'You have no build points to spend. A prestige pays one.');
     if (!points && cost > balance) {
         return refuse('insufficient', `That costs ${cost} but you only have ${balance}.`, { cost, balance });
     }
@@ -834,7 +861,7 @@ exports.prestige = function (ctx) {
 // starts, so a cube unlocked halfway up could not join it anyway.
 exports.spendPoint = function (ctx, { reward }) {
     const { s, db, profile, profileRef, discordId } = ctx;
-    if (s.points < 1) return refuse('no_points', 'You have no prestige points to spend.');
+    if (s.points < 1) return refuse('no_points', 'You have no build points to spend. A prestige pays one.');
     if (persist.ladderOf(db, discordId)) return refuse('run_live', 'The rack is locked while a run is live.');
     const offered = pstate.rewardChoices(s).some(c => c.value === reward);
     if (!offered) return refuse('bad_reward', 'That is not on the rack.');
