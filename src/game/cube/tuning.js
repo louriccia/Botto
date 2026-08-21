@@ -1505,14 +1505,24 @@ exports.cube = {
     // that is what finally makes the ratio move. 40% before the throw does what 90% after it could not:
     //
     //     armShare   L1     L2     L3     L4     L5     armed   used
-    //     free      0.94   1.54   2.56   4.14   6.95      —      23%     ← what shipped
-    //     0.30      0.97   1.00   1.02   1.05   1.24     29%     13%
-    //     0.40      0.97   0.90   0.90   0.93   0.83     22%     10%     ← shipped
+    //     free      0.99   1.52   2.38   4.32   7.01      —      23%     ← what shipped
+    //     0.30      0.98   0.82   0.91   0.88   1.10     21%     10%
+    //     0.35      0.99   0.81   0.88   0.85   0.94     20%      9%     ← shipped
+    //     0.40      0.98   0.80   0.78   0.73   0.74     19%      9%
     //     none      0.94   0.96   0.79   0.76   0.60      —       —
     //
-    // Still worth owning — 0.90 against 0.79 at L3, armed on about one rung in five — and a sink at
-    // every stopping level. 0.33 was measured and rejected: it puts L5 at 0.98, on the line.
-    armShare: 0.40,
+    // **0.35 rather than 0.40, and the reason is the bottom row.** These are meant to be endgame picks
+    // worth having, not a tax with an animation — and against "never owned" a rack at 0.40 measures
+    // 0.78 against 0.79 at L3 and 0.74 against 0.60 at L5, which is a pick you buy out of habit. At 0.35
+    // it is 0.88 against 0.79 and 0.94 against 0.60: clearly worth owning at every depth, still a sink
+    // at every stopping level, and still armed on only about one rung in five.
+    //
+    // **0.30 was measured and it breaks.** L5 comes back 1.10 — marginal, and marginal is exactly what
+    // this whole initiative is about: the mode did not go to hundreds of billions on a big edge, it went
+    // there on a small one compounded a few thousand times at a stake pinned to the ceiling. The band
+    // between "worth owning" and "prints" is one notch of this dial wide, which is what the whole-number
+    // rounding costs and is worth knowing before anyone nudges it again.
+    armShare: 0.35,
     // **Never free, whatever the rounding says.** The price is whole mults (see `armPriceOf`) and 40%
     // of an opening standing rounds to less than one. The floor cannot bite in practice — Level 1 is a
     // single cube and every pick that needs a neighbour is already refused there — but a priced thing

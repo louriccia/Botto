@@ -554,10 +554,16 @@ exports.bankPayout = (stake, multiple) => Math.floor(stake * (Number(multiple) |
 // a whole number the board can print and never rounds away to free. At the nominal rungs that is:
 //
 //     standing   1.94   3.76   7.30   14.16   27.48
-//     price         1      2      3       6      11
+//     price         1      1      3       5      10
 //
 // Which reads in the unit the ladder already has: `againBonus` is 1, so the price is *how many Agains'
 // worth of climb this costs you*.
+//
+// **The effective rate wobbles and that is the cost of whole numbers.** Those prices are 52%, 27%, 41%,
+// 35% and 36% of what they are charged against, because rounding a small share of a small standing can
+// only land on 1. It is worth naming rather than smoothing: a rate that reads evenly on paper would
+// need fractional mults on the board, and the wobble is bounded, self-correcting and always upward at
+// the shallow end — which is the end a run passes through most often.
 const armPriceOf = function (multiple) {
     const m = Number(multiple) || 0;
     return Math.max(config.armFloor, Math.round(config.armShare * m));

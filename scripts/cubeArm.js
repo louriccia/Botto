@@ -107,9 +107,15 @@ console.log('  standing   armShare x it   charged   effective');
             + `   ${`${(100 * price / m).toFixed(0)}%`.padStart(9)}`);
     }
     // The table the notes in `tuning.js` and `engine.js` both quote. If this moves, those move.
-    const want = [1, 1, 2, 3, 6, 11];
-    eq('the shipped price ladder is 1 / 1 / 2 / 3 / 6 / 11',
+    const want = [1, 1, 1, 3, 5, 10];
+    eq('the shipped price ladder is 1 / 1 / 1 / 3 / 5 / 10',
         JSON.stringify(rungs.map(engine.armPriceOf)), JSON.stringify(want));
+    // **The picks have to be worth owning**, which is the whole reason the dial sits at 0.35 and not
+    // 0.40. Asserted as a property rather than a number: whatever the share is, a rung deep enough to
+    // matter must not cost more than about half of what it is charged against, or the pick is a tax.
+    ok('a deep arm costs well under half the standing',
+        engine.armPriceOf(LEVELS[4].payout) / LEVELS[4].payout < 0.45,
+        `${(100 * engine.armPriceOf(LEVELS[4].payout) / LEVELS[4].payout).toFixed(0)}% at L5`);
     ok('no price ever rounds away to free', rungs.every(m => engine.armPriceOf(m) >= config.armFloor));
     ok('every price is a whole number', rungs.every(m => Number.isInteger(engine.armPriceOf(m))));
     ok('a hot run pays more than a nominal one at the same rung',

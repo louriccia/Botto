@@ -162,13 +162,22 @@ what finally moves the ratio. 40% before the throw does what 90% after it could 
 | | L1 | L2 | L3 | L4 | L5 | armed | used |
 |---|---|---|---|---|---|---|---|
 | free (what shipped) | 0.99 | 1.52 | 2.38 | 4.32 | 7.01 | — | — |
-| **armed at `armShare` 0.40** | 0.97 | 0.85 | 0.80 | 0.73 | 0.67 | 18% | 8% |
+| `armShare` 0.30 | 0.98 | 0.82 | 0.91 | 0.88 | **1.10** | 21% | 10% |
+| **`armShare` 0.35** | 0.99 | 0.81 | 0.88 | 0.85 | 0.94 | 20% | 9% |
+| `armShare` 0.40 | 0.98 | 0.80 | 0.78 | 0.73 | 0.74 | 19% | 9% |
 | never owned | 0.94 | 0.96 | 0.79 | 0.76 | 0.60 | — | — |
 
 A sink at every stopping level, and the picks still turn up on about one rung in five.
 
+**0.35 rather than 0.40, read off the bottom row.** These are endgame picks and they are meant to be
+worth having: at 0.40 the rack measures 0.78 against 0.79 for never owning them at L3, which is a pick
+bought out of habit. At 0.35 it is 0.88 against 0.79, and 0.94 against 0.60 at L5. **0.30 breaks it** —
+L5 comes back 1.10, which is marginal, and marginal is the whole subject: the mode reached hundreds of
+billions on a small edge compounded a few thousand times at a stake pinned to the ceiling, not on a big
+one. The band between *worth owning* and *prints* is one notch of this dial wide.
+
 **The price is a share of what is standing, rounded to whole mults** — `max(armFloor, round(armShare
-× mult))`, which at the nominal rungs is **1 / 2 / 3 / 6 / 11**. Read in the unit the ladder already
+× mult))`, which at the nominal rungs is **1 / 1 / 3 / 5 / 10**. Read in the unit the ladder already
 has: `againBonus` is 1, so the price is *how many Agains' worth of climb this costs you*. It is a
 share rather than a per-rung table because the two come apart the moment a run goes hot — every
 paying face in the Gambler tree lifts the multiple off nominal, and a flat table would then sell the
