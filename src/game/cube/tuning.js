@@ -1470,6 +1470,83 @@ exports.cube = {
     // The player can always keep rolling; the game just stops pretending it is a good idea.
     levelStep: LEVEL_STEP,
     againBonus: 1,
+
+    // ---------------------------------------------------------------------------
+    // What Watto sells you mid-run, and why it is paid for in multiple
+    // ---------------------------------------------------------------------------
+    //
+    // Every pick that touches a live line — Premonition, the side bet, Swap, Scrap, Split — used to
+    // be **free and once a run**, and that pair of properties is what made the mode a faucet. Measured
+    // on a maxed rack banking at Level 3, the ladder prices correctly at **0.83** with none of them and
+    // ran at **2.29** with Scrap and Swap in hand. Neither cube nor pay table was the leak: an empty
+    // rack with the same picks measured *stronger* than a chosen eight.
+    //
+    // **The leak was information, not power.** `alterShown` fires on a line whose every face is already
+    // showing, so the pick is aimed at a known answer — and the commonest thing it is aimed at is the
+    // mine about to end the run. A line loses by exactly one about a third of the time, and the rack's
+    // wipeouts are on the table in plain sight. Four repairs were measured and all four failed:
+    //
+    //     scrapped line's tie goes to Watto        L3 2.21
+    //     nudgeLean 0.50 / 0.45 / 0.40             L3 2.21 / 2.27 / 2.13
+    //     Scrap may only take a cube that counts   L3 2.05
+    //     an edit re-throws the rest of the line   L3 2.15
+    //     levelStep down to 1.75                   L3 1.02, and 1.75 is keno
+    //
+    // **A price paid on use cannot work either, and the reason is the one that took the Pure Cube pot
+    // out of this file.** The pick is spent precisely when the run is about to die, so its value is the
+    // whole standing rescued from zero — and any price denominated in the run is a fraction of the very
+    // thing being rescued. Price and prize scale together and the ratio never moves. Measured: a toll on
+    // use needs **90%** before the mode is a sink, and the player still pays it on 37% of rungs. Sealing
+    // the ladder on use measured 2.14. There is no number in there.
+    //
+    // **So the price is paid before the reveal.** A pick is *armed* for the rung ahead, out of the
+    // multiple, before the cubes land — which prices the **option** rather than the rescue. The player
+    // is buying against a ~45% chance of needing it, wastes the premium more than half the time, and
+    // that is what finally makes the ratio move. 40% before the throw does what 90% after it could not:
+    //
+    //     armShare   L1     L2     L3     L4     L5     armed   used
+    //     free      0.94   1.54   2.56   4.14   6.95      —      23%     ← what shipped
+    //     0.30      0.97   1.00   1.02   1.05   1.24     29%     13%
+    //     0.40      0.97   0.90   0.90   0.93   0.83     22%     10%     ← shipped
+    //     none      0.94   0.96   0.79   0.76   0.60      —       —
+    //
+    // Still worth owning — 0.90 against 0.79 at L3, armed on about one rung in five — and a sink at
+    // every stopping level. 0.33 was measured and rejected: it puts L5 at 0.98, on the line.
+    armShare: 0.40,
+    // **Never free, whatever the rounding says.** The price is whole mults (see `armPriceOf`) and 40%
+    // of an opening standing rounds to less than one. The floor cannot bite in practice — Level 1 is a
+    // single cube and every pick that needs a neighbour is already refused there — but a priced thing
+    // that rounds to nothing is a bug waiting for a dial change.
+    armFloor: 1,
+    // **An arm is for one rung and expires unspent, and that is load-bearing rather than tidy.**
+    //
+    // Letting it carry until used is the same exploit wearing a different hat: one payment then covers
+    // every remaining rung, so the pick is bought at rung 2 — where 40% of 1.94 rounds to **1** — and
+    // exercised at rung 5, where it rescues a standing of 27. Buying early does cost more in final
+    // terms (7.30 against 6.00, because the deduction compounds through every rung after it), but that
+    // 22% premium does not touch a 3.6× coverage advantage.
+    //
+    // **And whole numbers remove the room to price around it.** Rounding pins the shallow rungs:
+    //
+    //     rate     price at rungs 2-5      carrying, measured L1-L5
+    //     40%      1 / 2 / 3 / 6           1.00 0.76 0.85 1.01 1.22   faucet
+    //     60%      1 / 2 / 4 / 8           0.96 0.80 0.84 0.95 1.04   borderline
+    //     80%      2 / 3 / 6 / 11          0.96 0.97 0.82 0.71 0.67   armed on 2% of rungs
+    //
+    // 40% and 60% charge the *same* 1 mult at the rung a carrying player buys on, and by the time the
+    // rate reaches the shallow price the pick is dead. There is no working number, so there is no carry.
+    armExpires: true,
+    // **The look, at a flat price rather than a share.** Premonition's value is roughly constant — one
+    // face, and the right to walk — where Scrap's scales with what is standing. So a flat 1 is 52% of an
+    // opening standing and 3.7% of an overtime one, which self-selects the look toward the deep rungs
+    // where the walk-away is worth having. Free and played well it measured a small faucet (L2 1.04
+    // against 0.84 for not owning it), so it does want a price; every level measures a sink at 1.
+    lookCost: 1,
+    // **The side bet's missing half.** `scripts/cubeSideBet.js` derives every price in `SIDE_BETS` as
+    // `1/p - 1` — the fair return on a **one-unit wager** — and nothing ever staked the unit, so each
+    // card was a free option worth `price x p` on top of the rung. This is that unit. Whole, flat, and
+    // in the same currency as everything else on this list.
+    betAnte: 1,
     // What an Again is worth **past Level 5**, where there are no levels left to double it.
     //
     // At the ordinary `againBonus` an overtime push buys +1 against a base of 32 or more — marginal

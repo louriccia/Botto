@@ -116,6 +116,97 @@ check that the property still holds.
 
 `CUBE_LEAN_SALT` is no longer read by anything and can come out of the environment, Heroku included.
 
+### 2.1b The picks are armed, and the price is what makes them one
+
+**Everything Watto sells inside a run is paid for out of the multiple, in whole mults, before the
+cubes land.** Premonition, the side bet, Swap, Scrap and Split are all bought the same way and all
+expire with the rung they were bought for.
+
+This replaced *free and once a run*, and that pair of properties is what made the mode a faucet a
+second time — the first being the lean above. Measured on a maxed rack banking at Level 3, the ladder
+prices correctly at **0.83** with none of the picks in hand and ran at **2.29** with Scrap and Swap.
+It is worth being precise about what was wrong, because four plausible repairs all failed:
+
+| repair | L3 |
+|---|---|
+| a scrapped line's tie goes to Watto | 2.21 |
+| `nudgeLean` 0.50 / 0.45 / 0.40 | 2.21 / 2.27 / 2.13 |
+| Scrap may only take a cube that counts | 2.05 |
+| an edit re-throws the rest of the line | 2.15 |
+| `levelStep` down to 1.75 | 1.02, and 1.75 is keno |
+
+**The leak was information, not power.** `alterShown` fires on a line whose every face is already
+showing, so the pick is aimed at a known answer — most often the mine about to end the run. Neither
+the cubes nor the pay table were the cause: an empty rack with the same picks measured *stronger*
+than a chosen eight, because a rack full of wipeouts is a rack full of scrap targets.
+
+**A price paid on use cannot fix it, and the reason is the one that took the Pure Cube pot out.** The
+pick is spent precisely when the run is about to die, so its value is the whole standing rescued from
+zero — and any price denominated in the run is a fraction of the very thing being rescued. Price and
+prize scale together and the ratio never moves:
+
+| a toll charged when the pick is used | L3 | still used on |
+|---|---|---|
+| 25% of the standing | 1.91 | 45% of rungs |
+| 48% — one whole rung of climb | 1.44 | 38% |
+| 70% | 1.19 | 38% |
+| 90% | 1.01 | 37% |
+
+Ninety per cent barely deters it, because 10% of something still beats 100% of nothing. Sealing the
+ladder on use — survive this rung, then you must bank — measured 2.14.
+
+**So the price is paid before the reveal.** Arming buys an *option* rather than a rescue: the player
+pays against a ~45% chance of needing it and wastes the premium more than half the time, and that is
+what finally moves the ratio. 40% before the throw does what 90% after it could not.
+
+| | L1 | L2 | L3 | L4 | L5 | armed | used |
+|---|---|---|---|---|---|---|---|
+| free (what shipped) | 0.99 | 1.52 | 2.38 | 4.32 | 7.01 | — | — |
+| **armed at `armShare` 0.40** | 0.97 | 0.85 | 0.80 | 0.73 | 0.67 | 18% | 8% |
+| never owned | 0.94 | 0.96 | 0.79 | 0.76 | 0.60 | — | — |
+
+A sink at every stopping level, and the picks still turn up on about one rung in five.
+
+**The price is a share of what is standing, rounded to whole mults** — `max(armFloor, round(armShare
+× mult))`, which at the nominal rungs is **1 / 2 / 3 / 6 / 11**. Read in the unit the ladder already
+has: `againBonus` is 1, so the price is *how many Agains' worth of climb this costs you*. It is a
+share rather than a per-rung table because the two come apart the moment a run goes hot — every
+paying face in the Gambler tree lifts the multiple off nominal, and a flat table would then sell the
+pick at a discount exactly when it is worth most. That is the mirror of the `pointValue` argument.
+
+**An arm is for one rung and expires unspent.** Letting it carry is the same exploit in a different
+hat: one payment covers every remaining rung, so the pick is bought at rung 2 — where 40% of 1.94
+rounds to **1** — and exercised at rung 5, where it rescues a standing of 27. Buying early *does*
+cost more in final terms (7.30 against 6.00, because the deduction compounds through every rung after
+it), but that 22% premium does not touch a 3.6× coverage advantage. And whole numbers leave no room
+to price around it: 40% and 60% charge the same 1 mult at the rung a carrying player buys on, and by
+80% — the first rate that moves it — the pick is armed on 2% of rungs and effectively gone.
+
+Two rules came off with the same measurement. There is **no cap** beyond the purse: all three can be
+armed on one rung if the standing carries all three, because rationing is what a free thing needs.
+And there is **no clock** on the hold: arming settles the *whether* before the throw, leaving the
+hold asking only where to point it, which is not a question worth racing. Allowing a scrap and a swap
+on one line measured 0.96 / 0.90 / 0.85 / 0.93 against 0.95 / 0.93 / 0.94 / 0.82 for one-only — inside
+the error bar.
+
+The flat prices are their own argument. `lookCost` is flat because Premonition's value is roughly
+constant — one face, and the right to walk — where Scrap's scales with the standing; at 1 mult it is
+52% of an opening standing and 3.7% of an overtime one, which self-selects the look toward the deep
+rungs where walking away is worth something. Free and played well it measured a small faucet (L2 1.04
+against 0.84 for not owning it). `betAnte` is the side bet's missing half: `scripts/cubeSideBet.js`
+derives every price in `SIDE_BETS` as `1/p - 1`, the fair return on a **one-unit wager**, and nothing
+ever staked the unit — so each card was a free option worth `price × p` on top of the rung.
+
+**You always bank exactly what you are standing on.** A purchase reduces the standing, and the
+previous rung's bank offer is unaffected only because it was declined before anything was bought. The
+one place this is visible is the look: Premonition can still be walked away from, and walking banks
+the *reduced* standing — which is what makes the look cost something rather than being a free abort.
+
+`scripts/cubeArm.js` asserts the whole sequence: the price ladder, that a pick cannot be armed against
+a called line, that a spent one comes off, that an unspent one expires at the settlement, and that the
+price on the board is the price the server charges.
+
+
 ### 2.2 How a roll plays back
 
 The controls come off and every cube goes face-down. Then they turn over **one at a time**, and the

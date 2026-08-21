@@ -81,6 +81,29 @@ const boardOf = function (ctx, req) {
             .map(b => ({
                 id: b.id, band: b.band, price: b.price, say: b.say,
             })),
+        // **What everything Watto sells costs on this rung, already worked out.** The rules are on
+        // `/tuning` and the client could round them itself, but two roundings are two prices — and the
+        // one on the button has to be the one the server will actually charge or the standing jumps
+        // when it is pressed. So the arithmetic is done once, here, against the live multiple.
+        //
+        // `armed` rides beside them because the pair is one question on screen: what is already bought
+        // for this rung, and what the rest would cost. Null between runs, where nothing is for sale.
+        prices: live ? {
+            arm: engine.armPriceOf(live.mult),
+            look: engine.lookPriceOf(),
+            bet: engine.betPriceOf(),
+            // Which of the three are paid up for the rung ahead. Cleared by every settlement, so a
+            // board drawn between rungs shows an empty set even if the last rung was fully armed.
+            armed: {
+                scrap: !!(live.armed || {}).scrap,
+                swap: !!(live.armed || {}).swap,
+                split: !!(live.armed || {}).split,
+            },
+            // Whether the standing can carry one more purchase at all. `spendMultiple` refuses a price
+            // that would leave nothing behind, and a button that offers a refusal is a bug on screen.
+            canAfford: (Number(live.mult) || 0) > engine.armPriceOf(live.mult),
+            canLook: (Number(live.mult) || 0) > engine.lookPriceOf(),
+        } : null,
         // **A roll stopped with the cubes down, for a board that has just re-mounted.** Sent for the
         // same reason `seen` is: the hold is a state of the *run*, not of the frame it was drawn in,
         // and a client that could only learn about it from the answer to its own `/roll` came back
@@ -385,8 +408,9 @@ module.exports = function mountCube(app, ctx) {
             // the one question the player has no way to answer. Held, they see the roll and then
             // choose; `Roll on` is the answer when there is nothing worth doing, which is most rungs.
             //
-            // `holdRoll` refuses when neither pick is owned or both are spent, and that refusal is the
-            // ordinary path rather than an error: it means this roll simply settles.
+            // `holdRoll` refuses when nothing was armed for this rung, and that refusal is the ordinary
+            // path rather than an error: it means this roll simply settles. Since arming is a purchase
+            // made before the call, most rolls take it.
             {
                 const run = parked ? { ...parked.run, call } : opened.run;
                 const out = actions.holdRoll(ctx, run, parked);
@@ -395,10 +419,14 @@ module.exports = function mountCube(app, ctx) {
                     return res.json({ ...out, board: boardOf(ctx, req) });
                 }
                 // **Every one of these means "this roll simply settles", not "something went wrong".**
-                // Neither pick owned, both spent, no ladder yet because this is the run's opening
-                // roll, or a rung too short to change. Anything else is a genuine refusal and is
-                // handed back.
-                const settles = ['not_owned', 'spent', 'no_run', 'too_few'];
+                // Nothing armed for the rung, no pick owned at all, no ladder yet because this is the
+                // run's opening roll, or a rung too short to change. Anything else is a genuine refusal
+                // and is handed back.
+                //
+                // `unarmed` is the common one now and it is the whole point of the change: a player who
+                // bought nothing for this rung gets the plain roll they used to get before any of these
+                // picks existed. `spent` is kept for a client mid-flight across the deploy.
+                const settles = ['unarmed', 'not_owned', 'spent', 'no_run', 'too_few'];
                 if (!settles.includes(out.code)) return refused(res, out);
             }
 
@@ -496,7 +524,21 @@ module.exports = function mountCube(app, ctx) {
         }
     });
 
-    // Naming one of the three, or taking the name back. Free and reversible until the cubes are down.
+    // **Buying a pick for the rung ahead, out of the standing.** One route for all three because they
+    // are one moment and one price — see `arm` in `actions.js`, and `armShare` in `tuning.js` for why
+    // the price is here rather than on the pick's use.
+    //
+    // Rated with the calls rather than with the shop: a player deciding rung by rung will touch this as
+    // often as they touch `/roll`, and three picks a rung is three requests.
+    app.post('/arm', auth, rateLimit({ perMinute: 60 }), (req, res) => {
+        const rctx = ctxOf(req);
+        const pick = typeof req.body?.pick === 'string' ? req.body.pick : null;
+        const out = actions.arm(rctx, { pick });
+        if (!out.ok) return refused(res, out);
+        return res.json({ ...out, board: boardOf(rctx, req) });
+    });
+
+    // Naming one of the three, or taking the name back. The ante moves with the name; see `placeBet`.
     app.post('/sidebet', auth, rateLimit({ perMinute: 60 }), (req, res) => {
         const rctx = ctxOf(req);
         const id = typeof req.body?.id === 'string' ? req.body.id : null;

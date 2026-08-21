@@ -321,11 +321,42 @@ const check = function (name, ok, detail) {
         stake: 1000, standing: 4000, level: 1, again: 0, call: 'blue', mult: 0, spent: [],
         set: [0, 0, 0], bag: [0, 0], jail: [], hold: [], rungs: 1, locked: false, sealed: null,
     };
+    // **Owning the pick is no longer what stops the roll — arming it is.** So the unarmed case is
+    // checked first, because it is the common one and it is the whole shape of the change: a player
+    // who bought nothing for this rung gets the plain roll they always used to get.
+    r = await call('POST', '/cube/roll', { auth: t, body: { call: 'blue' } });
+    check('an unarmed roll settles rather than holding',
+        r.status === 200 && !r.json?.held, `${r.status} ${r.text}`);
+
+    // Put the same rung back and buy the pick this time.
+    db.ch.cube.ladders['d-KEY'] = {
+        stake: 1000, standing: 4000, level: 1, again: 0, call: 'blue', mult: 4, spent: [],
+        set: [0, 0, 0], bag: [0, 0], jail: [], hold: [], rungs: 1, locked: false, sealed: null,
+    };
+    r = await call('POST', '/cube/arm', { auth: t, body: { pick: 'swap' } });
+    const armed = r.json;
+    check('a pick can be armed over the wire',
+        r.status === 200 && armed?.armed?.swap === true, `${r.status} ${r.text}`);
+    check('and it charges whole mults off the standing',
+        Number.isInteger(armed?.paid) && armed.paid > 0 && armed.standing < 4000,
+        JSON.stringify({ paid: armed?.paid, standing: armed?.standing }));
+    check('the board quotes the price it will charge next',
+        typeof armed?.price === 'number', JSON.stringify(armed?.price));
+
+    r = await call('GET', '/cube/state', { auth: t });
+    check('a reloaded board knows what is armed',
+        r.json?.prices?.armed?.swap === true, JSON.stringify(r.json?.prices));
+
     r = await call('POST', '/cube/roll', { auth: t, body: { call: 'blue' } });
     const heldRoll = r.json;
-    check('a roll with a pick to spend stops with the cubes down',
+    check('a roll with a pick armed stops with the cubes down',
         r.status === 200 && heldRoll?.held === true && Array.isArray(heldRoll?.faces),
         `${r.status} ${r.text}`);
+    // Asked with `swap` rather than a pick this player does not own: `arm` refuses `not_owned` before
+    // it ever reads the ladder, so an unowned pick would pass this for the wrong reason.
+    r = await call('POST', '/cube/arm', { auth: t, body: { pick: 'swap' } });
+    check('and a pick cannot be armed once the line is called',
+        r.status === 409 && r.json?.code === 'roll_live', `${r.status} ${r.text}`);
     if (heldRoll?.held) {
         r = await call('GET', '/cube/state', { auth: t });
         check('a reloaded board is handed the hold back',

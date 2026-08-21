@@ -535,6 +535,54 @@ exports.multSteps = function (start, pays, side) {
 exports.bankPayout = (stake, multiple) => Math.floor(stake * (Number(multiple) || 0));
 
 // ---------------------------------------------------------------------------
+// What a pick costs, mid-run
+// ---------------------------------------------------------------------------
+
+// **The price of arming one pick for the rung ahead, in whole mults.** See `armShare` in `tuning.js`
+// for why the price exists at all and why it is paid before the throw rather than on use.
+//
+// **A share of what is actually standing, rounded — not a table per rung.** The two measure the same
+// on a nominal ladder (L3 0.86 against 0.90) and come apart the moment a run goes hot: every paying
+// face in the Gambler tree lifts the multiple off nominal, and a fixed table would then sell the pick
+// at a discount exactly when it is worth most. That is the mirror of the argument at `pointValue` —
+// a flat sum against a scaling standing always favours one end of the range. It is also the safer
+// shape to own: a table has to be keyed to something, and keying an early draft to the rung's *payout*
+// rather than the multiple being *stood on* dropped usage from 22% of rungs to 6% and made the pick
+// worse than never buying it. A share cannot be mis-keyed.
+//
+// Rounded rather than floored, and floored at `armFloor` rather than at zero, so the price is always
+// a whole number the board can print and never rounds away to free. At the nominal rungs that is:
+//
+//     standing   1.94   3.76   7.30   14.16   27.48
+//     price         1      2      3       6      11
+//
+// Which reads in the unit the ladder already has: `againBonus` is 1, so the price is *how many Agains'
+// worth of climb this costs you*.
+const armPriceOf = function (multiple) {
+    const m = Number(multiple) || 0;
+    return Math.max(config.armFloor, Math.round(config.armShare * m));
+};
+exports.armPriceOf = armPriceOf;
+
+// The flat prices, beside the scaling one so all four are read in the same place.
+exports.lookPriceOf = () => config.lookCost;
+exports.betPriceOf = () => config.betAnte;
+
+// **Taking a price out of a live run.** The multiple is the run's currency, so a purchase is a
+// subtraction from it and the standing is re-derived — never the other way round, or the two drift by
+// a rounding step and the board shows a number the bank will not honour.
+//
+// Refuses to leave nothing behind: a spend has to keep the multiple strictly positive, because a run
+// standing on zero pays zero at every rung after it and is a dead thing still holding a button.
+exports.spendMultiple = function (stake, multiple, price) {
+    const m = Number(multiple) || 0;
+    const p = Number(price) || 0;
+    if (!(p > 0) || p >= m) return null;
+    const left = m - p;
+    return { mult: left, standing: exports.bankPayout(stake, left), paid: p };
+};
+
+// ---------------------------------------------------------------------------
 // The multiple
 // ---------------------------------------------------------------------------
 //
