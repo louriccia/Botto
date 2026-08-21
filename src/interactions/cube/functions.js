@@ -362,21 +362,21 @@ exports.openedLine = idx =>
 // rather than another level.
 exports.nextUnlockLine = function (s) {
     if (canPrestige(s)) {
-        return `${PRESTIGE} **Prestige ${s.prestige + 1} is ready** — start the road over for a **${tg(maxStakeFor(s.prestige + 1))}** max stake and a **Prestige Point** to spend off Watto's rack.`;
+        return `${PRESTIGE} **Prestige ${s.prestige + 1} is ready** — start the road over for a **${tg(maxStakeFor(s.prestige + 1))}** max stake and a **Build Token** to spend off Watto's rack.`;
     }
     const next = LEVELS[s.unlocked + 1];
     if (next) {
         const left = Math.max(0, gapSize(s) - s.clears);
         return `**${left}** more ${left === 1 ? 'Again' : 'Agains'} and ${next.emoji} **Level ${s.unlocked + 2} · ${next.name}** opens — **${next.cubes} cubes** on the table.`;
     }
-    return `${PRESTIGE} Survive **${TOP_NAME}** to earn **Prestige ${s.prestige + 1}** — ${config.maxStakeStep}× stakes and a **Prestige Point**.`;
+    return `${PRESTIGE} Survive **${TOP_NAME}** to earn **Prestige ${s.prestige + 1}** — ${config.maxStakeStep}× stakes and a **Build Token**.`;
 };
 
 // Points banked and not yet spent. Its own line rather than a clause on the prestige one, because
 // the two stopped being the same event: a point is earned at the top of the ladder and spent on the
 // rack whenever the player gets round to it.
 exports.pointsLine = s => (s.points > 0
-    ? `${PRESTIGE} **${s.points} Prestige Point${s.points === 1 ? '' : 's'}** unspent — open the rack to cash ${s.points === 1 ? 'it' : 'them'} in.`
+    ? `${PRESTIGE} **${s.points} Build Token${s.points === 1 ? '' : 's'}** unspent — open the rack to cash ${s.points === 1 ? 'it' : 'them'} in.`
     : null);
 
 // Badged the same way records are badged everywhere else in the bot — appended to the value
@@ -530,7 +530,7 @@ const loadoutFields = function (s) {
                 // Above the rack itself, because an unspent point is the one thing on this field
                 // that is waiting on the player rather than just reporting to them.
                 s.points > 0
-                    ? `${PRESTIGE} **${s.points} Prestige Point${s.points === 1 ? '' : 's'}** to spend on the rack`
+                    ? `${PRESTIGE} **${s.points} Build Token${s.points === 1 ? '' : 's'}** to spend on the rack`
                     : null,
                 s.equipped.length
                     ? line(s.equipped)
@@ -906,7 +906,7 @@ exports.prestigeEmbed = function (s) {
             '',
             `In exchange, every roll from here can carry ${config.maxStakeStep} times as much: max stake **${tg(maxStakeFor(next))}**, up from ${tg(s.maxStake)}.`,
             '',
-            `And you bank a **Prestige Point**${s.points > 0 ? ` — you would have **${s.points + 1}**` : ''}. Spend it on the rack, whenever: a **special cube** that rolls itself into your line from here on, the right to **buy rerolls**, or a way to survive a **tie**. Points keep, so there is nothing to decide now.`,
+            `And you bank a **Build Token**${s.points > 0 ? ` — you would have **${s.points + 1}**` : ''}. Spend it on the rack, whenever: a **special cube** that rolls itself into your line from here on, the right to **buy rerolls**, or a way to survive a **tie**. Tokens keep, so there is nothing to decide now.`,
         ].join('\n'));
 };
 
@@ -967,7 +967,7 @@ exports.loadoutEmbed = function (s) {
     // act on that isn't already in front of them, and a point they can't see is a point they forget
     // they have.
     const banked = s.points > 0 ? [
-        `${PRESTIGE} **${s.points} Prestige Point${s.points === 1 ? '' : 's'}** to spend — pick from `
+        `${PRESTIGE} **${s.points} Build Token${s.points === 1 ? '' : 's'}** to spend — pick from `
         + '**Unlock** below. A cube, the right to buy rerolls, or a tie pick.',
         // Said **before** the point is spent, not after. A cube bought with the table full is owned
         // and benched, which is the right outcome — fielding it would have to throw off a cube the

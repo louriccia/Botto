@@ -1,0 +1,204 @@
+{
+  "takenAt": "2026-08-19T12:56:53.998Z",
+  "discordId": "256236315144749059",
+  "userKey": "-N8PFNb3Bmoi7zfk_cP4",
+  "name": "LightningPirate",
+  "cube": {
+    "bestAt": {
+      "cubes": 1786976830434,
+      "multiple": 1786887999378,
+      "streak": 1786891318914
+    },
+    "bestCubes": 37,
+    "bestLevel": 4,
+    "bestMultiple": 49.3836408224,
+    "bestStanding": 4237475174,
+    "bestStreak": 9,
+    "bribes": 0,
+    "calls": {
+      "blue": 187,
+      "red": 3553
+    },
+    "clears": 2,
+    "cold": 0,
+    "coldest": 7,
+    "cubes": {
+      "binder": true,
+      "greed": true,
+      "gungan": true,
+      "mirror": true,
+      "octahedron": true,
+      "pitdroid": true,
+      "reroll": true,
+      "scavenger": true,
+      "sebulba": true,
+      "shmi": true,
+      "shortcut": true,
+      "symbiont": true,
+      "wild": true
+    },
+    "equipped": [
+      "mirror",
+      "binder",
+      "symbiont",
+      "gungan",
+      "pitdroid",
+      "scavenger",
+      "wild",
+      "greed"
+    ],
+    "faces": {
+      "binder": {
+        "burn": 249,
+        "clone": 269
+      },
+      "greed": {
+        "end": 55,
+        "greed": 261
+      },
+      "gungan": {
+        "shield": 415
+      },
+      "mirror": {
+        "invert": 133,
+        "mirror": 143
+      },
+      "pitdroid": {
+        "draw": 77,
+        "purge": 10
+      },
+      "reroll": {
+        "broken": 58,
+        "end": 27,
+        "reroll": 94
+      },
+      "scavenger": {
+        "broken": 11,
+        "haul": 23,
+        "scavenge": 18
+      },
+      "sebulba": {
+        "broken": 144,
+        "engine:left": 150,
+        "engine:right": 154
+      },
+      "shmi": {
+        "broken": 67,
+        "side:blue": 77,
+        "side:red": 286
+      },
+      "shortcut": {
+        "end": 23,
+        "shortcut": 136
+      },
+      "symbiont": {
+        "cull": 48,
+        "pair": 92,
+        "raze": 45,
+        "twins": 99
+      },
+      "wild": {
+        "end": 107,
+        "wild": 526
+      }
+    },
+    "month": {
+      "at": {
+        "cubes": 1786976830434,
+        "multiple": 1786887999378,
+        "streak": 1786891318914
+      },
+      "cubes": 37,
+      "id": "2026-08",
+      "multiple": 49.3836408224,
+      "streak": 9
+    },
+    "nudge": true,
+    "points": 0,
+    "premonition": true,
+    "pressTier": 1,
+    "prestige": 18,
+    "rerolls": 0,
+    "rolled": {
+      "blue": 2750,
+      "red": 3651
+    },
+    "salvage": true,
+    "scrap": true,
+    "shuffle": true,
+    "stake": 262144000,
+    "streak": 6,
+    "ties": {
+      "blue": 135,
+      "boonta": 0,
+      "bribed": 0,
+      "lostBlue": 129,
+      "lostRed": 6,
+      "red": 138,
+      "rolled": 273,
+      "total": 273,
+      "won": 138,
+      "wonBlue": 6,
+      "wonRed": 132
+    },
+    "totalLost": 3849698576,
+    "totalWon": 13424592971,
+    "unlocked": 3,
+    "week": {
+      "at": {
+        "cubes": 1786976830434,
+        "multiple": 1786977152862,
+        "streak": 1787078295843
+      },
+      "cubes": 37,
+      "id": "2026-34",
+      "multiple": 40.831980822400006,
+      "streak": 9
+    },
+    "wins": {
+      "blue": 89,
+      "red": 1890
+    }
+  },
+  "trugutsEarned": 14644726749,
+  "trugutsSpent": 5331862279,
+  "ladder": {
+    "again": 0,
+    "bag": [
+      "binder",
+      "greed",
+      "wild",
+      "gungan",
+      "symbiont"
+    ],
+    "call": "red",
+    "faces": [
+      "haul",
+      "draw",
+      "invert"
+    ],
+    "hold": [
+      {
+        "hauled": true,
+        "id": 0
+      }
+    ],
+    "level": 1,
+    "locked": false,
+    "mult": 3.7636,
+    "rungs": 2,
+    "saw": false,
+    "scrapped": false,
+    "set": [
+      "scavenger",
+      "pitdroid",
+      "mirror",
+      0
+    ],
+    "split": false,
+    "stake": 262144000,
+    "standing": 986605158,
+    "swapped": false,
+    "updated": 1787141418771
+  }
+}

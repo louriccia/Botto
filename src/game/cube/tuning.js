@@ -285,15 +285,51 @@ const rep = (n, face) => Array.from({ length: n }, () => face);
 // Carry-over already charges what the second face was there to charge, in a harsher currency. So
 // the rule is one face each, and the thing that stops these two being free money is now the number
 // of levels they have to survive rather than the number of ways they can fail.
+//
+// **This is a floor, not an invariant, and the Wild Cube is the measured exception.** The reasoning
+// above was derived from two cubes sitting at 0.32 EV — it says a second Ratts is ruinous *for a
+// cube that is already marginal*, which is a claim about that regime and not about every cube. The
+// Wild was never in it: it carries the only guaranteed vote in the game, and a guaranteed vote is
+// worth more than any downside face can price. At two mines it still measures 1.139 EV fielded
+// alone, comfortably above the 1.0 the rule exists to keep cubes clear of, and above what most of
+// the rack manages with one. See the note on the cube itself for what the second face is buying.
 const END = { kind: 'end', id: 'end' };
 // Wipeout. Does nothing to this roll and takes the cube off the table for the rest of the climb.
 const BROKEN = { kind: 'broken', id: 'broken' };
 
 exports.SPECIALS = [
     {
+        // **The only guaranteed vote in the game, and the reason it costs two mines.**
+        //
+        // A rung pays `levelStep` 1.94 against a fair 2.000, so a rung is worth taking at any
+        // `P(win) > 0.5155`. A wild does not nudge that number, it removes a cube from the coin flip
+        // and hands the position to the player outright — which is majority-of-N amplification, the
+        // exact property `dayLean` was deleted for, except the player owns it and it never rotates:
+        //
+        //     level  cubes   fair    +1 wild   +2 wilds   +3 wilds
+        //     L3       5    0.5000   0.6875     0.8750     1.0000
+        //     L5       9    0.5000   0.6367     0.7734     0.8906
+        //
+        // Every one of those is 23–33% clear of break-even, on a ladder that compounds five times —
+        // and because the set carries over, a wild drawn at Level 1 is standing on the line for the
+        // whole climb. At five faces this was the single largest term in the mode: dropping it from a
+        // hand-picked eight took 92% of the rack's log-growth with it, and a best-of-breed eight
+        // measured **4.10 EV a run**, which is a purse doubling every few dozen rolls at any stake
+        // fraction a player cares to pick. No `levelStep` reaches that — 1.75 prices this rack at 40×
+        // an evening and has the *empty* rack bleeding, which is the wrong player to charge.
+        //
+        // So the fix is on the cube. Four wild faces and two Ratts, measured at 150k climbs a cell:
+        //
+        //     faces                     best-of-breed 8   wild alone   empty rack
+        //     5 wild + 1 mine (was)        4.095 EV          1.428        1.126
+        //     4 wild + 1 mine + 1 wipe     2.398 EV          1.247        1.122
+        //     4 wild + 2 mines             1.829 EV          1.139        1.131   ← shipped
+        //
+        // The empty rack does not move in any row, which is the whole argument for fixing this here
+        // rather than in the pay table.
         id: 'wild', name: 'Wild Cube',
-        blurb: 'Five faces land on the side you called. One ends the run.',
-        faces: [...rep(5, { kind: 'wild', id: 'wild' }), END],
+        blurb: 'Four faces land on the side you called. Two end the run.',
+        faces: [...rep(4, { kind: 'wild', id: 'wild' }), END, END],
     },
     {
         id: 'greed', name: 'Greed Cube',
@@ -431,10 +467,56 @@ exports.SPECIALS = [
         // the roll — and it now comes up as one of its own other faces and takes a turn with it. Every
         // number here is therefore a floor rather than a measurement, and by the most on the racks the
         // last column is about: what a saved Multiplier or Reroll Cube is worth is the whole difference.
+        //
+        // ---------------------------------------------------------------------
+        // **The sweep above is superseded, and this is what it missed.**
+        // ---------------------------------------------------------------------
+        //
+        // Every row of it prices the cube by what it *rescues*, which is the right question for one
+        // cube and the wrong one for a rack. What a six-face shield with no downside on it actually
+        // does is **delete the price of every mine-carrying cube in the game** — Wild, Greed,
+        // Shortcut and Guide are each balanced by exactly one Ratts face, and this cube is a
+        // permanent, unbreakable, six-in-six answer to all of them at once. It is not a defensive
+        // cube in the rack it matters in; it is the enabler that lets four paying cubes be fielded
+        // without the thing that pays for them.
+        //
+        // That reads straight off a drop-one: on the hand-picked eight the Gungan carried **70% of
+        // the rack's log-growth**, second only to the Wild's 92% and ahead of every cube that
+        // actually pays. A cube whose blurb is "stops a mine" has no business being the second
+        // largest term in the mode's economy.
+        //
+        // So it takes a price of its own, in both currencies: a Ratts, so that the answer to every
+        // mine on the rack carries one itself, and a wipeout, so that the answer is not permanent.
+        // Re-swept with the Wild's own re-cut in place, 120k climbs a cell, against a best-of-breed
+        // eight measured **without** the Gungan at 1.431 EV — so the last column is what the slot
+        // itself is worth, which is the number the original sweep never asked for:
+        //
+        //     gungan faces              best-of-breed 8   the slot is worth
+        //     6 shield (was)               2.832 EV            +97.9%
+        //     5 shield + 1 wipeout         2.593 EV            +81.1%
+        //     4 shield + 2 wipeout         2.449 EV            +71.1%      ← the old sweep's floor
+        //     5 shield + 1 mine            1.924 EV            +34.4%
+        //     4 shield + mine + wipeout    1.790 EV            +25.1%      ← shipped
+        //
+        // **The mine is the load-bearing half and the wipeout is not a substitute for it.** Every
+        // configuration the old sweep considered varied only the shield count, and the whole of that
+        // axis is worth 27 points where a single Ratts is worth 64. Taking shields off leaves the
+        // cube free at the door — it still answers every mine on the rack for the levels it survives,
+        // and answering them is the whole of what the slot is being paid for.
+        //
+        // +25% is the target rather than zero, and deliberately so: this is still the second-best
+        // cube in the game and should still read as a prize. What it is no longer is the second
+        // largest term in the mode's economy.
+        //
+        // **It does not become a trap, and the first draft of this note wrongly said it might.** A
+        // small mine-heavy rack — Greed + Shortcut + Wild — does measure worse with the Gungan added
+        // than without it, but it measures worse at **six** shields too (1.003 against 1.017), so
+        // that is a property of spending a bag seat on a cube that casts no vote and not of anything
+        // changed here. Comparing racks of different sizes is what produces the false reading.
         id: 'gungan', name: 'Gungan Shield Cube',
-        blurb: 'Stops a mine on its own side of the line. A neighbour that wipes out holds '
-            + 'together and throws again.',
-        faces: rep(6, { kind: 'shield', id: 'shield' }),
+        blurb: 'Four faces stop a mine on their own side of the line, and hold a neighbour that '
+            + 'wipes out together. One shatters. One ends the run.',
+        faces: [...rep(4, { kind: 'shield', id: 'shield' }), END, BROKEN],
     },
     {
         // Tempo, not size. Every cube it hands you comes off the **bag**, and the bag is the whole of
@@ -679,11 +761,111 @@ exports.SPECIALS = [
 ];
 
 // ---------------------------------------------------------------------------
+// Watto's book
+// ---------------------------------------------------------------------------
+//
+// A side bet names an **event** rather than an outcome — a cube gets copied, Ben razes a neighbour, a
+// shield holds — and adds its price to the rung's multiple if it happens. Every one of those events is
+// already a note the engine emits, so a proposition is a predicate over a resolved roll and nothing
+// more.
+//
+// **Added, never multiplied.** `cubePoints.js` measured why and the finding governs this table too: a
+// bonus that doesn't compound shrinks against a doubling multiple on its own, so a fixed price cannot
+// run away from a rack built to farm it. Multiplied, one player specialising in one row would break
+// the mode.
+//
+// **One price per proposition, at every level, and that is deliberate.** Hit rates roughly triple from
+// Level 2 to Level 5 — so a flat price looks like it should favour betting late. It does not, because
+// an added bonus at rung 2 is multiplied by three more levels (`1.94³ ≈ 7.3`) and the rate only
+// improves by 1.1× to 4.8× over the same stretch. Measured, betting early is worth 1.5× to 6.5× more:
+//
+//     proposition            L2      L5    rate    ladder   early wins by
+//     a cube gets copied    4.9%   23.4%   4.8×     7.3×       1.5×
+//     a cube gets burned    9.1%   28.1%   3.1×     7.3×       2.4×
+//     the line gets longer 31.3%   35.2%   1.1×     7.3×       6.5×
+//
+// So the interesting decision — bet early into a short line for a bonus that compounds, or late into a
+// thick one for a bonus that barely does — falls out of the ladder rather than being tuned in, and the
+// book needs no per-level column.
+//
+// **Level 1 is not in the table because nothing can happen on it.** One cube is no interactions at all:
+// every proposition measures 0.0% there. The book opens from the rung that has a neighbour on it.
+//
+// `band` is what the three-card draw takes one of each from, `needs` is the face kinds a rack must be
+// able to produce for the bet to be offered at all, and `price` is the L3 fair value with about 15%
+// shaved off. See `scripts/cubeSideBet.js`, which is where all of these came from.
+exports.SIDE_BETS = [
+    // Likely — 17-23% on a rack that can do them at all.
+    {
+        id: 'broken', band: 'likely', price: 3, say: 'A cube shatters',
+        needs: ['broken'], hit: r => r.notes.some(n => n.kind === 'broken'),
+    },
+    {
+        id: 'invert', band: 'likely', price: 3, say: 'The line flips',
+        needs: ['invert'], hit: r => r.notes.some(n => n.kind === 'invert'),
+    },
+    {
+        // The Gambler reading itself: every paying face in that tree is sideless, so the tree that
+        // sells this bet is the one that manufactures the thing it is betting on.
+        id: 'tie', band: 'likely', price: 3, say: 'Nobody wins the line',
+        needs: null, hit: r => !r.ended && !!r.faceIds.length && !r.majority,
+    },
+    {
+        id: 'burn', band: 'likely', price: 4, say: 'A cube gets burned',
+        needs: ['burn'], hit: r => r.notes.some(n => n.kind === 'burn'),
+    },
+    // Middle — 12-17%.
+    {
+        id: 'mirror', band: 'middle', price: 4, say: 'A reflection lands',
+        needs: ['mirror'], hit: r => r.notes.some(n => n.kind === 'mirror' && n.copied > 0),
+    },
+    {
+        id: 'clone', band: 'middle', price: 5, say: 'A cube gets copied',
+        needs: ['clone'], hit: r => r.notes.some(n => n.kind === 'clone'),
+    },
+    {
+        // Three faces feed this and no rack without one of them can ever win it — 0.0% on a spread
+        // against 46.8% on a rack holding the Symbiont or the Pit Droid. The widest gap in the table,
+        // and the clearest argument for offering only what a rack can actually produce.
+        id: 'grow', band: 'middle', price: 4, say: 'The line gets longer',
+        needs: ['pair', 'twins', 'draw'],
+        hit: r => r.notes.some(n => ['pair', 'twins', 'draw'].includes(n.kind)),
+    },
+    // Long shots — 4-7%.
+    {
+        id: 'raze', band: 'long', price: 10, say: 'Ben razes a neighbour',
+        needs: ['raze'], hit: r => r.notes.some(n => n.kind === 'raze'),
+    },
+    {
+        id: 'purge', band: 'long', price: 12, say: 'Order 66',
+        needs: ['purge'], hit: r => r.notes.some(n => n.kind === 'purge'),
+    },
+    {
+        // The Gungan's wipeout save. Rare because it needs two things at once — a shield standing, and
+        // something fragile beside it coming apart — which is exactly the shape a long shot wants.
+        id: 'saved', band: 'long', price: 15, say: 'A cube holds together',
+        needs: ['shield'], hit: r => r.notes.some(n => n.kind === 'broken.saved'),
+    },
+    {
+        id: 'engine', band: 'long', price: 20, say: 'Sebulba turns a cube',
+        needs: ['engine'], hit: r => r.notes.some(n => n.kind === 'engine'),
+    },
+];
+
+// **Two propositions measured out of the book rather than into it**, and they are worth keeping on the
+// record because both are tempting.
+//
+// `scavenge` — something comes back — runs 0.1% at Level 3, which prices at +857. `pure` is stranger:
+// it is the only event in the game that gets *rarer* as the line grows, 12.7% at Level 2 down to 0.2%
+// at Level 5, because every effect face on the line disqualifies it. That is the same rule the Guide
+// Cube's note is built on, and it makes a lovely cube and an unpriceable bet.
+
+// ---------------------------------------------------------------------------
 // The rack, as five trees
 // ---------------------------------------------------------------------------
 //
 // Watto's rack used to be one flat list: every cube you did not own, plus three perks and the next
-// press rung, all offered at once for one prestige point apiece. That list is still what a point
+// press rung, all offered at once for one build token apiece. That list is still what a point
 // buys — nothing here is new content and nothing has been priced differently. What it is missing is
 // an **order**, and the order is what makes a point a decision instead of a shopping trip.
 //
@@ -738,6 +920,10 @@ exports.TREE = {
     // extends it every time. Chaining Guide behind Sebulba would have charged a prestige for its
     // worst neighbour on the way to it.
     'cube:guide': { tree: 'swindler', tier: 3, requires: ['cube:wild'] },
+    // Throws the next rung early and shows one face off it, once a run, before the side is named.
+    // It is this tree's armour rather than its payout: The Swindler carries two mine-carriers — the
+    // Wild and Guide — and no shield, so knowing when to walk away is the whole of what answers them.
+    premonition: { tree: 'swindler', tier: 4, requires: ['cube:sebulba'] },
 
     // THE GAMBLER — every paying face in this tree is sideless, so it is also the tree that
     // manufactures the most ties in the game. That is why a tie pick lives in it.
@@ -749,6 +935,10 @@ exports.TREE = {
     bribe: { tree: 'gambler', tier: 3, requires: ['cube:multiplier'] },
     'cube:turbine': { tree: 'gambler', tier: 3, requires: ['cube:multiplier'] },
     'cube:boost': { tree: 'gambler', tier: 4, requires: ['cube:turbine'] },
+    // Watto's book, three cards a rung. The only one of the five capstones that pays money rather than
+    // touching the line — Swindler looks, Dealer moves, Junker removes, and this one prices — which is
+    // what keeps each tree's verb its own. See `SIDE_BETS`.
+    sidebet: { tree: 'gambler', tier: 4, requires: ['cube:turbine'] },
     // **Double or Nothing belongs here and is not sold yet**, because no charge for it is a decision.
     //
     // The intent was the terminal fork's cheap half — Boost costs a seat out of `bagSize()` and a perk
@@ -777,6 +967,11 @@ exports.TREE = {
     // tab opening with three picks in a straight line.
     nudge: { tree: 'dealer', tier: 2, requires: ['cube:binder'] },
     'cube:symbiont': { tree: 'dealer', tier: 3, requires: ['cube:mirror'] },
+    // Two positions on the thrown line, exchanged before a single effect fires. Ten faces in this game
+    // care intensely about where they landed — burn right, clone left, engines point, Ben eats both
+    // neighbours — and until now the player had no say in any of it. This is the tree that lives on
+    // position, so this is the tree that gets to touch it.
+    shuffle: { tree: 'dealer', tier: 3, requires: ['cube:mirror'] },
     'cube:pitdroid': { tree: 'dealer', tier: 4, requires: ['cube:symbiont'] },
 
     // THE JUNKER — two mine-carriers, then the cube that answers mines, then the cube that recovers
@@ -793,7 +988,24 @@ exports.TREE = {
     // child here is the complete answer to the node directly under it.
     'cube:gungan': { tree: 'junker', tier: 3, requires: ['cube:reroll'] },
     'cube:scavenger': { tree: 'junker', tier: 4, requires: ['cube:gungan'] },
-    salvage: { tree: 'junker', tier: 4, requires: ['cube:gungan'] },
+    // **Replaces Salvage Rights**, which worked and was the wrong shape: passive, untimed, certain and
+    // indifferent to what you owned — a ledger adjustment sitting where the other four trees put a
+    // move. This is the Junker's verb. Swindler looks, Dealer moves, Gambler prices, and this one
+    // scraps: one cube off the line, before anything it was going to do happens.
+    //
+    // **What it actually does is move the count by one**, and that is the whole of the mechanic.
+    //
+    // Pulling a mine is the obvious use and it is nearly free: Ratts is an effect face, so he counts
+    // toward neither side and taking him off leaves the tally exactly where it was. The interesting
+    // use is the other one — a line reading 2 blue to 3 red on a blue call is a loss, and scrapping a
+    // red makes it 2–2, which is a tie, which is Watto's cube and a real chance. One cube converts a
+    // certain loss into a coin flip, or a tie into a win.
+    //
+    // So the risk is not parity, it is **spending it on a line that was going to be fine** — once a
+    // run, on a table you have to read correctly before the effects fire.
+    //
+    // It is also the aimed version of what the Gungan Shield does blind, which is why it sits above it.
+    scrap: { tree: 'junker', tier: 4, requires: ['cube:gungan'] },
 
     // THE FORGER — the press ladder, plus the two things it does not currently sell. `press` is one
     // reward value bought four times, so it has no `tier` of its own: the rung is `s.pressTier + 1`
@@ -807,11 +1019,31 @@ exports.TREE = {
     // half the time and a 1-face share one time in six, so it is worth **more** the further up the
     // ladder you are, not less. That makes it the tab's balance risk rather than its safe pick.
     keeper: { tree: 'forger', tier: 2, pressTier: 1 },
-    // Doubles the useful rate of every uneven cut by naming the parent the major share lands on —
-    // see `weldSplits`, where a useful 5+1 is "roughly one press in 220" precisely because that
-    // choice is currently a coin flip. Same shape as `double` in The Gambler, and placed by the same
-    // rule: a multiplier arrives when the thing it multiplies is finished.
-    heavy: { tree: 'forger', tier: 4, pressTier: 3 },
+    // **The tab's verb, and it was the one tree that had none.** The note on `scrap` names the other
+    // four — Swindler looks, Dealer moves, Gambler prices, Junker scraps — and every node in here
+    // before this one acts on the press instead, between runs, on a screen with no cubes on it.
+    //
+    // Once a run, on a held line, one welded position comes apart into the cubes it was pressed from,
+    // thrown live, in place. They stay apart for the rest of the climb and the weld is whole again the
+    // moment the run ends: nothing here writes to the profile.
+    //
+    // **What prices it needs no dial.** The parents come back whole, downside faces included, so a
+    // split hands back exactly what `weldPurity` charges 📀21.5T a reroll to remove — and hands it back
+    // for every rung left rather than for this one. The odds are the parents' own face lists, already
+    // measured; the trade is entirely which cubes the player chose to press together, which is why a
+    // weld of two mineless cubes splits for free and a weld of two payers barely splits at all.
+    //
+    // It is Scrap read backwards — one position off the line, against one seat becoming two cubes on
+    // it — and it is the only thing in the mode that fields more cubes than `bagSize()` holds.
+    //
+    // **`pressTier: 3` because The Third Cube is where a split stops being a coin and starts being a
+    // swing**: two parents is one extra position, three is two. It also puts this tree's verb at the
+    // depth the other four put theirs.
+    //
+    // Replaces **The Heavy Half**, which was passive and untimed — the same charge `scrap` records
+    // against Salvage Rights — and which had never run: nothing passed `major` to `rollWeld`. That
+    // choice is not lost, it is folded into Deep Cuts, the rung that already sells the cut it decides.
+    split: { tree: 'forger', tier: 4, pressTier: 3 },
 };
 
 // The two faces of an ordinary cube, as a real face list.
@@ -994,6 +1226,14 @@ exports.cube = {
     // and a hand-picked rack **2.15**. Neither is the lean's doing. The first is `pureBonus` and the
     // pay table; the second is the rack, whose cubes were each measured alone when they were built
     // and never as a chosen eight together. `cubeLean.js` prints both on purpose.
+    //
+    // **The second half of that has since been chased down and the number is stale.** A rack chosen
+    // to win rather than to read well measured **4.10**, not 2.15, and it was two cubes: the Wild,
+    // whose guaranteed vote is majority-of-N amplification with the player holding the dial, and the
+    // Gungan Shield, which deleted the mine that every other paying cube is priced by. Both have been
+    // re-cut — see their own notes — and the same rack now measures **1.82**. The bare ladder is
+    // untouched at 1.12, which is the point: the leak was never in the pay table, so nothing in the
+    // pay table moved to close it.
     // ---------------------------------------------------------------------
     // The route
     // ---------------------------------------------------------------------
@@ -1154,7 +1394,7 @@ exports.cube = {
     // them, so it is still worth +15%. Only removing the pick takes it to zero. The dial chooses the
     // width, not whether there is one.
     //
-    // 0.55, because the pick has to stay obviously worth a prestige point — going from losing 60% of
+    // 0.55, because the pick has to stay obviously worth a build token — going from losing 60% of
     // ties to winning 55% is a 15-point swing and reads as a real prize — while it gives up a third of
     // the old reversal's fork, which is the most that can be bought without gutting the pick.
     //
@@ -1359,7 +1599,7 @@ exports.cube = {
     // The press, unlocked a rung at a time
     // ---------------------------------------------------------------------
     //
-    // **Four picks off Watto's rack rather than one**, taken in order, each costing a prestige point.
+    // **Four picks off Watto's rack rather than one**, taken in order, each costing a build token.
     // The rack held seventeen things and then emptied — which is the hole the weld exists to fill, so
     // handing the whole mechanic over for a single point would have refilled it by four runs' worth
     // and left the same cliff four picks further along.
@@ -1390,8 +1630,13 @@ exports.cube = {
             blurb: 'The press takes three cubes at once, two faces from each.',
         },
         {
+            // **The Heavy Half, folded in.** Naming the parent the major share lands on used to be a
+            // perk of its own and was never wired to anything; it belongs to this rung because 5+1 is
+            // the only thing this rung unlocks, and a useful 5+1 is "one press in 220" precisely
+            // because that choice is otherwise a coin flip. Bought here it is one in 110.
             name: 'Deep Cuts',
-            blurb: 'Rarely the press takes five faces from one cube and one from the other.',
+            blurb: 'Rarely the press takes five faces from one cube and one from the other — '
+                + 'and you name which cube.',
         },
     ],
     // **How the press cuts, and how often**, keyed by how many cubes went in. A weld takes `take[k]`
@@ -1479,7 +1724,7 @@ exports.cube = {
     // bought purely as something to spend truguts on. `weldRerollCost` scales with the stake ceiling, so
     // at prestige 33 a reroll is 📀21.5T and a hundred of them is **📀2,147T**: about 2.7× the entire
     // purse the old faucet produced, which makes this the first thing in the mode that can absorb a
-    // whale. See `weldRerollCost` for why the truguts price and the prestige-point path both stay live —
+    // whale. See `weldRerollCost` for why the truguts price and the build-token path both stay live —
     // at a hundred attempts the point path is ~15,000 runs, so a rich player pays truguts and a normal
     // one simply never sees a clean weld, which is the right shape for a jackpot.
     //
@@ -1502,7 +1747,7 @@ exports.cube = {
     // `rememberWeld` floors it below the space size so a pairing can never be excluded to nothing.
     weldMemory: 2,
     // What a weld reroll costs in truguts. Scaled by the stake ceiling exactly as `rerollCost` is, and
-    // for a sharper reason: **a flat price means truguts always win and prestige points never get
+    // for a sharper reason: **a flat price means truguts always win and build tokens never get
     // spent**, which is the whole problem the weld exists to solve. Tying it to the ceiling grows the
     // cost with the thing that makes truguts easy to come by, so the choice between the two currencies
     // stays live forever.
@@ -1519,26 +1764,162 @@ exports.cube = {
     // expensive fast and the price falls back on its own once they're spent. No extra counter
     // to keep: the stock *is* the escalation.
     rerollPriceStep: 1.5,
-    // What Salvage Rights hands back on a bust, as a share of the **stake**.
-    //
-    // A share of the *standing* was the obvious reading and it is the one that breaks the mode. The
-    // standing compounds at `LEVEL_STEP`, so a quarter of it at Level 4 is a rebate on 14× and the
-    // same perk at Level 2 is a rebate on 3.8× — which makes the deepest push the most profitable
-    // one and flatly contradicts the promise `levelStep` makes above, that *"3% is the same at all
-    // five rungs… no rung is looser than any other, and there is nothing to farm."*
-    //
-    // Off the stake it is flat, so it shrinks as a share of what is on the table and the ladder's
-    // edge is untouched at every rung:
-    //
-    //     rung 1   0.5 × 1.94   + 0.5 × 0.25  =  1.10  against  1.00 held
-    //     rung 4   0.5 × 27.48  + 0.5 × 0.25  = 13.87  against 14.16 held
-    //
-    // Worth about three points at the bottom of the ladder and under one at the top. It softens the
-    // cheap early pushes nobody agonises over and leaves the Level 4→5 decision — the one the whole
-    // mode is built around — still a losing bet you take on purpose.
-    //
-    // The ceiling is wherever the first push stops being interesting: at 0.5 it runs +22% and there
-    // is no reason to ever bank early. The stake itself climbs with `maxStakeStep`, so a flat share
-    // still grows across a career without ever growing inside one climb.
-    salvageShare: 0.25,
 };
+
+// ---------------------------------------------------------------------------
+// The cosmetics shelf
+// ---------------------------------------------------------------------------
+//
+// **The two sides, as something the player bought.** Every other face in the game draws as one fixed
+// picture and has to — a face that *does* something has to look like the thing it does — so
+// `side:blue` and `side:red` are the only two faces in the mode whose picture is free: the rules name
+// the position and nothing in the rules can read the hue. That freedom is what is for sale here.
+//
+// **The engine is never told, and neither is the ledger.** A skin is a lookup one level deep in the
+// client's `faceOf`, so nothing here is an advantage and nothing here has to be balanced against
+// anything. What this file owns is the two things a client must not: the **price** and the **gate**.
+// The pictures themselves — the SVG paths, the hexes, the flag art — stay client-side, which is the
+// same split every other face already follows: what a face looks like is the client's business.
+//
+// An earlier draft of the mode had cosmetic face palettes and cut them — see the note beside the
+// prestige picks in `docs/chance-cube.md` — on the grounds that a palette was a second screen's worth
+// of plumbing in exchange for nothing to play with. What brings it back is that the plumbing turned
+// out to be one lookup and the screen already existed: the shop and the cubes screen are both drawn,
+// and this is a shelf on one and a picker on the other. It is also the only thing in the mode that
+// truguts buy and *keep* — everything else they buy is spent — which is what gives a rich late player
+// something to want.
+
+// Ten colours and three shapes, which is thirty variants. Names rather than art: the client builds
+// every square from one path with the fill swapped, and the server never needs to know which fill.
+//
+// `pink` is the tenth and the only one with no square emoji behind it. Ten is what makes the shelf
+// pair up cleanly — nine colours leaves one variant per shape with nobody to be sold beside.
+const SKIN_SHAPES = [
+    { id: 'sq', name: 'Square' },
+    { id: 'ci', name: 'Circle' },
+    { id: 'ht', name: 'Heart' },
+];
+exports.SKIN_SHAPES = SKIN_SHAPES;
+
+const SKIN_COLORS = [
+    { id: 'red', name: 'Red' },
+    { id: 'orange', name: 'Orange' },
+    { id: 'yellow', name: 'Yellow' },
+    { id: 'green', name: 'Green' },
+    { id: 'blue', name: 'Blue' },
+    { id: 'purple', name: 'Purple' },
+    { id: 'pink', name: 'Pink' },
+    { id: 'brown', name: 'Brown' },
+    { id: 'black', name: 'Black' },
+    { id: 'white', name: 'White' },
+];
+exports.SKIN_COLORS = SKIN_COLORS;
+
+// **Flag `n` is the `n`th racer of the in-game roster**, which is `racernum` and the order the art was
+// cut to. Read off the bot's own racer table rather than written out again: the roster is a fact this
+// process already holds, and two lists of twenty-three names is two lists to keep in step. (The
+// Activity *does* write them out — it is a separate bundle and importing the site's whole game
+// database to name a flag is the dearer of its two answers there, which is not true here.)
+//
+// `racernum` 9 is declared three times in the data — Mars Guo, then two non-canon racers sharing his
+// slot — so this takes the first, which is the one the roster means.
+const RACER_FLAGS = 23;
+const racerName = function (n) {
+    // eslint-disable-next-line global-require
+    const { racers } = require('../../data/sw_racer/racer.js');
+    const found = racers.find(r => Number(r.racernum) === n);
+    return found ? found.name : `Racer ${n}`;
+};
+
+// Every variant that exists, whether or not anybody owns it, keyed by the one id the profile stores.
+// Flat: the shelf sells matched pairs and the picker equips one side at a time, so a pair is
+// something a *set* holds and never something the model does. Store pairs and the first job on every
+// read is prying them apart again.
+const SKIN_VARIANTS = [
+    ...SKIN_SHAPES.flatMap(s => SKIN_COLORS.map(c => `${s.id}:${c.id}`)),
+    ...Array.from({ length: RACER_FLAGS }, (_, i) => `flag:${i}`),
+];
+exports.SKIN_VARIANTS = SKIN_VARIANTS;
+
+// What a player owns before they have done anything at all: one square each in the two colours the
+// game shipped in — so a first-run board looks exactly like a board with no skins in it — plus the
+// circle pair, which is the only variant that reads for a player who cannot tell the two colours
+// apart. Never sold, and granted on read rather than written to any profile: a free thing stored per
+// player is a free thing that can go missing.
+const SKIN_FREE = ['sq:blue', 'sq:red', 'ci:blue', 'ci:red'];
+exports.SKIN_FREE = SKIN_FREE;
+
+// **Flat, and deliberately not scaled by the stake ceiling the way `rerollCost` is.** A reroll is
+// scaled because it is spent and bought again, so its price has to keep pace with what a run earns.
+// These are bought once and kept forever, and scaling a one-time price means the longer you admire
+// something the dearer it gets — the shelf would be pushing every player to buy on the prestige a set
+// unlocks rather than on the one they actually want it on. A price that stops binding at a high
+// ceiling is the cheaper of the two mistakes.
+//
+// A pair is two variants and both slots' worth of use, so it is dearer than a flag.
+const SKIN_PAIR_PRICE = 5000;
+const SKIN_FLAG_PRICE = 3000;
+
+// **The three kinds of gate, and each one a different question.** `prestige` is how far round the
+// ladder you have been, `cubes` is how much of the rack you own, and `faces` is the collection —
+// every face on a cube of yours having landed at least once. A shelf gated only on prestige would
+// make the shop a second ladder readout; these three make it three separate reasons to play.
+//
+// The shapes climb on prestige, the circles on the rack, and the hearts run past both — a heart is
+// the shape you finish with. `blue+red` is missing from squares and circles because that pair is the
+// four variants everybody starts with.
+const SKIN_SHELF = [
+    { shape: 'sq', pair: 'purple+orange', gate: { prestige: 1 } },
+    { shape: 'sq', pair: 'green+pink', gate: { prestige: 2 } },
+    { shape: 'sq', pair: 'white+black', gate: { prestige: 3 } },
+    { shape: 'sq', pair: 'yellow+brown', gate: { prestige: 4 } },
+    { shape: 'ci', pair: 'purple+orange', gate: { cubes: 4 } },
+    { shape: 'ci', pair: 'green+pink', gate: { cubes: 6 } },
+    { shape: 'ci', pair: 'white+black', gate: { cubes: 8 } },
+    { shape: 'ci', pair: 'yellow+brown', gate: { cubes: 10 } },
+    { shape: 'ht', pair: 'blue+red', gate: { prestige: 2 } },
+    { shape: 'ht', pair: 'purple+orange', gate: { prestige: 3 } },
+    { shape: 'ht', pair: 'green+pink', gate: { cubes: 12 } },
+    { shape: 'ht', pair: 'white+black', gate: { prestige: 5 } },
+    // The collection's reward, and the only thing on the shelf a prestige cannot buy.
+    { shape: 'ht', pair: 'yellow+brown', gate: { faces: 'all' } },
+];
+
+// Every flag opens on one condition rather than twenty-three, because a racer is not a rung: which
+// flag you want is about who you play, and staggering them would mean telling a Gasgano player to
+// earn six other people's flags first.
+const SKIN_FLAG_GATE = { prestige: 3 };
+
+const skinShape = id => SKIN_SHAPES.find(s => s.id === id);
+const skinColor = id => SKIN_COLORS.find(c => c.id === id);
+
+// **One entry per thing on sale, and the id is what a purchase names.** The set id rather than the
+// variant ids, so the price and the gate are checked against the thing that was actually offered
+// instead of against a list the client assembled — a client that could name variants could name a
+// cheap set's price beside an expensive set's contents.
+//
+// `ids` is what the purchase grants, and a pair and a flag both come out of it: a colour is sold as a
+// matched pair because two contrasting colours is what a *side* skin is for and nobody wants half of
+// one, and a flag is sold alone because a flag is a racer and picking one is the point. Same field
+// either way, so nothing downstream has to know which kind it was looking at.
+exports.SKIN_SETS = [
+    ...SKIN_SHELF.map(({ shape, pair, gate }) => {
+        const [a, b] = pair.split('+');
+        return {
+            id: `set:${shape}:${pair}`,
+            name: `${skinColor(a).name} & ${skinColor(b).name} ${skinShape(shape).name}s`,
+            ids: [`${shape}:${a}`, `${shape}:${b}`],
+            group: shape,
+            price: SKIN_PAIR_PRICE,
+            gate,
+        };
+    }),
+    ...Array.from({ length: RACER_FLAGS }, (_, i) => ({
+        id: `set:flag:${i}`,
+        name: racerName(i + 1),
+        ids: [`flag:${i}`],
+        group: 'flag',
+        price: SKIN_FLAG_PRICE,
+        gate: SKIN_FLAG_GATE,
+    })),
+];

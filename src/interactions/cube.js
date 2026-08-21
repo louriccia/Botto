@@ -8,10 +8,10 @@
 //   cube_stake_<turn>_<owner>              -> open the stake modal
 //   cube_setstake            (modal)       -> store the stake
 //   cube_prestige_<turn>_<owner>           -> the prestige offer
-//   cube_doprestige_<turn>_<owner>         -> hand the ladder back, banking a prestige point
+//   cube_doprestige_<turn>_<owner>         -> hand the ladder back, banking a build token
 //   cube_loadout_<turn>_<owner>            -> the rack
 //   cube_setloadout_<turn>_<owner> (select)-> equip special cubes
-//   cube_spend_<turn>_<owner>      (select)-> spend one prestige point off the rack
+//   cube_spend_<turn>_<owner>      (select)-> spend one build token off the rack
 //   cube_buyreroll_<turn>_<owner>          -> buy one reroll into stock
 //   cube_tiebreak_<turn>_<owner>           -> let Watto's cube settle a tie
 //   cube_bribe_<turn>_<owner>              -> buy the tie off him instead

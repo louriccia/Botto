@@ -46,7 +46,7 @@ const database = { ref: fakeRef };
 const { createApi } = require('../src/api/index.js');
 // The rules, so what the tuning route serves can be checked against the tuning rather than against a
 // count written down here — which is a number that goes stale every time the rack grows.
-const { LEVELS, SPECIALS } = require('../src/game/cube/tuning.js');
+const { LEVELS, SPECIALS, SKIN_SETS, SKIN_FREE } = require('../src/game/cube/tuning.js');
 const { bagSize } = require('../src/game/cube/engine.js');
 
 // The real one lives in a module that initialises Firebase on load. Injected here so the play
@@ -134,6 +134,10 @@ const check = function (name, ok, detail) {
         && r.json.specials?.length === SPECIALS.length,
         `${r.status} levels=${r.json?.levels?.length}/${LEVELS.length} `
         + `specials=${r.json?.specials?.length}/${SPECIALS.length}`);
+    check('tuning serves the cosmetics shelf',
+        r.json.skins?.length === SKIN_SETS.length
+        && r.json.skins.every(s => s.id && s.name && Array.isArray(s.ids) && s.price > 0),
+        `skins=${r.json?.skins?.length}/${SKIN_SETS.length}`);
     const leaks = JSON.stringify(r.json).match(/<a?:[a-zA-Z0-9_]+:\d+>/g);
     check('tuning carries no Discord emoji', !leaks, leaks && leaks.slice(0, 3).join(' '));
 
@@ -302,7 +306,48 @@ const check = function (name, ok, detail) {
     check('a spent reroll leaves nothing further to reroll',
         !r.json?.board?.dead, JSON.stringify(r.json?.board?.dead));
 
-    // --- prestige points ------------------------------------------------------
+    // --- a held roll survives the board going away ----------------------------
+    //
+    // A hold is a pause in the middle of a roll, and the Activity re-mounts whenever Discord feels
+    // like it. So the two halves of that are checked together: the parked line comes back on
+    // `/state`, and rolling again does not walk past it. Without the second, reloading mid-hold was
+    // a free reroll of any line the player did not like the look of — the rung already called and
+    // already thrown, silently discarded, and the standing kept.
+    //
+    // Seeded onto a standing run rather than played up to one, and Swap granted outright: whether a
+    // real climb reaches a rung long enough to hold on is a coin flip several times over.
+    PLAYER.random.cube.shuffle = true;
+    db.ch.cube.ladders['d-KEY'] = {
+        stake: 1000, standing: 4000, level: 1, again: 0, call: 'blue', mult: 0, spent: [],
+        set: [0, 0, 0], bag: [0, 0], jail: [], hold: [], rungs: 1, locked: false, sealed: null,
+    };
+    r = await call('POST', '/cube/roll', { auth: t, body: { call: 'blue' } });
+    const heldRoll = r.json;
+    check('a roll with a pick to spend stops with the cubes down',
+        r.status === 200 && heldRoll?.held === true && Array.isArray(heldRoll?.faces),
+        `${r.status} ${r.text}`);
+    if (heldRoll?.held) {
+        r = await call('GET', '/cube/state', { auth: t });
+        check('a reloaded board is handed the hold back',
+            JSON.stringify(r.json?.held?.faces) === JSON.stringify(heldRoll.faces)
+            && r.json?.held?.call === heldRoll.call,
+            JSON.stringify(r.json?.held));
+        r = await call('POST', '/cube/roll', { auth: t, body: { call: 'red' } });
+        check('a second roll cannot walk past a called line',
+            r.status === 409 && r.json.code === 'roll_live', `${r.status} ${r.text}`);
+        r = await call('POST', '/cube/bank', { auth: t, body: {} });
+        check('nor can banking', r.status === 409 && r.json.code === 'roll_live', `${r.status} ${r.text}`);
+        r = await call('POST', '/cube/held', { auth: t, body: {} });
+        check('and rolling on still settles it', r.status === 200 && !r.json?.held,
+            `${r.status} ${r.text}`);
+        r = await call('GET', '/cube/state', { auth: t });
+        check('a settled roll leaves no hold behind', r.json?.held == null,
+            JSON.stringify(r.json?.held));
+    }
+    delete PLAYER.random.cube.shuffle;
+    delete db.ch.cube.ladders['d-KEY'];
+
+    // --- build tokens ------------------------------------------------------
     //
     // The point of a point: prestiging and picking are separate, so a player who never opens the
     // rack accumulates rather than being blocked. Seeded rather than played — reaching the top of
@@ -329,9 +374,18 @@ const check = function (name, ok, detail) {
     r = await call('GET', '/cube/state', { auth: t });
     check('the board carries the balance', r.json?.player?.points === 2,
         JSON.stringify(r.json?.player?.points));
-    check('the board carries what a point buys',
-        Array.isArray(r.json?.choices) && r.json.choices.some(c => c.value === 'cube:mirror'),
-        JSON.stringify(r.json?.choices?.length));
+    // **The rack is five trees now, so what a point buys is a frontier rather than a catalogue.**
+    // Binder roots The Dealer and is on offer from the first prestige; the Mirror sits behind it and
+    // is not. Asserting both halves is what makes this a test of the gate rather than of the list.
+    check('the board offers the roots',
+        Array.isArray(r.json?.choices) && r.json.choices.some(c => c.value === 'cube:binder'),
+        JSON.stringify(r.json?.choices?.map(c => c.value)));
+    check('the board withholds what is gated',
+        !r.json.choices.some(c => c.value === 'cube:mirror'),
+        JSON.stringify(r.json?.choices?.map(c => c.value)));
+    check('every offer carries its tree and tier',
+        r.json.choices.every(c => c.tree && (c.tier || c.kind === 'press')),
+        JSON.stringify(r.json?.choices?.[0]));
     // The rack is finite now: no `+1 Special Cube Slot`. The cap it used to sell is still there and is
     // reported — but it is the bag, identical on every profile, and nothing on the rack moves it.
     check('the rack no longer sells a slot',
@@ -344,29 +398,100 @@ const check = function (name, ok, detail) {
     check('spending refuses a slot, which is no longer on the rack',
         r.status === 400 && r.json.code === 'bad_reward', `${r.status} ${r.text}`);
 
-    r = await call('POST', '/cube/point', { auth: t, body: { reward: 'reroll' } });
-    check('spending a point grants the pick', r.status === 200 && r.json?.points === 1,
-        `${r.status} ${r.text}`);
-    check('the pick actually landed', r.json?.board?.player?.buyReroll === true,
-        JSON.stringify(r.json?.board?.player?.buyReroll));
+    // **The gate is enforced where the point is spent, not only where the menu is built.** A client
+    // holding a stale list — or one that never read the tree at all — must not be able to buy past a
+    // prerequisite, and this is the check that says so.
+    r = await call('POST', '/cube/point', { auth: t, body: { reward: 'cube:mirror' } });
+    check('spending refuses a node whose tree has not reached it',
+        r.status === 400 && r.json.code === 'bad_reward', `${r.status} ${r.text}`);
 
     r = await call('POST', '/cube/point', { auth: t, body: { reward: 'cube:nope' } });
     check('spending refuses a reward that is not on the rack',
         r.status === 400 && r.json.code === 'bad_reward', `${r.status} ${r.text}`);
 
-    r = await call('POST', '/cube/point', { auth: t, body: { reward: 'cube:mirror' } });
-    check('spending the last point empties the balance',
-        r.status === 200 && r.json?.points === 0, `${r.status} ${r.text}`);
-    check('a bought cube is owned', r.json?.cubes?.includes('mirror'),
+    r = await call('POST', '/cube/point', { auth: t, body: { reward: 'cube:binder' } });
+    check('spending a point grants a root', r.status === 200 && r.json?.points === 1,
+        `${r.status} ${r.text}`);
+    check('a bought cube is owned', r.json?.cubes?.includes('binder'),
         JSON.stringify(r.json?.cubes));
     // The whole reason the cap came off: a granted cube plays immediately, with no second trip to
     // the loadout screen and no second prestige to make room for it.
-    check('a bought cube is on the table', r.json?.equipped?.includes('mirror'),
+    check('a bought cube is on the table', r.json?.equipped?.includes('binder'),
         JSON.stringify(r.json?.equipped));
+    // The point of a tree: buying the root is what puts the next one on the rack.
+    check('the branch above it opens',
+        r.json?.board?.choices?.some(c => c.value === 'cube:mirror'),
+        JSON.stringify(r.json?.board?.choices?.map(c => c.value)));
 
-    r = await call('POST', '/cube/point', { auth: t, body: { reward: 'cube:boost' } });
+    r = await call('POST', '/cube/point', { auth: t, body: { reward: 'cube:mirror' } });
+    check('spending the last point empties the balance',
+        r.status === 200 && r.json?.points === 0, `${r.status} ${r.text}`);
+    check('the node behind the gate is now owned', r.json?.cubes?.includes('mirror'),
+        JSON.stringify(r.json?.cubes));
+
+    r = await call('POST', '/cube/point', { auth: t, body: { reward: 'cube:shortcut' } });
     check('an empty balance cannot spend', r.status === 409 && r.json.code === 'no_points',
         `${r.status} ${r.text}`);
+
+    // --- the cosmetics shelf --------------------------------------------------
+    //
+    // Nothing here touches a run, so it goes last: the profile is at prestige 2 with a handful of
+    // cubes by now, which is exactly the state that has some of the shelf open and the rest of it
+    // shut.
+    const prestigeNow = (await call('GET', '/cube/state', { auth: t })).json.player.prestige;
+    const openSet = SKIN_SETS.find(s => s.gate?.prestige != null && s.gate.prestige <= prestigeNow);
+    const shutSet = SKIN_SETS.find(s => s.gate?.prestige != null && s.gate.prestige > prestigeNow);
+
+    r = await call('POST', '/cube/skin', { auth: t, body: {} });
+    check('a skin purchase needs an id', r.status === 400 && r.json.code === 'bad_body',
+        `${r.status} ${r.text}`);
+
+    r = await call('POST', '/cube/skin', { auth: t, body: { id: 'set:sq:chartreuse+beige' } });
+    check('a set nothing answers to is a 404',
+        r.status === 404 && r.json.code === 'no_such_set', `${r.status} ${r.text}`);
+
+    // **The gate is enforced where the truguts move**, not only where the row is drawn — the same
+    // thing the point-spend checks above prove about the rack.
+    r = await call('POST', '/cube/skin', { auth: t, body: { id: shutSet.id } });
+    check('a shut gate refuses the purchase',
+        r.status === 403 && r.json.code === 'locked', `${r.status} ${r.text}`);
+
+    const purse = () => PLAYER.random.truguts_earned - PLAYER.random.truguts_spent;
+    const owed = purse();
+    r = await call('POST', '/cube/skin', { auth: t, body: { id: openSet.id } });
+    check('an open set sells', r.status === 200 && r.json.spent === openSet.price,
+        `${r.status} ${r.text}`);
+    check('and charges exactly its price', purse() === owed - openSet.price,
+        `${owed} -> ${purse()}`);
+    check('both halves of a pair are granted',
+        openSet.ids.every(id => r.json.skins?.includes(id)), JSON.stringify(r.json.skins));
+    // The board is what the client repaints from, so the purchase has to be visible on it and not
+    // only in the reply that reported it.
+    check('the board carries what was bought',
+        openSet.ids.every(id => r.json.board?.player?.skins?.includes(id)),
+        JSON.stringify(r.json.board?.player?.skins));
+    // Free, and never written: a fact true of everybody has no business on one profile.
+    check('the free four come with the board',
+        SKIN_FREE.every(id => r.json.board?.player?.skins?.includes(id)),
+        JSON.stringify(r.json.board?.player?.skins));
+    const written = writes.filter(w => w.value?.skins).slice(-1)[0];
+    check('and are not in what was written',
+        written && SKIN_FREE.every(id => !(id in written.value.skins)),
+        JSON.stringify(written?.value?.skins));
+
+    r = await call('POST', '/cube/skin', { auth: t, body: { id: openSet.id } });
+    check('a set already held is not sold twice',
+        r.status === 409 && r.json.code === 'owned', `${r.status} ${r.text}`);
+
+    // A purse that cannot cover the price is a 402 and not a negative balance, which is the same
+    // refusal a bought reroll gives.
+    const flag = SKIN_SETS.find(s => s.group === 'flag' && s.gate.prestige <= prestigeNow);
+    const held = PLAYER.random.truguts_earned;
+    PLAYER.random.truguts_earned = PLAYER.random.truguts_spent + 10;
+    r = await call('POST', '/cube/skin', { auth: t, body: { id: flag.id } });
+    check('a purse that cannot cover it is refused',
+        r.status === 402 && r.json.code === 'insufficient', `${r.status} ${r.text}`);
+    PLAYER.random.truguts_earned = held;
 
     server.close();
     const failed = results.filter(x => !x.ok);

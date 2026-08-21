@@ -130,6 +130,12 @@ One list, carried by the run. **Everything that leaves the line goes into it** �
 swept up, hauled cubes get carried off — and `scavenge` takes the most recent, whichever way it got
 there. Order is the whole of the data structure: push on the way out, pop on the way back.
 
+A cube the **player** scraps off a held line goes in too, and for the same reason a mine's victims do:
+it left the table, nothing is holding it, and it is exactly the sort of thing a Jawa is for. It is
+swept in with the roll's own wreckage rather than at the moment it is scrapped, so a Scavenger
+standing on that same line cannot hand back the cube the player has just thrown away — the same guard
+the destroyed cubes get, and the reason both are swept after resolution rather than during it.
+
 The two ways in are not the same, and the difference is one flag:
 
 - A **wrecked** entry is a cube something destroyed. Nobody is holding it; it is lying in the hold

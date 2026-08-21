@@ -14,7 +14,7 @@ The earlier **pooled** prototype — a twelve-sided weld carrying every face of 
 `weldBurns` dial removing one downside face — is gone from the engine.
 [§4](#4-pooling-and-why-it-failed) is the record of why it had to be.
 
-`docs/chance-cube.md` documents what ships. This documents a prestige-point sink for the endgame past
+`docs/chance-cube.md` documents what ships. This documents a build-token sink for the endgame past
 Watto's rack, and the hard loadout cap it is built on.
 
 ---
@@ -34,7 +34,7 @@ nothing on it. That is the whole problem.
 
 **The currency already exists.** `applyPrestige` does `s.points += 1`, `spendPoint` takes one, and
 points accumulate unspent — the API smoke test asserts *an unspent point does not block the next
-prestige*. Prestige points are already decoupled from the thing they buy, deliberately, so "nothing
+prestige*. Build tokens are already decoupled from the thing they buy, deliberately, so "nothing
 forces a decision at the moment the ladder resets." They simply have exactly one sink, and the sink
 runs out.
 
@@ -43,7 +43,7 @@ The weld is a second sink for the same currency. Nothing new is minted and nothi
 > **Naming hazard.** `POINTS` in `tuning.js` is already taken — it is the per-face score feeding
 > `pointValue`, the Chips half of the payout. That is a different thing from `s.points`, the prestige
 > currency. The state field should stay `points` because it already exists and is already persisted,
-> but every line of copy about the weld has to say **prestige point** in full, and any new tuning key
+> but every line of copy about the weld has to say **build token** in full, and any new tuning key
 > should be `weld*` rather than `point*`.
 
 ---
@@ -118,7 +118,7 @@ and never out of the rack.
 **1.310** fielded alone; Greed **0.308**, the Mirror **0.456**. Halving everything takes far more off
 the cube carrying the rack than it gives back to the ones dragging it down, so a pooled rack of all
 fourteen cubes measured a **third** of what a hand-picked eight left alone did. Welding was a
-downgrade you paid a prestige point for — the exact failure the `+1 Special Cube Slot` pick was cut
+downgrade you paid a build token for — the exact failure the `+1 Special Cube Slot` pick was cut
 for, arriving by a different route. (Both figures came from the broken tie path described in
 [§10](#10-what-it-measured); the *ratio* is what the argument rests on and it survives the fix.)
 
@@ -246,8 +246,8 @@ the same property here for free.
 
 ## 7. What it costs
 
-> **Weld** two cubes — 1 prestige point. They come out as one cube carrying three faces from each.
-> **Reroll** the weld — truguts, or 1 prestige point. New faces, and a fresh shot at a rare split.
+> **Weld** two cubes — 1 build token. They come out as one cube carrying three faces from each.
+> **Reroll** the weld — truguts, or 1 build token. New faces, and a fresh shot at a rare split.
 > **Unweld** — free. Both cubes come back whole, and the weld is gone.
 
 **Either currency buys a reroll**, and that is simpler to convey than splitting them across the split
@@ -256,7 +256,7 @@ and the faces. It works because of one specific choice:
 **The trugut price is scaled off the stake ceiling**, not escalated per weld — the `rerollCost` idiom,
 📀2,500 doubling per prestige, so about 📀2.5M a reroll at prestige 10. Two reasons:
 
-- **A flat price means truguts always win and prestige points still have no sink**, which is the whole
+- **A flat price means truguts always win and build tokens still have no sink**, which is the whole
   problem this exists to solve. Ceiling-pricing grows the cost with exactly the thing that makes
   truguts easy to get, so the choice stays live forever.
 - **It closes an exploit the simple version would otherwise open.** Unwelding is free and welding costs

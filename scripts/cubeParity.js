@@ -189,7 +189,7 @@ const stateSame = function (label, got, want) {
     }
 };
 
-// **Prestige points are the one deliberate divergence from the frozen original.**
+// **Build tokens are the one deliberate divergence from the frozen original.**
 //
 // The original made prestiging and picking a reward the same call; a point is what decouples them,
 // so there is no field to compare `points` against and no way for the old engine to grow one. It is

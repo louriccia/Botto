@@ -82,6 +82,26 @@ exports.ladderOf = function (db, member_id) {
     return l && !l.dead && !l.tie ? l : null;
 };
 
+// **A throw that has landed and not been settled**, pinned to the live run rather than replacing it.
+//
+// This is the fourth thing that can be on the node and the only one that is *additive*. A corpse, a
+// parked tie and a live run are three states of a run; this is a live run with something extra on it,
+// and that is what makes it safe. The run underneath is untouched — the level has not advanced, the
+// bag has not been spent, the standing is what it always was — so a player who asks for a premonition
+// and then banks walks away with exactly what they could have banked before asking, and nothing has
+// to be unwound to let them.
+//
+// What it costs is that a roll has to look before it throws: a rung already holding a throw settles
+// *that* one, or the player is shown one line and paid for another.
+exports.shownOf = function (db, member_id) {
+    const l = exports.ladderOf(db, member_id);
+    const shown = l && l.shown;
+    // The same guard `tieOf` applies and for the same reason: one stored against a level the data no
+    // longer has would throw on every render. Refused here it is simply absent, and the rung is thrown
+    // fresh — the player loses the look, which is the cheapest way for a stale node to degrade.
+    return shown && LEVELS[shown.level] ? shown : null;
+};
+
 // A run that just died and still has a reroll on the table. Holds the state the roll was made
 // from, so spending a reroll can replay exactly that roll.
 exports.deadOf = function (db, member_id) {

@@ -52,6 +52,9 @@ admin.initializeApp({
             + ` · called B${n(c.calls?.blue)}/R${n(c.calls?.red)}`
             + ` · won B${n(c.wins?.blue)}/R${n(c.wins?.red)}`
             + ` · rolled B${n(c.rolled?.blue)}/R${n(c.rolled?.red)}`);
+        const PERKS = ['premonition','nudge','shuffle','scrap','reroll','bribe','sidebet','salvage','split','keeper'];
+        console.log(`  perks ${PERKS.filter(k => c[k]).join(',') || '(none)'} · pressTier ${n(c.pressTier)} · points ${n(c.points)}`
+            + ` · ties won ${n(c.ties?.won)}/${n(c.ties?.total)} (bribed ${n(c.ties?.bribed)}, boonta ${n(c.ties?.boonta)})`);
     }
     if (!found) console.log('(nobody has played yet)');
 

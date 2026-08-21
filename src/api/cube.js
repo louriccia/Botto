@@ -18,7 +18,7 @@ const pstate = require('../game/cube/state.js');
 const persist = require('../game/cube/persist.js');
 const actions = require('../game/cube/actions.js');
 const {
-    LEVELS, SPECIALS, SIDES, WATTO, TREE, TREES, cube: config,
+    LEVELS, SPECIALS, SIDES, WATTO, TREE, TREES, SIDE_BETS, SKIN_SETS, cube: config,
 } = require('../game/cube/tuning.js');
 
 // Balance is derived, never stored — the profile keeps two lifetime counters and the difference
@@ -33,6 +33,7 @@ const boardOf = function (ctx, req) {
     const live = persist.ladderOf(ctx.db, discordId);
     const dead = persist.deadOf(ctx.db, discordId);
     const tie = persist.tieOf(ctx.db, discordId);
+    const shown = persist.shownOf(ctx.db, discordId);
     return {
         player: s,
         balance: balanceOf(profile),
@@ -63,11 +64,45 @@ const boardOf = function (ctx, req) {
             // without walking the route itself. Null between runs, where there is nothing to push.
             next: live ? pstate.nextRung(s, live.level) : null,
         },
-        // What a prestige point buys, which is a function of what is already owned rather than of
+        // What a build token buys, which is a function of what is already owned rather than of
         // whether there is a point to spend — `player.points` is what decides affordability. Sent
         // with the board so a rack screen needs no second request, and so there is only ever one
         // answer on screen about what is on offer.
         choices: pstate.rewardChoices(s),
+        // **Watto's book for the rung ahead**, dressed. Three ids are written onto the ladder by the
+        // settlement that opened the rung; this is what they say and what they pay, so the client
+        // holds no copy of the table — the same split `choices` follows.
+        //
+        // Empty between runs, on Level 1, and for anyone who has not bought the Side Bet: the draw
+        // itself is what decides, and it offers nothing a rack cannot actually produce.
+        book: (live ? Object.values(live.book || {}) : [])
+            .map(id => SIDE_BETS.find(b => b.id === id))
+            .filter(Boolean)
+            .map(b => ({
+                id: b.id, band: b.band, price: b.price, say: b.say,
+            })),
+        // **A roll stopped with the cubes down, for a board that has just re-mounted.** Sent for the
+        // same reason `seen` is: the hold is a state of the *run*, not of the frame it was drawn in,
+        // and a client that could only learn about it from the answer to its own `/roll` came back
+        // from a reload offering a call on a rung that was already called and already thrown. Null on
+        // every board that is not mid-hold, which is nearly all of them.
+        held: actions.heldRoll({ s, db: ctx.db, discordId }),
+        // **The face a premonition showed**, for as long as the roll it was taken on is still parked.
+        // Sent rather than left to the client to hold, so it survives the Activity re-mounting — and
+        // so there is one answer on screen about what was seen.
+        seen: shown && shown.seen != null
+            ? {
+                at: shown.seen,
+                face: Object.values(shown.faces || {})[shown.seen] || null,
+                // How many cubes the look was one of, which is what makes it a glimpse rather than a
+                // report. Off the parked line rather than the level's own count: a rung the bag ran
+                // dry on is shorter than the table says.
+                cubes: Object.values(shown.faces || {}).length,
+            }
+            : null,
+        // Which of the three is named, if any. On the run node too, but lifted here beside the book it
+        // belongs to rather than left for a client to go looking for.
+        bet: (live && live.bet) || null,
         // **The player's welds, built.** `/tuning` carries the cubes that exist for everyone; a weld
         // exists for one player and is assembled from an id, so this is the only place a client can
         // learn what is on one.
@@ -84,6 +119,16 @@ const boardOf = function (ctx, req) {
                 id: sp.id, name: sp.name, blurb: sp.blurb, welded: sp.welded, faces: sp.faces,
             })),
     };
+};
+
+// The two things a press request can name, read off the body and nothing more. Whether either is
+// **allowed** is `pressPicks` in the actions, which is where every other ownership test lives — and so is
+// turning a cube id into the position the engine wants.
+const pressPickOf = req => (typeof req.body?.major === 'string' ? req.body.major : null);
+const keeperOf = function (req) {
+    const keep = req.body?.keep;
+    if (!keep || typeof keep.parent !== 'string' || typeof keep.faceId !== 'string') return null;
+    return { parent: keep.parent, faceId: keep.faceId };
 };
 
 // The one thing `actions.js` refuses to import. `manageTruguts` lives in a 3,700-line challenge
@@ -109,6 +154,9 @@ module.exports = function mountCube(app, ctx) {
     // for nearly all of them — they mean "not in that state" — with the genuine exceptions listed.
     const STATUS = {
         insufficient: 402, locked: 403, bad_reward: 400, bad_stake: 400, too_small: 400,
+        // A set id nothing on the shelf answers to is a request naming something that does not
+        // exist, which is a 404 rather than a state the player could get into.
+        no_such_set: 404,
         // A loadout longer than the bag is a bad request rather than a conflict: nothing about the
         // player's state would make it succeed, so 400 is what tells a client to fix the list.
         too_many: 400,
@@ -177,6 +225,16 @@ module.exports = function mountCube(app, ctx) {
         // table of perk names, which is two answers to what a thing is called.
         trees: TREES,
         tree: pstate.treeCatalogue(),
+        // The cosmetics shelf: every set on sale, what it grants, what it costs and what opens it.
+        // Static like `specials` — what changes per player is which of them are *held* and which
+        // gates are open, and that is `player.skins` on the board.
+        //
+        // **Sent so the client stops holding a price list.** It shipped with its own copy of this
+        // table beside the art, which is two answers to what something costs; the shape here is the
+        // one it already reads, so the day it takes this it takes the whole thing rather than merging
+        // — a price half from the server and half from a bundle is the version that overcharges
+        // somebody quietly.
+        skins: SKIN_SETS,
     }));
 
     // -----------------------------------------------------------------------
@@ -280,6 +338,17 @@ module.exports = function mountCube(app, ctx) {
         // than only on that one, because a figure a client has to fetch two ways is a figure that will
         // disagree with itself.
         bag: (thrown.bag || []).length,
+        // **The side bet this rung was carrying, and what it paid.** Both are already worked out by the
+        // settlement — see `settleThrow` — and neither is derivable on the other side: the board's `bet`
+        // is nulled the moment the rung settles, and whether a proposition *hit* is a predicate in
+        // `SIDE_BETS` that only this side holds. `betPaid` folds into the rung's multiple beside the
+        // roll's own paying faces, so a client that cannot see it has a readout climbing by a figure
+        // with nothing on screen to explain it — the same reason a razed greed still gets a `pays` entry.
+        //
+        // `0` on a bet that missed and `null` on a rung nobody bet, which are different facts: one is a
+        // proposition that lost and has to be shown losing, the other is nothing to show.
+        bet: thrown.bet || null,
+        betPaid: thrown.bet ? (Number(thrown.betPaid) || 0) : null,
         ...(settled ? { settled } : {}),
     });
 
@@ -290,7 +359,12 @@ module.exports = function mountCube(app, ctx) {
         const call = req.body?.call === 'red' ? 'red' : 'blue';
         const live = persist.ladderOf(ctx.db, ctx.discordId);
 
-        const opened = live ? actions.pushRun(ctx, { call }) : actions.startRun(ctx, { call });
+        // A throw parked by a premonition: the rung has already advanced and the cubes are already
+        // down, so this roll names the side and settles rather than pushing again.
+        const shown = persist.shownOf(ctx.db, ctx.discordId);
+        const opened = shown && !shown.called
+            ? { ok: true, staked: 0, run: null }
+            : (live ? actions.pushRun(ctx, { call }) : actions.startRun(ctx, { call }));
         if (!opened.ok) return refused(res, opened);
 
         // Whether the roll is on the books. Past this point the stake is not the API's to hand back:
@@ -298,7 +372,39 @@ module.exports = function mountCube(app, ctx) {
         // player twice for one roll and leaves a tie on the board that has already been paid for.
         let committed = false;
         try {
-            const thrown = actions.throwLevel(ctx, opened.run);
+            // **A rung already holding a thrown line settles that one.** A premonition threw these
+            // cubes before the side was named — the whole point of it — so throwing again here would
+            // hand back a different roll from the one the player was shown a face of. `takeThrow`
+            // rebuilds it and the call arrives now, which is the order that makes the look worth
+            // having. See `parkThrow`.
+            const parked = shown && !shown.called ? actions.takeThrow(live, shown, call) : null;
+
+            // **A roll stops with the cubes down whenever there is still something that could change
+            // them.** Swap, Scrap and Split all act in the gap before effects fire, and the decision
+            // they exist for is a *read of the line* — so asking for it in advance, blind, is asking
+            // the one question the player has no way to answer. Held, they see the roll and then
+            // choose; `Roll on` is the answer when there is nothing worth doing, which is most rungs.
+            //
+            // `holdRoll` refuses when neither pick is owned or both are spent, and that refusal is the
+            // ordinary path rather than an error: it means this roll simply settles.
+            {
+                const run = parked ? { ...parked.run, call } : opened.run;
+                const out = actions.holdRoll(ctx, run, parked);
+                if (out.ok) {
+                    committed = true;
+                    return res.json({ ...out, board: boardOf(ctx, req) });
+                }
+                // **Every one of these means "this roll simply settles", not "something went wrong".**
+                // Neither pick owned, both spent, no ladder yet because this is the run's opening
+                // roll, or a rung too short to change. Anything else is a genuine refusal and is
+                // handed back.
+                const settles = ['not_owned', 'spent', 'no_run', 'too_few'];
+                if (!settles.includes(out.code)) return refused(res, out);
+            }
+
+            const thrown = parked
+                ? actions.resolveThrown(ctx, parked.run, parked)
+                : actions.throwLevel(ctx, opened.run);
 
             // A tie Watto is *asking* about is the one throw that does not settle here. The whole
             // roll is parked where settlement would have written, so it can be picked up and
@@ -326,6 +432,77 @@ module.exports = function mountCube(app, ctx) {
                     : 'The roll failed — your stake was returned.',
             });
         }
+    });
+
+    // **Premonition.** Throws the next rung early and hands back one face off it.
+    //
+    // Nothing is spent and nothing settles: the rung advances onto a parked throw pinned to the live
+    // run, so a player who looks and then banks walks away with exactly what they had. The roll that
+    // follows settles *this* line — `/roll` looks before it throws.
+    app.post('/premonition', auth, rateLimit({ perMinute: 30 }), (req, res) => {
+        const rctx = ctxOf(req);
+        const out = actions.premonition(rctx);
+        if (!out.ok) return refused(res, out);
+        return res.json({ ...out, board: boardOf(rctx, req) });
+    });
+
+    // **Finishes a roll held for a look at the line**, doing at most one thing to it on the way past:
+    // Swap exchanges two positions, Scrap takes one off, Split breaks a weld into the cubes it was
+    // pressed from, and passing does none of them. One route rather than four because they are one moment
+    // — the line is down, unresolved, and this is what closes it — and because a client that could alter a
+    // line twice would be a client that could spend three trees' worth of agency on one rung.
+    //
+    // It settles, which is why it is a post and not a patch — the swap and the resolution are one
+    // step, and a client that swapped and then failed to settle would leave a called rung in the air.
+    app.post('/held', auth, rateLimit({ perMinute: 30 }), async (req, res) => {
+        const rctx = ctxOf(req);
+        const a = Number.isInteger(req.body?.a) ? req.body.a : null;
+        const b = Number.isInteger(req.body?.b) ? req.body.b : null;
+        const scrap = Number.isInteger(req.body?.scrap) ? req.body.scrap : null;
+        const split = Number.isInteger(req.body?.split) ? req.body.split : null;
+        // **A change leaves the roll held; only an empty body ends it.** Not so a second change can be
+        // made — one hold is one change, see `alterShown` — but so the change is *watchable*: the board
+        // replays the line with the cube that moved, then settles of its own accord. Applying and
+        // settling in one request would resolve the effects onto a line the player never saw.
+        const changing = a != null || b != null || scrap != null || split != null;
+        if (changing) {
+            const alt = actions.alterShown(rctx, {
+                a, b, scrap, split,
+            });
+            if (!alt.ok) return refused(res, alt);
+            return res.json({ ...alt, board: boardOf(rctx, req) });
+        }
+        const out = actions.finishShown(rctx);
+        if (!out.ok) return refused(res, out);
+        try {
+            const thrown = actions.resolveThrown(rctx, out.run, out.thrown);
+            if (thrown.asking) {
+                actions.parkTie(rctx, thrown);
+                return res.json({
+                    ...rollResponse(thrown, null),
+                    tie: { asking: true, cost: thrown.cost, worth: thrown.worth },
+                    board: boardOf(rctx, req),
+                });
+            }
+            const settled = await actions.settleThrow(rctx, { thrown });
+            return res.json({ ...rollResponse(thrown, settled), board: boardOf(rctx, req) });
+        } catch (err) {
+            // The rung was already called and the cubes are already down, so there is no stake to hand
+            // back — the same position `/roll` is in once it has committed.
+            console.error('[api] /cube/held:', err);
+            return res.status(500).json({
+                error: 'The roll landed but the answer did not — reopen the board to pick it up.',
+            });
+        }
+    });
+
+    // Naming one of the three, or taking the name back. Free and reversible until the cubes are down.
+    app.post('/sidebet', auth, rateLimit({ perMinute: 60 }), (req, res) => {
+        const rctx = ctxOf(req);
+        const id = typeof req.body?.id === 'string' ? req.body.id : null;
+        const out = actions.placeBet(rctx, { id });
+        if (!out.ok) return refused(res, out);
+        return res.json({ ...out, board: boardOf(rctx, req) });
     });
 
     // Cashing out short of the ceiling.
@@ -394,6 +571,22 @@ module.exports = function mountCube(app, ctx) {
     app.post('/buyreroll', auth, rateLimit({ perMinute: 20 }), (req, res) => {
         const ctx = ctxOf(req);
         const out = actions.buyReroll(ctx);
+        if (!out.ok) return refused(res, out);
+        return res.json({ ...out, board: boardOf(ctx, req) });
+    });
+
+    // Buying a side skin off the cosmetics shelf. Truguts, and the only thing they buy in this mode
+    // that is not spent again — what comes back is on the profile for good.
+    //
+    // The **set** id, not the variant ids: the price and the gate are then checked against the thing
+    // that was actually offered rather than against a list the client assembled. What the sets are is
+    // `/tuning`; what this player holds is `player.skins` on every board.
+    app.post('/skin', auth, rateLimit({ perMinute: 20 }), (req, res) => {
+        const ctx = ctxOf(req);
+        if (typeof req.body?.id !== 'string') {
+            return res.status(400).json({ error: 'Expected { id }.', code: 'bad_body' });
+        }
+        const out = actions.buySkin(ctx, { id: req.body.id });
         if (!out.ok) return refused(res, out);
         return res.json({ ...out, board: boardOf(ctx, req) });
     });
@@ -508,11 +701,18 @@ module.exports = function mountCube(app, ctx) {
     // Rate limits are tighter than the shop's on purpose: a press is a spend, and the reroll is the
     // one action in the mode a player might reasonably want to hammer.
 
-    // Two cubes in, one out. Costs a prestige point.
+    // Two cubes in, one out. Costs a build token.
+    //
+    // **`major` and `keep` are the two the press has never been sent.** `major` is a cube id — which
+    // parent an uneven cut pours the most faces from, part of Deep Cuts. `keep` is The Keeper,
+    // `{ parent, faceId }`, one face the cut has to carry. Both are validated against the profile by
+    // `pressPicks` in the actions, which is also what turns the ids into positions, and both are dropped
+    // rather than refused when they are not owned — so a client that sends them before the rung is bought
+    // presses exactly as it always did.
     app.post('/weld', auth, rateLimit({ perMinute: 20 }), (req, res) => {
         const ctx = ctxOf(req);
         const ids = Array.isArray(req.body?.ids) ? req.body.ids.filter(x => typeof x === 'string') : [];
-        const out = actions.weldCubes(ctx, { ids });
+        const out = actions.weldCubes(ctx, { ids, major: pressPickOf(req), keep: keeperOf(req) });
         if (!out.ok) return refused(res, out);
         return res.json({ ...out, board: boardOf(ctx, req) });
     });
@@ -525,6 +725,8 @@ module.exports = function mountCube(app, ctx) {
         const out = actions.rerollWeld(ctx, {
             id: req.body?.id,
             paying: req.body?.paying === 'points' ? 'points' : 'truguts',
+            major: pressPickOf(req),
+            keep: keeperOf(req),
         });
         if (!out.ok) return refused(res, out);
         return res.json({ ...out, board: boardOf(ctx, req) });

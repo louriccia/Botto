@@ -361,7 +361,7 @@ step.
 past that a prestige buys the stake ceiling and stops. A die earned through the challenge system does
 not have to compete with the seventeen, and it gives the endgame something to be for. `OFF_RACK` in
 `state.js` is what keeps it off — checked in `rewardChoices` *and* again in `grantReward`, so a stale
-menu cannot spend a prestige point on a cube that was never for sale.
+menu cannot spend a build token on a cube that was never for sale.
 
 ---
 

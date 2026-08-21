@@ -352,6 +352,29 @@ Its `<a:newrecord:>` badge works differently from the other two: it marks a stre
 the record (`streak === bestStreak`), which is a true statement about the present rather than a
 moment flag that would linger on the board until the next roll.
 
+**Coldest streak** is the same figure inverted, and it counts something narrower on purpose:
+*openings lost in a row*, where an opening is the rung a run starts on. `streak` counts every
+correct call at any depth and survives a bank; this counts runs, and only the one rung each of
+them opens with.
+
+That rung is the one place in the mode where a loss is nobody's fault. `drawCubes` at level 0
+returns a single plain cube and does not touch the bag, so the opening call is a fair 50/50 at
+every prestige, with every cube owned, whatever is equipped — measured across three racks in
+`scripts/cubeCold.js`. A run of them is therefore pure weather, which is exactly what makes it
+worth a number: it is the only stat on the sheet that no rack can move.
+
+**It is deliberately not on the board.** A leaderboard of misfortune is a thing to farm, and the
+whole point of the figure is that nobody can influence it — so it gets no rolling window and no
+`bestAt` stamp, unlike every record above it. It lives in two places: the Records group on the
+stats sheet, under the streak it inverts, and one line on the bust screen once it reaches three.
+Three because two in a row happens on a quarter of all pairs of runs and saying so would make the
+panel a nag, where three is one in eight — about where a player starts to feel picked on, which is
+the sentence's entire job.
+
+Nothing pays for it. It is a stat and a sentence, which is the only shape it could have: every
+other reward in this mode is a multiple riding the standing, and a rebate for losing coin flips is
+a faucet keyed to the one event a player cannot influence.
+
 Because it's a personal sample, `rolled` drifting off 50/50 says nothing about the cube; it
 takes hundreds of cubes to mean anything, which is half the fun of showing it. A server-wide
 version would be a separate counter node, and is the ghost of the ledger that used to be here.
@@ -554,6 +577,12 @@ An earlier draft made the prestige pick a **cosmetic face palette** instead, six
 and red emoji. That went: a palette is a second screen's worth of plumbing threaded through every
 function that draws a cube, in exchange for nothing the player can play with. There is one pair
 of faces now — 🟦 and 🟥 — and prestige buys something that changes a roll.
+
+Cosmetic faces did come back later — bought with truguts off the shop's own shelf rather than with a
+build token, and gated on three different things rather than on prestige alone. What made that
+affordable is that the Activity draws every face through one function, so the plumbing this paragraph
+rejected is a single lookup there. Prestige still buys something that changes a roll; looks are
+something else's price. See [§2.11](#211-the-cosmetics-shelf).
 
 The stored stake is clamped **on read as well as on write**, so a stake saved before the
 ceiling existed can't stay oversized. A modal only ever renders two strings the user is sure
@@ -1321,6 +1350,75 @@ A parked tie **blocks the board** until it's answered, and that is not a soft-lo
 his cube is always free. The one thing that would be a soft-lock is guarded: a stored tie on a level
 the data no longer has is released rather than left blocking forever.
 
+### 2.11 The cosmetics shelf
+
+**The two sides are the only faces in the mode whose picture is free.** Every other face has to look
+like the thing it does — a mine has to read as a mine — but `side:blue` and `side:red` do nothing:
+the rules name the position and nothing in the rules can read the hue. So they are what the shop
+sells for looks.
+
+Thirty-three variants: ten colours across three shapes — square, circle, heart — and the
+twenty-three racer flags. The four a player starts with are the blue and red squares and the blue and
+red circles, which is why a first-run board looks exactly like a board with no skins in it. The
+circle pair is free for a reason that isn't generosity: a shape difference is the only variant that
+reads for a player who cannot tell the two colours apart.
+
+**Bought in pairs, worn one at a time.** A colour is sold as a matched pair because two contrasting
+colours is what a side skin is *for* and nobody wants half of one; a flag is sold alone, because a
+flag is a racer and picking one is the point. Both come out of the same field, so ownership stays a
+flat list of variant ids and nothing downstream has to know which kind of set it came from. The two
+slots are then independent — a player who owns a violet square and an orange heart may field both,
+and the picker offers every owned variant to both sides.
+
+The one rule the picker enforces is that **the two sides may not share a colour**. Not the variant:
+the colour. A purple heart against a purple square is two different pictures and still an unreadable
+board, because the count columns carry side identity by where they fly rather than by hue. Red gives
+way when a pair clashes, because blue is the side the picker opens on.
+
+**Three kinds of gate, and each one asks a different question.** `prestige` is how far round the
+ladder you have been, `cubes` is how much of the rack you own, and the collection — every face on a
+cube of yours having landed at least once — opens exactly one set. The shapes climb on prestige, the
+circles on the rack, and the hearts run past both, so the shelf is three separate reasons to play
+rather than a second readout of the ladder. Prices are **flat**: 📀5,000 a pair, 📀3,000 a flag,
+unscaled by the stake ceiling. A reroll is scaled because it is spent and bought again; these are
+bought once and kept forever, and scaling a one-time price would mean the longer you admire something
+the dearer it gets — pushing every player to buy on the prestige a set unlocks rather than the one
+they want it on.
+
+Every flag opens on the same condition rather than twenty-three staggered ones, because which flag
+you want is about who you race, and staggering them would mean telling a Gasgano player to earn six
+other people's flags first.
+
+**The split between the two processes is the whole implementation.** `POST /cube/skin` takes a *set*
+id and nothing else: the price, the gate and the variants are all looked up from `SKIN_SETS` in
+`tuning.js`, so a client can never pair one set's price with another set's contents — the same reason
+`spendPoint` re-checks a rack node on the select rather than trusting the menu that offered it. The
+gate is re-checked where the truguts move, not only where the row was drawn. Ownership lands on the
+profile as `cube.skins`, a `{ id: true }` map like `cube.cubes`, and comes back on every board as
+`player.skins` with the free four folded in on read — a free thing stored per player is a free thing
+that can go missing.
+
+The truguts go on the lifetime **spend** rather than the loss ledger, like a bought reroll and a
+bought tie: nothing was ever riding on it. It is also the only thing truguts buy in this mode that
+is not spent again, which is the point of having it — a rich late player has something to want.
+
+**And the art never leaves the client.** The server holds ids, prices and gates; the SVG paths, the
+hexes and the flag PNGs are the Activity's, exactly as they are for every other face. The engine is
+never told a skin exists, so nothing here can be read as an advantage: the board is single-player and
+which picture a side wears is a fact about one screen.
+
+The one thing that is still client-side and shouldn't stay that way: **which variant is worn** lives
+in `localStorage`, so the choice does not follow a player between Discord and the site. Ownership is
+the server's answer now; the worn pair is the next thing to move onto the profile.
+
+This is the idea [§2.5](#25-prestige-and-the-stake-ceiling) records as cut, and the reasoning there
+was sound at the time: a palette threaded through every function that draws a cube, in exchange for
+nothing to play with. Two things changed. The plumbing turned out to be **one lookup**, in the
+client's `faceOf`, because the Activity draws faces through a single function rather than assembling
+emoji strings at a dozen call sites. And the screen it needed already existed — the shop and the
+cubes screen are both drawn, so this is a shelf on one and a picker on the other rather than a second
+screen's worth of anything. What was rejected was the cost, and the cost is no longer that.
+
 ---
 
 ## 3. Economy
@@ -1658,7 +1756,7 @@ users/<key>/random/cube                   { stake, turn, unlocked, clears,
                                             streak, bestStreak,
                                             cubes, equipped, rerolls, buyReroll,
                                             nudge, bribe, bribes, faces, bestCubes,
-                                            bestMultiple }
+                                            bestMultiple, skins }
 ```
 
 `bag` is what the run has left to draw from — shuffled by `fillBag` when the run starts, and drawn
@@ -1718,9 +1816,11 @@ ladder on one screen, and every one of those systems was a second screen or a pa
 rules standing between the player and a roll. The ideas are in git history if the loop
 proves too thin.
 
-The one piece of that draft that came back is the unlock gate — the old "rack" of cubes won
+Two pieces of that draft came back. The unlock gate — the old "rack" of cubes won
 off Watto, rebuilt as the much smaller clears counter in §2.3. A ladder where a new player
-can stake into the top multiple immediately has no shape to it.
+can stake into the top multiple immediately has no shape to it. And the cosmetic faces, as a
+truguts shelf in the shop rather than as a prestige pick, once the Activity had made drawing one a
+single lookup — [§2.11](#211-the-cosmetics-shelf).
 
 **The Pure Cube pot**, which did ship and then came out. A jar seeded at 📀25,000, fed by a
 quarter of every busted stake, paying 5% / 25% / 100% of itself on a pure 5, 7 or 9. The

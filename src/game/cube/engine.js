@@ -12,7 +12,7 @@
 const crypto = require('crypto');
 
 const {
-    LEVELS, SPECIALS, SIDES, POINTS, PLAIN_FACES, SIDE_IDS, cube: config,
+    LEVELS, SPECIALS, SIDES, POINTS, PLAIN_FACES, SIDE_IDS, SIDE_BETS, cube: config,
 } = require('./tuning.js');
 
 const OTHER = { blue: 'red', red: 'blue' };
@@ -877,6 +877,122 @@ exports.throwSet = function (set) {
     });
 };
 
+// ---------------------------------------------------------------------------
+// Splitting a weld, mid-run
+// ---------------------------------------------------------------------------
+
+// **Whether a position on the line can come apart**, which is two questions and not one: is it a weld,
+// and is it free to move.
+//
+// Ice is the second. Ando Prime's freeze commits a cube to the face it is showing and gives it no turn
+// — `throwSet` serves the held face and clears the flag — so a frozen weld has one face committed and
+// two cubes' worth of faces to commit it to, and there is no honest answer to which parent inherits it.
+// It refuses, which hands the freeze a use it did not have: for one throw, it holds a weld shut.
+exports.canSplitAt = function (line, at) {
+    const pos = (line || [])[at];
+    if (!pos || pos.frozen) return false;
+    return !!exports.weldParents(pos.slot && pos.slot.id);
+};
+
+// **A welded position, taken back to the cubes it was pressed from and thrown.** Split, off The
+// Forger — see `TREE`. Returns the positions to put in its place, or null if it will not come apart.
+//
+// `throwSet` does all of the work, which is the whole reason this is four lines: it copies slots, rolls
+// each parent off `liveFaces`, handles a charred face, and hands back positions in exactly the shape the
+// line already holds. The parents are specials by construction — `parseWeld` resolves every one through
+// `baseById` — so nothing plain can enter the line this way and `rollSide` is never reached.
+//
+// **The parents come back whole and in no chosen order.** Fresh slots, so the weld's scorch marks, its
+// ice and its heat stay with the cube that came apart rather than being distributed: a burn took a face
+// off *that* cube, and that cube no longer exists. And `throwSet` shuffles, so which parent lands where
+// is not the player's to pick — the press is not precision equipment, and position is The Dealer's tree.
+exports.splitAt = function (line, at) {
+    if (!exports.canSplitAt(line, at)) return null;
+    const parents = exports.weldParents(line[at].slot.id);
+    return exports.throwSet(parents.map(id => ({ ...plainSlot(), id })));
+};
+
+// **A thrown line, put down and picked up again**, without throwing it a second time.
+//
+// The one thing the mode could not do until now is stop *between* the cubes landing and the effects
+// firing. `parkTie` parks a roll, but it parks a **resolved** one — the effects have already run and
+// consumed the state that makes a line hard to store — and every question worth asking a player
+// mid-roll lands in the gap this fills instead: which face is that, put those two the other way
+// round. A rethrow is not an option for either. The player is answering about *this* line.
+//
+// **Nothing new is stored to make it work.** A thrown line is three things the engine already emits
+// and already puts on the wire: the slots in the order they landed (`encodeSet`), one face id per
+// position (`rolledFaces`), and the per-position extras a face id cannot carry (`lineState`). This is
+// the inverse of that, and the round trip is measured rather than assumed — see `scripts/cubeLine.js`.
+//
+// The rebuild is `frozenCube`'s, which has done exactly this job since Ando Prime shipped: a slot and
+// a face id back into the position it was. A face the cube no longer carries comes back as a position
+// that counts toward nothing, which is the same way a stale freeze degrades and for the same reason.
+exports.relineFrom = function (set, faces, state = {}) {
+    const charred = state.charred || [];
+    const frozen = state.frozen || [];
+    const ids = faces || [];
+    return (set || []).map(slotOf).map((slot, i) => {
+        const special = slot.id ? specialById(slot.id) : null;
+        if (charred[i]) return charredFace({ special, slot }, ids[i]);
+        const built = frozenCube(special, ids[i]);
+        if (!built) return { side: null, special, face: null, slot };
+        return frozen[i] ? { ...built, slot, frozen: true } : { ...built, slot };
+    });
+};
+
+// **Watto chalks up three prices, one from each band.**
+//
+// Redrawn every rung, which costs nothing and is the only thing that makes the book feel like a book:
+// the offer you turn down at Level 2 is not the offer waiting at Level 3.
+//
+// **Only what the rack can actually produce.** Four propositions measure a flat 0.0% without a
+// specific cube in the bag — Ben razes, the line grows, Sebulba turns one, Order 66 — and a bet that
+// cannot be won is not a long shot, it is a trap. Filtering costs nothing the mechanic was for: judging
+// 4% against 20% is still the whole skill, and it is still the player's job to know which of the three
+// their own cubes are good at.
+//
+// One likely, one middle, one long shot. A band with nothing eligible in it simply contributes
+// nothing, so a thin rack is offered a shorter book rather than a padded one.
+exports.drawBook = function (equipped) {
+    const kinds = new Set();
+    for (const id of equipped || []) {
+        const sp = specialById(id);
+        for (const f of (sp && sp.faces) || []) kinds.add(f.kind);
+    }
+    // A plain cube is always in the bag and only ever rolls a side, so nothing is added for it — which
+    // is also what makes the fallback right. A proposition naming no faces still needs *something*
+    // special on the table: every level is an odd number of cubes, so a line of plain ones always has
+    // a majority in it and can never tie. Measured at 0.0% on an empty rack, like everything else.
+    const can = bet => (bet.needs ? bet.needs.some(k => kinds.has(k)) : kinds.size > 0);
+    const out = [];
+    for (const band of ['likely', 'middle', 'long']) {
+        const pool = SIDE_BETS.filter(b => b.band === band && can(b));
+        if (pool.length) out.push(pool[crypto.randomInt(0, pool.length)].id);
+    }
+    return out;
+};
+
+// What a placed bet paid, as a bonus onto the rung's multiple. Zero when nothing was named, when the
+// named proposition is not one this build has, or when it simply did not happen.
+//
+// It goes in beside the roll's own paying faces rather than anywhere new — `rungMultiple` takes the
+// added bonus and has always taken it — so a side bet compounds, shrinks and is capped by exactly the
+// same rules a Greed is.
+exports.betPaid = function (id, res) {
+    const bet = id ? SIDE_BETS.find(b => b.id === id) : null;
+    if (!bet || !res) return 0;
+    return bet.hit(res) ? bet.price : 0;
+};
+
+// The other half of the same trip: everything about a thrown line that has to survive being written
+// down. Kept beside the rebuild so the two are read together and cannot drift apart quietly.
+exports.encodeLine = line => ({
+    set: exports.encodeSet((line || []).map(c => c.slot)),
+    faces: exports.rolledFaces(line || []),
+    state: lineState(line || []),
+});
+
 // How a face is keyed in the lifetime tallies, and the id it draws as. The kind alone isn't
 // enough — Shmi's four red and one blue are both `side`, and the Multiplier's two halves are both
 // `mult` — and those are exactly the splits worth seeing. Safe as a Firebase key: no dots, slashes
@@ -1043,6 +1159,11 @@ const resolveLine = function (line, call, bag, opts = {}) {
     // at the end of the roll, hauled cubes carried off during it — and `scavenge` takes the last one
     // in. Order is the whole of the structure.
     const hold = [...(opts.hold || [])];
+    // Cubes the *player* took off this line before it resolved — Scrap, and nothing else so far. They
+    // are wreckage like anything else the roll took, so they belong in the hold; they arrive here
+    // rather than being swept up below because the line they were on no longer holds them, and a cube
+    // the player scrapped is exactly the sort of thing the Jawa exists to fetch back.
+    const wrecked = [...(opts.wrecked || [])];
     // Specials this roll pulled back out of the hold, so the caller can take them off `spent`. A cube
     // standing on the table and listed as shattered is a lie the rack screen would eventually tell.
     const recovered = [];
@@ -1844,15 +1965,23 @@ const resolveLine = function (line, call, bag, opts = {}) {
                 // The bag is deliberately untouched. Draining that as well would make a purge on the
                 // level it arrives just as ruinous as one at Level 4, which is the only interesting
                 // thing about the shape of this face.
+                //
+                // **Ben's wings count.** A razed wing is a corpse everywhere else, but it is a third of
+                // a special cube lying across the line and the purge takes the picture with the rest —
+                // so a wide Ben goes off the table whole rather than losing his middle and leaving two
+                // thirds of himself behind. There is no holding to lose: the cube the wing replaced was
+                // already destroyed, so it adds to the count and nothing to `broken`.
                 const doomed = [];
                 for (let k = 0; k < final.length; k++) {
-                    if (final[k].special && !final[k].gone) doomed.push(k);
+                    const x = final[k];
+                    if (x.face && x.face.kind === 'razed') doomed.push(k);
+                    else if (x.special && !x.gone) doomed.push(k);
                 }
                 if (!doomed.length) {
                     note(c, 'purge.nothing');
                     break;
                 }
-                for (const k of doomed) broken.push(final[k].special.id);
+                for (const k of doomed) if (final[k].special) broken.push(final[k].special.id);
                 for (const k of [...doomed].reverse()) final.splice(k, 1);
                 note(c, 'purge', { destroyed: doomed.length });
                 break;
@@ -2321,6 +2450,11 @@ const resolveLine = function (line, call, bag, opts = {}) {
     // one runaway throw fill the hold with cubes nobody ever owned.
     const standing = new Set(final.filter(c => !c.gone).map(c => c.slot));
     const carried = new Set(hold);
+    // **The scrapped cube goes in ahead of what the roll broke**, which is the order it left the table
+    // in: it was taken while the line was held, before a single effect fired. It is swept here with the
+    // rest and not when the player scrapped it for the reason the rest are swept here — so a Jawa
+    // standing on the same line cannot hand back the cube the player has just thrown away.
+    for (const slot of wrecked) if (slot) hold.push({ ...slot, hauled: false });
     for (const c of line) {
         if (c.slot && !standing.has(c.slot) && !carried.has(c.slot)) {
             hold.push({ ...c.slot, hauled: false });

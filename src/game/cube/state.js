@@ -13,7 +13,7 @@ const moment = require('moment');
 require('moment-timezone');
 
 const {
-    LEVELS, SPECIALS, TREE, TREES, cube: config,
+    LEVELS, SPECIALS, TREE, TREES, SKIN_FREE, SKIN_SETS, SKIN_VARIANTS, cube: config,
 } = require('./tuning.js');
 const engine = require('./engine.js');
 
@@ -57,7 +57,7 @@ exports.rerollCostFor = rerollCostFor;
 
 // What rerolling a weld costs in truguts. Scaled by the stake ceiling like a bought reroll, and
 // **not** escalated per weld — see `weldRerollCost` for why escalating it would make paying a
-// prestige point strictly worse than unwelding and welding again.
+// build token strictly worse than unwelding and welding again.
 const weldRerollCostFor = prestige => Math.floor(
     config.weldRerollCost * (config.maxStakeStep ** prestige),
 );
@@ -192,6 +192,97 @@ exports.bribeCostFor = (standing, bribes = 0, nudge = false) => Math.floor(
 );
 
 // ---------------------------------------------------------------------------
+// The cosmetics shelf
+// ---------------------------------------------------------------------------
+//
+// **Ownership is the only half of a skin the server has an opinion about.** What a variant looks like
+// is the client's, what it costs and what opens it is `tuning.js`, and this is the part that is a fact
+// about one player: which of the fifty-three they hold. See the section head in `tuning.js` for why
+// the mode sells cosmetics at all.
+
+const SKIN_IDS = new Set(SKIN_VARIANTS);
+const SKIN_SET_BY_ID = new Map(SKIN_SETS.map(set => [set.id, set]));
+
+const skinSetById = id => (typeof id === 'string' ? SKIN_SET_BY_ID.get(id) || null : null);
+exports.skinSetById = skinSetById;
+
+// Stored as a `{ id: true }` map for the same reason `cubes` is — a grant is a single key — and read
+// back in catalogue order so a picker never reshuffles itself. Unknown ids are dropped rather than
+// trusted: a variant the shipped catalogue no longer has is a picture nothing can draw.
+//
+// **The free four are added on read and never stored.** They cost nothing, so writing them to a
+// profile would be storing a fact that is true of everybody — and a fact stored per player is a fact
+// that can go missing.
+const ownedSkins = function (c) {
+    const held = new Set(Object.keys(c?.skins || {}).filter(id => c.skins[id] && SKIN_IDS.has(id)));
+    for (const id of SKIN_FREE) held.add(id);
+    return SKIN_VARIANTS.filter(id => held.has(id));
+};
+exports.ownedSkins = ownedSkins;
+
+// Whether a set's gate is open, and if not, what it is waiting for. The sentence is the server's
+// because the condition is: a client that worded its own would be one release away from telling a
+// player to reach a prestige the shelf no longer asks for.
+//
+// The three gates ask three different questions — see `SKIN_SHELF` — and `faces` is the only one that
+// can be *unanswerable*: a player who owns no cube carrying a tallied face has nothing to complete, so
+// it is shut with the generic sentence rather than reported as zero-to-go and open.
+const skinGate = function (s, gate) {
+    if (!gate) return { open: true, need: null };
+    if (gate.prestige != null) {
+        return s.prestige >= gate.prestige
+            ? { open: true, need: null }
+            : { open: false, need: `Opens at Prestige ${gate.prestige}` };
+    }
+    if (gate.cubes != null) {
+        const at = s.cubes.length;
+        return at >= gate.cubes
+            ? { open: true, need: null }
+            : { open: false, need: `Opens at ${gate.cubes} cubes — you own ${at}` };
+    }
+    if (gate.faces === 'all') {
+        // Against the faces on cubes the player owns, which is the same count the collection screen
+        // draws against: a bar that cannot fill until the rack is bought out is not a goal.
+        const mine = s.faceProgress.filter(f => f.owned);
+        const left = mine.filter(f => !(f.n > 0)).length;
+        if (!mine.length) return { open: false, need: 'Opens when you complete the collection' };
+        return left === 0
+            ? { open: true, need: null }
+            : { open: false, need: `Opens when you complete the collection — ${left} to go` };
+    }
+    return { open: true, need: null };
+};
+exports.skinGate = skinGate;
+
+// The shelf as a screen draws it: every set, whether it is held, whether it can be bought and what it
+// is waiting for. Locked sets are included for the reason the rack's tree is sent whole — a catalogue
+// you cannot see the top of is one you cannot choose a branch of.
+//
+// **Held outranks the gate.** A set can be owned and still sit behind a shut one — a retuned gate, or a
+// variant granted some other way — and in that case the gate is a fact about buying it, which is over.
+// Reporting it locked would have the shelf offering to sell something back.
+exports.skinShelf = function (s) {
+    const held = new Set(s.skins);
+    return SKIN_SETS.map((set) => {
+        const has = set.ids.every(id => held.has(id));
+        const { open, need } = skinGate(s, set.gate);
+        return { ...set, owned: has, open: has || open, need: has ? null : need };
+    });
+};
+
+// Grants every variant in a set. Reached only through `buySkin`, which is what charges for it, and
+// written as the whole map rather than one key so the patch says the same thing the state does.
+exports.grantSkins = function (s, patch, ids) {
+    const held = new Set(s.skins);
+    for (const id of ids) if (SKIN_IDS.has(id)) held.add(id);
+    s.skins = SKIN_VARIANTS.filter(id => held.has(id));
+    // The free four are excluded from what is written for the reason `ownedSkins` adds them on read.
+    patch.skins = Object.fromEntries(
+        s.skins.filter(id => !SKIN_FREE.includes(id)).map(id => [id, true]),
+    );
+};
+
+// ---------------------------------------------------------------------------
 // Reading a profile
 // ---------------------------------------------------------------------------
 
@@ -292,7 +383,7 @@ exports.cubeState = function (user_profile) {
         rerollCost: rerollCostFor(prestige, stock),
         // Salvage Rights, off The Junker, and Double or Nothing, off The Gambler. Read defensively
         // like every other pick on the rack: a profile written before either existed has neither.
-        salvage: !!c.salvage,
+        scrap: !!c.scrap,
         double: !!c.double,
         // The weld press: how far up it the player has bought, what a reroll costs in truguts, how
         // many cubes it takes at that tier, and what each pairing has already thrown.
@@ -302,7 +393,15 @@ exports.cubeState = function (user_profile) {
         // carry; The Heavy Half names the parent the major share lands on, which `weldSplits`
         // otherwise decides with a coin flip.
         keeper: !!c.keeper,
+        split: !!c.split,
+        // **`heavy` is read for one reason only: to hand its point back.** The perk never ran, the
+        // node is gone from `TREE`, and its choice now comes with press rung 4 — so nothing consults
+        // this to decide anything. See `refundDeadHeavy`, which is also what will delete it.
         heavy: !!c.heavy,
+        // The two that stop a roll between the cubes landing and the effects firing.
+        premonition: !!c.premonition,
+        shuffle: !!c.shuffle,
+        sidebet: !!c.sidebet,
         weldRerollCost: weldRerollCostFor(prestige),
         weldSeen,
         // Lifetime tie tallies, by how each one was settled. Read defensively for the same reason
@@ -336,6 +435,10 @@ exports.cubeState = function (user_profile) {
         // raw `{ cubeId: { faceKey: n } }` tally the rack screen draws its per-face counts from, and
         // this is the summary over it.
         faceProgress: faceProgressOf(c, cubes),
+        // **Which side skins the player holds**, in catalogue order and with the free four folded in —
+        // see `ownedSkins`. The only cosmetic fact on the profile: which *picture* is worn on which
+        // side is the client's, because nothing in the rules can read it and a board is single-player.
+        skins: ownedSkins(c),
         // The two things off the rack that only ever matter on a tie: the Nudge turns Watto's
         // tie-breaker cube around, and the bribe lets you buy the tie instead of rolling for it.
         // `bribes` is how many have been paid since the last prestige, which is the price ladder.
@@ -376,6 +479,22 @@ exports.cubeState = function (user_profile) {
         // streak runs across games and can outlive any single run.
         streak: Number(c.streak) || 0,
         bestStreak: Number(c.bestStreak) || 0,
+        // **The cold streak: openings lost in a row, and the worst run of them.**
+        //
+        // The opposite figure to the two above and not the same one negated. `streak` counts every
+        // correct call at any depth and survives a bank; this counts **runs**, and only the rung they
+        // open on. That rung is the one place in the mode where a loss is pure chance: `drawCubes` at
+        // level 0 returns one plain cube and does not touch the bag, so the opening call is a fair coin
+        // every single time, at every prestige, whatever is in the rack. Nothing a player owns or
+        // chooses moves it — which is what makes a run of them worth counting rather than diagnosing.
+        //
+        // Read defensively like every tally added after the mode shipped, and `coldest` is floored at
+        // `cold` so a hand-edited profile cannot hold a live streak longer than its own record.
+        cold: Math.max(0, Math.floor(Number(c.cold) || 0)),
+        coldest: Math.max(
+            Math.max(0, Math.floor(Number(c.cold) || 0)),
+            Math.max(0, Math.floor(Number(c.coldest) || 0)),
+        ),
         // When each of the three lifetime bests was set. The rolling windows keep their own; see
         // `stampsOf`.
         bestAt: stampsOf(c.bestAt),
@@ -428,7 +547,9 @@ exports.unrecordLost = function (s, patch, amount) {
 // Folds one roll into the lifetime tallies and reports which personal bests it broke. Every
 // nested value is *replaced* rather than mutated in place, so a frame still holding a
 // pre-roll snapshot keeps rendering the old numbers instead of following the reference.
-exports.recordRoll = function (s, patch, { call, won, cubes, level, standing, line = 0, multiple = 0 }) {
+exports.recordRoll = function (s, patch, {
+    call, won, cubes, level, standing, line = 0, multiple = 0, opening = false,
+}) {
     // Read the records before anything moves.
     const records = {
         level: level > s.bestLevel,
@@ -488,6 +609,23 @@ exports.recordRoll = function (s, patch, { call, won, cubes, level, standing, li
         s.bestStreak = s.streak;
         patch.bestStreak = s.streak;
         stamp('streak');
+    }
+
+    // **The cold streak, which only the opening rung can move.** Late for the same reason the streak is,
+    // and conditional where the streak is not: a roll that is not the rung a run opens on leaves both
+    // counters exactly as it found them, so a bust at Level 5 says nothing about the coin.
+    //
+    // **No window entry and no stamp**, unlike every record above. Those two exist for the board, and
+    // this is deliberately not on it: a leaderboard of misfortune is a thing to farm, and the whole
+    // point of the figure is that nobody can influence it. It is a stat and a line on a bust screen.
+    if (opening) {
+        s.cold = won ? 0 : s.cold + 1;
+        patch.cold = s.cold;
+        records.cold = !won && s.cold > s.coldest;
+        if (records.cold) {
+            s.coldest = s.cold;
+            patch.coldest = s.coldest;
+        }
     }
 
     // **This week's and this month's bests, for the board**, kept alongside the lifetime ones rather
@@ -719,15 +857,45 @@ const HELD = {
     reroll: s => s.buyReroll,
     nudge: s => s.nudge,
     bribe: s => s.bribe,
-    salvage: s => s.salvage,
+    scrap: s => s.scrap,
     double: s => s.double,
     keeper: s => s.keeper,
-    heavy: s => s.heavy,
+    split: s => s.split,
+    premonition: s => s.premonition,
+    shuffle: s => s.shuffle,
+    sidebet: s => s.sidebet,
     press: s => s.pressTier >= config.weldTiers.length,
 };
 
+// **Every cube the player has bought, including the ones standing inside a weld.**
+//
+// A weld consumes its parents: `weldCubes` swaps the two ids out of `s.cubes` for the weld's, because
+// there is one cube in that seat now and the bag has to say so. That is the right answer to *where is
+// this cube* and the wrong one to *have I bought this node* — and `s.cubes` was answering both. So
+// pressing two cubes together put both of their nodes back on the rack: they lit up as buyable, their
+// children fell back to locked, and a build token would buy a cube the player already owned.
+//
+// The rack is a record of what has been bought. Nothing you own ever leaves it, and a weld is a place
+// two cubes are standing rather than proof they are gone.
+//
+// A worklist rather than one pass, because a parent that is itself a weld is representable in an id
+// even though `weldCubes` refuses to make one — and a rule that only holds while another rule holds
+// is the kind that comes apart the day the second one changes.
+const cubesHeld = function (s) {
+    const out = new Set();
+    const rest = [...s.cubes];
+    while (rest.length) {
+        const id = rest.pop();
+        if (out.has(id)) continue;
+        out.add(id);
+        for (const parent of engine.weldParents(id) || []) rest.push(parent);
+    }
+    return out;
+};
+exports.cubesHeld = cubesHeld;
+
 const holds = function (s, value) {
-    if (value.startsWith('cube:')) return s.cubes.includes(value.slice(5));
+    if (value.startsWith('cube:')) return cubesHeld(s).has(value.slice(5));
     const test = HELD[value];
     return test ? !!test(s) : false;
 };
@@ -753,10 +921,10 @@ const PERKS = {
         label: 'Bribe Ties',
         description: 'Buy a tie off him outright instead of trusting his cube.',
     },
-    salvage: {
-        kind: 'salvage',
-        label: 'Salvage Rights',
-        description: `A busted run hands back ${Math.round(config.salvageShare * 100)}% of the stake instead of all of it.`,
+    scrap: {
+        kind: 'scrap',
+        label: 'Scrap',
+        description: 'Once a run, take one cube off the line before anything it does happens.',
     },
     double: {
         kind: 'double',
@@ -768,10 +936,31 @@ const PERKS = {
         label: 'The Keeper',
         description: 'Name one face the press must carry through the cut.',
     },
-    heavy: {
-        kind: 'heavy',
-        label: 'The Heavy Half',
-        description: 'Name the parent the major share of an uneven cut lands on, instead of rolling for it.',
+    split: {
+        kind: 'split',
+        label: 'Split',
+        description: 'Once a run, break a welded cube on the line back into the cubes it was pressed from.',
+    },
+    premonition: {
+        kind: 'premonition',
+        label: 'Premonition',
+        description: 'Once a run, see one face of the next roll before you call it.',
+    },
+    // **`shuffle` the value, Swap the name.** The stored flag and the reward value cannot move — the
+    // one is on saved profiles and the other is what a stale client sends — but the label can, and it
+    // had to: the pick exchanges exactly two named positions, where a shuffle randomises a whole set.
+    // The engine has always called it a swap (`can.swap`, `run.swapped`, the `a`/`b` fields); this is
+    // the screen catching up with it. It also puts the three picks that act on a held line into one
+    // shape — Swap, Scrap, Split — which is what they are: one-syllable verbs on a ten-second clock.
+    shuffle: {
+        kind: 'shuffle',
+        label: 'Swap',
+        description: 'Once a run, swap two cubes on the line before anything they do happens.',
+    },
+    sidebet: {
+        kind: 'sidebet',
+        label: 'Side Bet',
+        description: 'Once a run, name one of the three prices Watto has chalked up. It pays onto the multiple, and the deeper you leave it the less it is worth.',
     },
 };
 
@@ -817,7 +1006,7 @@ const entryOf = function (s, value, node) {
     };
 };
 
-// What a prestige point buys **right now**: every node in `TREE` whose tree is open, whose
+// What a build token buys **right now**: every node in `TREE` whose tree is open, whose
 // prerequisites are all owned, and which isn't owned already.
 //
 // **The rack is the same rack.** Nothing here is new content and nothing is priced differently — the
@@ -902,10 +1091,13 @@ const FLAGS = {
     reroll: 'buyReroll',
     nudge: 'nudge',
     bribe: 'bribe',
-    salvage: 'salvage',
+    scrap: 'scrap',
     double: 'double',
     keeper: 'keeper',
-    heavy: 'heavy',
+    split: 'split',
+    premonition: 'premonition',
+    shuffle: 'shuffle',
+    sidebet: 'sidebet',
 };
 
 // Grants one reward. Reached only through `spendPoint`, which is what charges for it.
@@ -928,8 +1120,11 @@ const grantReward = function (s, patch, value) {
     const id = value.startsWith('cube:') ? value.slice(5) : null;
     // `OFF_RACK` is re-checked here and not only in `rewardChoices`, for the same reason eligibility is
     // re-checked on the select: a menu rendered before this rule existed must not be able to spend a
-    // prestige point on a cube that was never for sale.
-    if (!id || !specialById(id) || s.cubes.includes(id) || OFF_RACK.has(id)) return;
+    // build token on a cube that was never for sale.
+    // **`cubesHeld` rather than `s.cubes`**, which is the difference between a cube you do not have and
+    // a cube standing inside one of your welds. On `s.cubes` alone, pressing two cubes together handed
+    // both of their nodes back to the rack and this would sell one of them a second time.
+    if (!id || !specialById(id) || cubesHeld(s).has(id) || OFF_RACK.has(id)) return;
     s.cubes = [...s.cubes, id].filter(cid => specialById(cid));
     patch.cubes = Object.fromEntries(s.cubes.map(cid => [cid, true]));
     // **A cube you picked goes on the table if there is a seat for it**, and onto the bench if there
@@ -976,6 +1171,29 @@ exports.applyPrestige = function (s, patch) {
 exports.spendPoint = function (s, patch, value) {
     exports.spendPoints(s, patch);
     grantReward(s, patch, value);
+};
+
+// **The Heavy Half's point, handed back.** A migration with an expiry date rather than a rule.
+//
+// `heavy` was sold off The Forger for a build token and never did anything: `orderFor` in the engine
+// implements it, `rollWeld` accepts it as `major`, and no caller ever passed it — so every profile
+// holding the flag paid for a mechanic that has never once run. The node is gone and the choice it
+// bought now comes with press rung 4, which means there is nothing left to grant those players and a
+// point to return.
+//
+// Called from `spendPoint` **before** its own balance check, so the refund lands as spendable rather
+// than as a number that has to be noticed and re-visited. Clearing the flag is what makes it once.
+//
+// Nothing tests the flag any more — `heavy` is out of `TREE`, `PERKS`, `FLAGS` and `HELD`, so it can
+// neither be offered nor re-bought. **Delete this and the `heavy` read in `cubeState` together**, once
+// no live profile carries it.
+exports.refundDeadHeavy = function (s, patch) {
+    if (!s.heavy) return false;
+    s.heavy = false;
+    s.points += 1;
+    patch.heavy = false;
+    patch.points = s.points;
+    return true;
 };
 
 // Points out, with nothing granted for them. The press spends this way: a weld is not a thing off

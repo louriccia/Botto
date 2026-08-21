@@ -590,6 +590,57 @@ const makeWorld = function (cube = {}) {
         engine.specialById(engine.rollWeld(['mirror', 'gungan'], { tier: 1 })).faces.some(isDown), false);
     console.log('');
 
+    // -----------------------------------------------------------------------
+    // The two picks the press was never told about
+    // -----------------------------------------------------------------------
+    //
+    // Deep Cuts names the parent the major share lands on and The Keeper names a face the cut has to
+    // carry. Both were implemented in `orderFor` and `pickWith` and neither was ever passed by a caller —
+    // `weldCubes` and `rerollWeld` built every weld in the game blind — so these two rows are here to
+    // stop that being true again quietly. `pressPicks` in the actions is the gate; this measures the
+    // engine below it.
+    console.log('  the named shares · rung 4 names the major half, and it halves the chase');
+    const shareOf = (id, who) => (id.split('+').map(s => s.split(':')).find(s => s[0] === who) || [])[1].length;
+    const majorRate = function (opts) {
+        let uneven = 0;
+        let major = 0;
+        for (let i = 0; i < TRIALS; i++) {
+            const w = shareOf(engine.rollWeld(['wild', 'greed'], opts), 'wild');
+            if (w !== 3) { uneven += 1; if (w > 3) major += 1; }
+        }
+        return uneven ? major / uneven : 0;
+    };
+    const named = majorRate({ tier: 4, major: 0 });
+    const blind = majorRate({ tier: 4 });
+    console.log(`    wild named            ${named.toFixed(3)}`);
+    console.log(`    nothing named         ${blind.toFixed(3)}`);
+    check('a named parent always takes the major share', named, 1);
+    check('an unnamed one never does more than the other', majorRate({ tier: 4, major: 1 }), 0);
+    near('an unnamed cut is still a coin flip', blind, 0.5, 0.03);
+
+    // A face that is neither certain nor a downside, so the measurement has somewhere to move: the
+    // Multiplier carries two of six, which a blind 3+3 finds about three times in four.
+    const keptRate = function (opts) {
+        let kept = 0;
+        for (let i = 0; i < TRIALS; i++) {
+            const sp = engine.specialById(engine.rollWeld(['multiplier', 'gungan'], opts));
+            if (sp.faces.some(f => f.id === 'mult:red')) kept += 1;
+        }
+        return kept / TRIALS;
+    };
+    const anchored = keptRate({ tier: 1, keep: { parent: 0, faceId: 'mult:red' } });
+    console.log('');
+    console.log('  the keeper · a named face survives the cut');
+    console.log(`    mult:red named        ${anchored.toFixed(3)}`);
+    console.log(`    nothing named         ${keptRate({ tier: 1 }).toFixed(3)}`);
+    check('a named face always comes through', anchored, 1);
+    // The parent is a **position** in the list handed to `rollWeld`, not a cube id — naming it by id is
+    // what `pressPicks` translates, and passing the id straight through is the bug that made The Keeper
+    // look wired when it was not.
+    ok('a face named against the wrong parent changes nothing',
+        keptRate({ tier: 1, keep: { parent: 1, faceId: 'mult:red' } }) < 0.9);
+    console.log('');
+
     if (fail.length) {
         console.log(`  ${fail.length} check(s) failed:\n`);
         fail.forEach(f => console.log(`  ${f}\n`));

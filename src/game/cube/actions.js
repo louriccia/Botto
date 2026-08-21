@@ -29,6 +29,7 @@
 // without dragging discord.js into a web request, and what lets the harnesses run it with no
 // Firebase at all.
 
+const crypto = require('crypto');
 const engine = require('./engine.js');
 const pstate = require('./state.js');
 const persist = require('./persist.js');
@@ -78,6 +79,23 @@ const throwLevel = function (ctx, run) {
 
     const set = drawn.set;
     const line = engine.throwSet(set);
+    return resolveThrown(ctx, run, {
+        line, set, bag: drawn.bag, kind,
+    });
+};
+exports.throwLevel = throwLevel;
+
+// **Everything a throw does after the cubes have landed**, split out so it has one implementation and
+// two ways in.
+//
+// The second way is a throw that was **parked** — see `parkThrow`. Premonition and Swap both
+// stop a roll in the gap between the cubes landing and the effects firing, which means the line is
+// thrown in one request and settled in another; rebuilt off `relineFrom`, it arrives here exactly as
+// a fresh one does and nothing below this line can tell the difference. That is the point of the
+// split: a parked roll must not settle down a second code path, because the two would drift and the
+// drift would only ever show up as a player being shown one line and paid for another.
+const resolveThrown = function (ctx, run, { line, set, bag: drawnBag, kind, wrecked = [] }) {
+    const { s } = ctx;
     // Snapshotted before resolution, which mutates the line — see the note on `resolveLine`. The ice
     // goes with it and has to: `iced()` clears the flag when an effect breaks against a frozen cube,
     // so by the payout the line no longer remembers which cubes were held when they landed. That is
@@ -90,9 +108,13 @@ const throwLevel = function (ctx, run) {
     // The two things a roll needs that aren't on the table. `jail` is Oovo IV's prisoners, held by the
     // run rather than by the line; `rungs` is how many this run has walked including this one, which is
     // the only thing Mon Gazza's seam pays off.
-    const res = engine.resolveLine(line, run.call, drawn.bag, {
+    const res = engine.resolveLine(line, run.call, drawnBag, {
         jail: run.jail || [],
         hold: run.hold || [],
+        // What the player scrapped off this line while it was held. Swept into the hold with the rest
+        // of the roll's wreckage, so a scrapped cube is something the Jawa can fetch back on a later
+        // rung — but never on the throw it was scrapped from.
+        wrecked,
         rungs: (Number(run.rungs) || 0) + 1,
     });
 
@@ -123,7 +145,12 @@ const throwLevel = function (ctx, run) {
     // **doubled** by a level, **+1** by an Again — plus what this roll's greed added. Computed
     // **once**, here, and carried: a resumed tie arrives with it already stepped and must not be
     // stepped twice.
-    const base = engine.rungMultiple(kind, run.mult, res.mult);
+    // **A side bet pays in beside the roll's own faces**, which is what makes it obey every rule they
+    // do: `rungMultiple` takes the added bonus, so the price compounds against the ladder, shrinks
+    // against a doubling multiple and dies with a bust exactly as a Greed does. Anywhere else and a
+    // fixed price would have to be re-priced per level.
+    const betPaid = engine.betPaid(run.bet, res);
+    const base = engine.rungMultiple(kind, run.mult, res.mult + betPaid);
     // What the roll is worth with none of its paying faces counted. Every frame before the payout
     // walk is drawn at this, and the walk builds it up.
     const opening = engine.rungMultiple(kind, run.mult, 0);
@@ -149,7 +176,7 @@ const throwLevel = function (ctx, run) {
         : (tie && !asking ? engine.rollTiebreak(run.call, s.nudge) : null);
 
     return {
-        run, res, rolled, rolledState, set, bag: res.bag || drawn.bag, line,
+        run, res, rolled, rolledState, set, bag: res.bag || drawnBag, line, wrecked,
         level: LEVELS[run.level],
         // Tatooine took the tie. Carried so the client can say who did it — it is Watto's cube that
         // normally settles one, and a tie that resolves with no cube of his on screen needs a reason.
@@ -159,9 +186,121 @@ const throwLevel = function (ctx, run) {
         // re-derived from `run.again` in three places.
         kind,
         tie, asking, breaker, base, opening, worth, cost,
+        bet: run.bet || null, betPaid,
     };
 };
-exports.throwLevel = throwLevel;
+
+// ---------------------------------------------------------------------------
+// Parking a throw
+// ---------------------------------------------------------------------------
+
+// **Puts a thrown line down without settling it**, so the player can be asked something about it.
+//
+// Pinned onto the live run rather than replacing it — see `shownOf` — which is what makes asking free:
+// the rung has not advanced, the bag has not been spent, and banking instead of answering costs the
+// player nothing they had before. The draw is carried here rather than committed, and it is committed
+// only when the roll it belongs to actually settles.
+//
+// **Nothing rolled here is rolled again.** That is the whole point and the whole risk: `relineFrom`
+// rebuilds this into the same line, face for face, and `scripts/cubeLine.js` is what says so over a
+// hundred thousand positions. A rethrow would show one line and pay for another.
+const parkThrow = function (ctx, run, { line, bag, kind, seen = null, changed = false, wrecked = [] }) {
+    const { database, db, discordId } = ctx;
+    const live = persist.ladderOf(db, discordId);
+    if (!live) return null;
+    const shown = {
+        ...engine.encodeLine(line),
+        // The rung this was thrown *for*, which is not the rung the run is standing on — a park sits
+        // between the two. `level` is also what `shownOf` guards on.
+        level: run.level,
+        again: run.again || 0,
+        kind,
+        // The side, if one has been named. A park made *before* the call — a premonition — has none,
+        // and that is what tells `bank` the two apart: a look costs nothing and can be walked away
+        // from, where a roll already called for is a rung in the air and cannot.
+        called: run.call || null,
+        // The bag as the draw left it. The run's own `bag` still holds what it had before, so an
+        // unanswered park costs nothing; this is what the settlement carries on with instead.
+        bag: engine.encodeBag(bag),
+        rungs: Number(run.rungs) || 0,
+        // Which position the look was spent on, so the face can be shown again after a reload. An
+        // Activity re-mounts whenever Discord feels like it, and a premonition the client alone
+        // remembered would vanish with the frame it was drawn in.
+        seen,
+        // **Whether this line has already been altered.** One change per hold — see `alterShown` — and
+        // the flag lives on the parked throw rather than on the run because that is its scope: the next
+        // rung is a new line and a new question. It has to be *stored* rather than inferred because the
+        // Activity can re-mount mid-hold, and a limit the client alone remembered would not be one.
+        changed,
+        // **What the player has taken off this line**, which is not on the line any more and so has
+        // nowhere else to be stored. Scrap is the only thing that puts anything here. It rides the node
+        // rather than the run because it belongs to *this* throw: the settlement sweeps it into the
+        // Scavenger's hold along with whatever the roll itself breaks, and a park that is banked away
+        // from instead of settled never sweeps it at all — the rung did not happen.
+        wrecked: engine.encodeSet(wrecked),
+    };
+    // **The run-scoped flags come off the run, not off the node.** Parking is one of the four things
+    // that writes a ladder, and it was the one that forgot: `premonition` marks the look spent by
+    // handing in a run with `saw` set, and spreading the stored node over the top dropped it every
+    // time. The look was then once per *park* rather than once per run — spendable again the moment
+    // the parked roll was settled.
+    persist.saveLadder(database, db, discordId, {
+        ...live,
+        shown,
+        saw: !!run.saw,
+        swapped: !!run.swapped,
+        scrapped: !!run.scrapped,
+        split: !!run.split,
+    });
+    return shown;
+};
+exports.parkThrow = parkThrow;
+
+// Picks a parked throw back up as a run and a line, ready for `resolveThrown`.
+//
+// `call` arrives with the roll rather than off the node, which is the reason a premonition is worth
+// anything: the cubes landed before the side was named, so what the look tells you can still change
+// the answer. Everything else comes back exactly as it was put down.
+const takeThrow = function (live, shown, call) {
+    const run = {
+        stake: Number(live.stake) || 0,
+        standing: Number(live.standing) || 0,
+        level: shown.level,
+        again: Number(shown.again) || 0,
+        call,
+        mult: Number(live.mult) || 0,
+        spent: Object.values(live.spent || {}),
+        jail: engine.decodeSet(live.jail),
+        hold: engine.decodeSet(live.hold),
+        rungs: Number(shown.rungs) || 0,
+        locked: !!live.locked,
+        sealed: live.sealed || null,
+        saw: !!live.saw, swapped: !!live.swapped, scrapped: !!live.scrapped, split: !!live.split,
+        // **The bet comes back up with the throw**, and this is the line it was missing. Everything
+        // else that builds a run descriptor carries these two — `continueRun` off the ladder,
+        // `takeTie` off the parked tie — and a parked *throw* is the same run in the same rung with
+        // the same chalk on the board. Dropped, `settleThrow` read a run whose bet was undefined and
+        // did three wrong things with it in a row: `betPaid` paid nothing, the roll reported no bet
+        // where the client had a marker standing over the line, and `betUsed` came out false, which
+        // chalked up a fresh book and offered a second bet inside the same run.
+        //
+        // Every roll that parks goes through here, which is every held roll and every roll a
+        // Premonition was taken on — so a player using either of those picks lost the bet they had
+        // placed and was then handed another one.
+        bet: live.bet || null,
+        betUsed: !!live.betUsed || !!live.bet,
+    };
+    const set = engine.decodeSet(shown.set);
+    return {
+        run,
+        set,
+        line: engine.relineFrom(set, Object.values(shown.faces || {}), shown.state || {}),
+        bag: engine.decodeBag(shown.bag),
+        kind: shown.kind,
+        wrecked: engine.decodeSet(shown.wrecked),
+    };
+};
+exports.takeThrow = takeThrow;
 
 // ---------------------------------------------------------------------------
 // Settling one throw
@@ -209,6 +348,11 @@ const settleThrow = async function (ctx, { thrown, bribed = 0, reverse = 0 }) {
     const patch = {};
     const records = pstate.recordRoll(s, patch, {
         call: run.call, won, cubes, level: run.level, standing,
+        // **Whether this is the rung the run opened on**, which is the only rung the cold streak counts.
+        // Off `rungs` rather than off the level, because a run always starts at rung one but level 1 is
+        // not only ever the opening: the Agains in the gap above it are thrown at the same level, and a
+        // bust on one of those is not a lost coin flip.
+        opening: !(Number(run.rungs) || 0),
         // Positions left standing after the effects — not the cubes that counted toward the
         // majority. A Mirror that conjured four and a Padmé that slipped in two both count.
         line: res.faceIds.length,
@@ -272,14 +416,8 @@ exports.settleThrow = settleThrow;
 // A bust. The whole stake leaves the economy — there is nothing to route a share of it into any
 // more, which is what makes the mode a clean sink rather than a faucet with a governor on it.
 //
-// **Salvage Rights is the one hole in that**, and it is deliberately cut against the *stake* rather
-// than the standing: the standing compounds at `LEVEL_STEP`, so a share of it would make the deepest
-// push the most profitable one and break the promise `levelStep` makes that no rung is looser than
-// any other. See `salvageShare`.
 const settleLoss = function (ctx, { run, res, thrown, patch }) {
-    const {
-        s, db, database, discordId, moveTruguts,
-    } = ctx;
+    const { s, db, database, discordId } = ctx;
     // Six ways to lose, reported as which one rather than as a sentence. A line with no majority only
     // reaches here once the tie-breaker has already gone the house's way.
     //
@@ -330,47 +468,47 @@ const settleLoss = function (ctx, { run, res, thrown, patch }) {
             // back, so the prison, the seal, the lock and the rung count all have to come back with
             // it. `thrown.set` is already the table as it was thrown for the same reason.
             jail: engine.encodeSet(run.jail || []),
-            hold: engine.encodeSet(run.hold || []),
+            // **Plus whatever the player scrapped off the rung being bought back.** The hold is stored
+            // as it was entering the rung for the same reason the table is — a reroll buys the roll
+            // back, not the run — but a scrap is not bought back with it: `thrown.set` is the table
+            // *after* the scrap and the flag stays spent on the corpse, so the cube is off the table
+            // either way and the hold is the only place it can honestly be.
+            hold: engine.encodeSet([...(run.hold || []), ...(thrown.wrecked || [])]),
             rungs: Number(run.rungs) || 0,
             locked: !!run.locked,
             sealed: run.sealed || null,
             faces: res.faceIds,
             roll: res.cubes,
             reason,
+            // Carried onto the corpse too: a reroll buys this rung back and resumes the same run, so
+            // an ability already spent on it must not come back with the roll.
+            saw: !!run.saw, swapped: !!run.swapped, scrapped: !!run.scrapped, split: !!run.split,
+            // **The bet, on the same rule as the four above.** `betUsed` is the run's one bet gone, and
+            // a reroll resumes the run rather than starting one — so without this the settlement that
+            // follows the bought-back roll chalked up a fresh book and offered a second bet. `bet` is
+            // the proposition that was standing when the rung was lost: the reroll buys that roll back,
+            // and it comes back with what was riding on it. A bust pays nothing, so nothing was paid
+            // for it the first time and there is nothing here to pay twice.
+            bet: run.bet || null,
+            betUsed: !!run.betUsed || !!run.bet,
             dead: true,
         });
     } else {
         persist.clearLadder(database, db, discordId);
     }
 
-    // **A banked reroll and Salvage Rights are the same consolation, so only one of them pays.**
-    //
-    // The branch above is the whole reason: with a reroll in stock the bust is not final — it is held
-    // open as an offer, and `spendReroll` can undo it. Paying here would hand back a quarter of the
-    // stake *and* let the roll be bought back, and the ledger reversal in `settleThrow` only unwinds
-    // the loss, not truguts that have already moved.
-    //
-    // Which of the two is worth more is not close: a reroll replays the rung with the whole standing
-    // intact, where this returns a fraction of the stake. So the stronger one takes precedence and a
-    // player who declines it declines the better offer. The alternative — pay here and claw it back in
-    // `spendReroll` — is one line longer in two places and can drive a balance negative if the
-    // truguts are spent in between.
-    const salvaged = s.salvage && s.rerolls < 1
-        ? Math.floor(run.stake * config.salvageShare)
-        : 0;
-    if (salvaged > 0) moveTruguts({ transaction: 'd', amount: salvaged });
-    // The ledger takes the net, because these totals are *"literally the sum of the result lines"*
-    // and the line the player is shown says a quarter of it came back.
-    pstate.recordLost(s, patch, run.stake - salvaged);
+    pstate.recordLost(s, patch, run.stake);
 
     return {
         outcome: 'bust',
         reason,
         lostStake: run.stake,
         lostStanding: run.standing || 0,
-        salvaged,
         ladder: null,
         ended: res.ended || null,
+        // **Whether the coin took it**, so the bust screen can say how many in a row that is. The corpse
+        // carries `rungs` already, so a resumed bust works this out for itself and needs nothing stored.
+        opening: !(Number(run.rungs) || 0),
     };
 };
 
@@ -484,6 +622,20 @@ const settleWin = function (ctx, { run, majority, pure, cubes, standing, mult, p
         jail: engine.encodeSet(jail),
         hold: engine.encodeSet(hold),
         rungs: (Number(run.rungs) || 0) + 1,
+        saw: !!run.saw, swapped: !!run.swapped, scrapped: !!run.scrapped, split: !!run.split,
+        // **One bet a run, spent by the rung it was placed for.** The bet goes win or lose — nothing
+        // about it survives the throw — and `betUsed` is what stops another book being chalked up
+        // behind it. It is set here rather than by `placeBet` because naming one of the three is free
+        // and reversible right up until the cubes are thrown: what spends the run's bet is *rolling*
+        // with one standing, not deciding on it.
+        //
+        // The prices are flat and the multiple they pay onto compounds, so the same proposition is
+        // worth proportionally less every rung it is held for — a `+4` on a multiple of 8 is half
+        // again, and on a multiple of 40 it is a tenth. That is the diminishing return in the pick,
+        // and it is what makes *when* to spend the one bet the decision rather than *whether* to.
+        betUsed: !!run.betUsed || !!run.bet,
+        bet: null,
+        book: (s.sidebet && !(run.betUsed || run.bet)) ? engine.drawBook(s.equipped) : [],
     };
     persist.saveLadder(database, db, discordId, live);
     return {
@@ -558,6 +710,11 @@ exports.startRun = function (ctx, { call }) {
             // A fresh run owes the Planet Octahedron nothing: nobody is in the prison, no side is
             // sealed, the bank is open, and no rungs have been walked.
             jail: [], hold: [], rungs: 0, locked: false, sealed: null,
+            // **Run-scoped, not rung-scoped.** Premonition and Swap are each once a run, and
+            // the ladder node is rewritten on every rung — so these travel on the run descriptor and
+            // are written back by every one of the four things that save a ladder. A flag that lived
+            // only on the node would be spent again free on the next rung.
+            saw: false, swapped: false, scrapped: false, split: false,
         },
     };
 };
@@ -573,11 +730,25 @@ exports.pushRun = function (ctx, { call }) {
     if (persist.tieOf(db, discordId)) return refuse('tie_pending', 'Answer the tie first.');
     const ladder = persist.ladderOf(db, discordId);
     if (!ladder || !ladder.standing) return refuse('no_run', 'There is no run to push.');
-    const side = call === 'red' ? 'red' : 'blue';
+    // **A called line already on the table is not something a second roll may walk past.** The same
+    // rule `bank` states, from the other side: once the side is named the cubes are in the air, and a
+    // push from here would throw the next rung while the last one sat unresolved — the line the player
+    // has already *seen* quietly discarded, the standing kept, and nothing paid for either way. That is
+    // a reroll of any line worth rerolling, and the way to reach it is simply to reload the Activity
+    // mid-hold. `/held` is the only thing that ends one; see `finishShown`.
+    const shown = persist.shownOf(db, discordId);
+    if (shown && shown.called) {
+        return refuse('roll_live', 'The cubes are down and called. Finish the roll.');
+    }
+    // **A null call advances the rung without naming a side**, which is what a premonition needs: the
+    // cubes are thrown before the call so that seeing one of them can still change it. Nothing else
+    // passes null, and the throw it produces is parked rather than resolved — `resolveLine` is the
+    // only thing that reads a call and it is not reached until the roll comes back with one.
+    const side = call == null ? null : (call === 'red' ? 'red' : 'blue');
     // **Aquilaris sealed this side last rung.** Refused rather than silently switched: the call is the
     // one decision the mode hands over, and quietly making it for somebody is worse than telling them
     // it has been made. The client disables the button; this is what stops a stale one getting past.
-    if (ladder.sealed && side === ladder.sealed) {
+    if (side && ladder.sealed && side === ladder.sealed) {
         return refuse('sealed', `The vault sealed ${side}. Call the other way.`, { sealed: side });
     }
     const next = pstate.nextRung(s, ladder.level);
@@ -605,6 +776,11 @@ exports.pushRun = function (ctx, { call }) {
             rungs: Number(ladder.rungs) || 0,
             locked: !!ladder.locked,
             sealed: ladder.sealed || null,
+            saw: !!ladder.saw, swapped: !!ladder.swapped, scrapped: !!ladder.scrapped, split: !!ladder.split,
+            bet: ladder.bet || null,
+            // A run stored before the pick was once-a-run carries nothing here and reads back as a run
+            // with its bet still to spend, which is the harmless way round.
+            betUsed: !!ladder.betUsed,
         },
     };
 };
@@ -641,10 +817,362 @@ exports.spendReroll = function (ctx) {
             rungs: Number(dead.rungs) || 0,
             locked: !!dead.locked,
             sealed: dead.sealed || null,
+            saw: !!dead.saw, swapped: !!dead.swapped, scrapped: !!dead.scrapped, split: !!dead.split,
+            // The other end of the pair the corpse now carries. A run stored before this existed has
+            // neither and reads back as a run with its bet still to spend, which is the harmless way
+            // round — the same fallback `continueRun` takes.
+            bet: dead.bet || null,
+            betUsed: !!dead.betUsed || !!dead.bet,
             // What makes this a reroll rather than a re-draw: nothing comes out of the bag.
             regrow: false,
         },
     };
+};
+
+// ---------------------------------------------------------------------------
+// Looking, and moving
+// ---------------------------------------------------------------------------
+
+// **Premonition.** Throws the next rung early, parks it, and hands back one face off it.
+//
+// The rung advances and the cubes land, but nothing is resolved and nothing is spent — see
+// `parkThrow` for why that is free. The call is *not* taken here, which is the whole of what makes
+// the look worth having: the cubes are on the table before the side is named, so what you see can
+// still change what you say.
+//
+// **Uniformly random, over the positions.** Weighting it toward the interesting faces was the
+// tempting version and it is worse: it makes an ordinary side into information — "the line is
+// unusually plain" — and a worst-face-first rule turns a glimpse into a report, where no warning
+// nearly guarantees no mine. Uniform needs no footnote, and the rack makes it generous on its own:
+// fourteen of the seventeen cubes carry no side faces at all.
+exports.premonition = function (ctx) {
+    const { s, db, discordId } = ctx;
+    if (persist.tieOf(db, discordId)) return refuse('tie_pending', 'Answer the tie first.');
+    const live = persist.ladderOf(db, discordId);
+    if (!live || !live.standing) return refuse('no_run', 'There is no run to look at.');
+    if (!s.premonition) return refuse('not_owned', "You haven't taken Premonition off the rack.");
+    // Ordered so the *reason* is the one the player can act on: a look already spent says so, and a
+    // look spent with its cubes still on the table says what to do about them.
+    if (persist.shownOf(db, discordId)) {
+        return refuse('already_shown', 'The cubes are already down — call a side to play them.');
+    }
+    if (live.saw) return refuse('spent', 'You have already looked this run.');
+
+    const opened = exports.pushRun(ctx, { call: null });
+    if (!opened.ok) return opened;
+    const run = opened.run;
+    const kind = run.again ? (run.level >= MAX_LEVEL ? 'overtime' : 'again') : 'level';
+    const drawn = kind !== 'level'
+        ? { set: run.set || [], bag: run.bag || [] }
+        : engine.drawCubes(run.set || [], run.bag || [], run.level);
+
+    // **One cube is the whole line**, so a look at it is not a glimpse, it is the answer. The rule is
+    // written against the table rather than against the rung because that is what it is actually
+    // about — and `LEVELS` being 1, 3, 5, 7, 9 means it excludes Level 1 and its Agains, and nothing
+    // else, without naming either.
+    if ((drawn.set || []).length < 2) {
+        return refuse('too_few', 'There is nothing to foresee on a single cube.');
+    }
+
+    const line = engine.throwSet(drawn.set);
+    const at = crypto.randomInt(0, line.length);
+    const shown = parkThrow(ctx, { ...run, saw: true }, {
+        line, bag: drawn.bag, kind, seen: at,
+    });
+    if (!shown) return refuse('no_run', 'There is no run to look at.');
+    return {
+        ok: true,
+        at,
+        face: engine.rolledFaces(line)[at],
+        cubes: line.length,
+        level: run.level,
+    };
+};
+
+// **Swap**, and the pass that goes with it. Finishes a roll that was held for a look at the
+// line: swaps two positions if it is given a pair, and settles either way.
+//
+// A swap is two positions on the *thrown* line, before any effect has fired — which is the only
+// moment it could be, since resolving is what makes position stop being editable.
+// **Which positions Split could take, as a list rather than a flag**, and the list is what goes on
+// the wire.
+//
+// Two reasons it cannot be a boolean. A client is sent `faces`, `state` and `call`, and none of those
+// carries a slot id — so it has no way of its own to know which position is a weld, and it has to know
+// in order to light the cubes that can be pressed. And a flag would stop a rung to ask a question with
+// no answer on a line with no weld standing on it, which is the dead end `holdIdle` and the single-cube
+// refusal both exist to avoid.
+//
+// `run` is either the live ladder or a run mid-alteration; both carry `split` the same way.
+const splittable = function (s, run, line) {
+    if (!s.split || run.split) return [];
+    return (line || []).map((c, i) => (engine.canSplitAt(line, i) ? i : -1)).filter(i => i >= 0);
+};
+
+// **Changes the held line, once, and leaves it held for as long as it takes to show what changed.**
+//
+// **One change per hold, and the reason is the clock rather than the power.** Three picks can act in this
+// gap — Swap, Scrap and Split, off three separate trees — and this used to allow every one a
+// player owned on the same line, one after the other. What that cost is not balance: the flags are
+// *run*-scoped, so a player still gets all three per run either way and the only thing given up is using
+// two on one line. What it bought was worse. `HOLD_FOR` is ten seconds, one clock, deliberately not
+// restarted per change — so a second read and a second decision had to fit in whatever was left after
+// watching the first cube land, which priced the second use out of its own countdown. Meanwhile every
+// hold where a player owned two picks and wanted one ended with a `Continue` they had to press to say
+// they were finished, or a bar they had to sit and watch drain. The rare case taxed the common one.
+//
+// So `can` comes back empty below, whatever is still unspent on the run, and the board reads that the way
+// it already reads a hold with nothing left in it: it plays the change and rolls on by itself. `Continue`
+// is left meaning exactly one thing — *I am not using anything* — where it used to mean that or *I have
+// finished using things*, which are two sentences wearing one button.
+//
+// Re-parks rather than resolving, so what comes back is the same shape the hold came back as and the
+// board simply redraws — the change has to be watchable before the effects take it.
+exports.alterShown = function (ctx, { a, b, scrap, split } = {}) {
+    const { s, db, discordId } = ctx;
+    const live = persist.ladderOf(db, discordId);
+    const shown = persist.shownOf(db, discordId);
+    if (!live || !shown) return refuse('nothing_shown', 'There is no roll waiting.');
+    if (!shown.called) return refuse('no_call', 'Call a side first.');
+    // Refused here as well as withheld from `can`, because withholding an offer is not a rule — a stale
+    // client holding the answer from before the first change would otherwise spend a second pick off it.
+    if (shown.changed) return refuse('changed', 'You have already changed this line.');
+
+    const took = takeThrow(live, shown, shown.called);
+    const n = took.line.length;
+    const swapping = Number.isInteger(a) && Number.isInteger(b) && a !== b;
+    const scrapping = Number.isInteger(scrap);
+    const splitting = Number.isInteger(split);
+    // **Exactly one, counted rather than compared.** Two picks was `swapping === scrapping`, which read
+    // as a neat trick and does not survive a third: it is false for one change and false for all three.
+    if ([swapping, scrapping, splitting].filter(Boolean).length !== 1) {
+        return refuse('one_thing', 'One change at a time.');
+    }
+
+    // Where the premonition's face ended up, so the tile goes on pointing at the cube it was about.
+    let seen = shown.seen == null ? null : Number(shown.seen);
+    // Carried across the re-park rather than started empty: one change per hold today, but a node that
+    // forgot what an earlier one had taken off would quietly drop it out of the game.
+    const wrecked = [...took.wrecked];
+    if (swapping) {
+        if (!s.shuffle) return refuse('not_owned', "You haven't taken Swap off the rack.");
+        if (live.swapped) return refuse('spent', 'You have already moved a cube this run.');
+        if (a < 0 || b < 0 || a >= n || b >= n) return refuse('bad_swap', 'Those are not both on the line.');
+        [took.line[a], took.line[b]] = [took.line[b], took.line[a]];
+        if (seen === a) seen = b; else if (seen === b) seen = a;
+    }
+    if (scrapping) {
+        if (!s.scrap) return refuse('not_owned', "You haven't taken Scrap off the rack.");
+        if (live.scrapped) return refuse('spent', 'You have already scrapped a cube this run.');
+        if (scrap < 0 || scrap >= n) return refuse('bad_scrap', 'That is not on the line.');
+        if (n < 2) return refuse('too_few', 'That is the only cube on the line.');
+        // **Kept, not dropped.** A scrapped cube is wreckage, and wreckage is what the Scavenger's hold
+        // is made of — so it goes where a cube a mine took goes, and a Jawa on a later rung can pull it
+        // back out. Held on the node until the throw settles; see `parkThrow`.
+        const [gone] = took.line.splice(scrap, 1);
+        if (gone?.slot) wrecked.push(gone.slot);
+        if (seen === scrap) seen = null; else if (seen != null && seen > scrap) seen -= 1;
+    }
+    // **Split, and it is Scrap inverted line for line.** One position becomes two or three where a
+    // scrap took one off, and the cubes that arrive are thrown here and live for the rest of the climb —
+    // the set carries across levels, so nothing has to remember that a weld came apart.
+    if (splitting) {
+        if (!s.split) return refuse('not_owned', "You haven't taken Split off the rack.");
+        if (live.split) return refuse('spent', 'You have already split a cube this run.');
+        if (split < 0 || split >= n) return refuse('bad_split', 'That is not on the line.');
+        const parts = engine.splitAt(took.line, split);
+        if (!parts) {
+            return took.line[split].frozen
+                ? refuse('too_cold', 'That cube is frozen shut.')
+                : refuse('not_a_weld', 'That is not a welded cube.');
+        }
+        // Written even though `maxCubes` is `Infinity` today, because every other face that lengthens the
+        // line writes it — a grower that skips the check is the one that breaks the day a ceiling is put
+        // back.
+        if (n + parts.length - 1 > config.maxCubes) return refuse('too_many', 'The table is full.');
+        took.line.splice(split, 1, ...parts);
+        // **A premonition's face belonged to the weld, so a split clears it rather than moving it.**
+        // Pointing the tile at a parent would be a lie: the cube the player was shown a face of is not on
+        // the table any more. A split before it shifts it by whatever the line grew.
+        if (seen === split) seen = null;
+        else if (seen != null && seen > split) seen += parts.length - 1;
+    }
+
+    const run = {
+        ...took.run,
+        swapped: took.run.swapped || swapping,
+        scrapped: took.run.scrapped || scrapping,
+        split: took.run.split || splitting,
+    };
+    const back = parkThrow(ctx, run, {
+        line: took.line, bag: took.bag, kind: took.kind, seen, changed: true, wrecked,
+    });
+    if (!back) return refuse('no_run', 'There is no run to hold.');
+    return {
+        ok: true,
+        held: true,
+        faces: engine.rolledFaces(took.line),
+        state: engine.lineState(took.line),
+        // Same shape a fresh hold answers with, so the board has one way to read either.
+        call: shown.called,
+        // **Nothing further, whatever is still unspent.** One change per hold, so this is the same shape
+        // the offer always had and every entry in it is off — which is exactly what a hold with nothing
+        // left in it reports, and the board already knows what to do with that.
+        can: { swap: false, scrap: false, split: [] },
+    };
+};
+
+// Ends a held roll, leaving the line exactly as it stands. Everything that could have changed it has
+// already been applied and re-parked, so this only picks it up for resolution.
+exports.finishShown = function (ctx) {
+    const { db, discordId } = ctx;
+    const live = persist.ladderOf(db, discordId);
+    const shown = persist.shownOf(db, discordId);
+    if (!live || !shown) return refuse('nothing_shown', 'There is no roll waiting.');
+    if (!shown.called) return refuse('no_call', 'Call a side first.');
+    const took = takeThrow(live, shown, shown.called);
+    return {
+        ok: true,
+        run: took.run,
+        thrown: {
+            line: took.line, set: took.set, bag: took.bag, kind: took.kind, wrecked: took.wrecked,
+        },
+    };
+};
+
+// **The held roll as it stands**, in the shape `holdRoll` answers with, or null when nothing is held.
+//
+// A hold is a pause in the middle of a roll, and the Activity re-mounts whenever Discord feels like it
+// — so the pause has to survive a reload or the board comes back showing a call to make over a rung
+// that is already called and already thrown. The node has held everything needed for this since
+// `parkThrow`; what was missing was anywhere for the board to read it off, which is why it rides on
+// `/state` rather than only on the answer to `/roll`.
+exports.heldRoll = function (ctx) {
+    const { s, db, discordId } = ctx;
+    const live = persist.ladderOf(db, discordId);
+    const shown = persist.shownOf(db, discordId);
+    if (!live || !shown || !shown.called) return null;
+    const took = takeThrow(live, shown, shown.called);
+    // One change per hold, so a line that has had its change offers nothing further — the same empty
+    // `can` `alterShown` hands back, and the board already knows to roll on from it.
+    const spent = !!shown.changed;
+    const pair = took.line.length > 1;
+    return {
+        held: true,
+        faces: engine.rolledFaces(took.line),
+        state: engine.lineState(took.line),
+        call: shown.called,
+        can: {
+            swap: !spent && pair && !!s.shuffle && !live.swapped,
+            scrap: !spent && pair && !!s.scrap && !live.scrapped,
+            split: spent ? [] : splittable(s, live, took.line),
+        },
+    };
+};
+
+// **Holds the roll instead of settling it**, so the line can be looked at before its effects fire.
+//
+// This is what Swap, Scrap and Split are asking for, and it is opt-in on purpose: every roll would be
+// a two-step for anyone who owns either, and most rungs there is nothing worth changing. The player
+// says "show me first" and gets a line and a decision; everyone else rolls as they always have.
+//
+// A premonition already parked this rung — the cubes are down and the side was not named — so this
+// takes that line rather than throwing a second one. Same rule `/roll` follows and for the same
+// reason: the player has been shown a face off *this* throw.
+exports.holdRoll = function (ctx, run, parked) {
+    const { s, db, discordId } = ctx;
+    if (!s.shuffle && !s.scrap && !s.split) {
+        return refuse('not_owned', 'You have nothing to change a line with.');
+    }
+    // **The opening roll has no ladder to hold onto.** `startRun` clears the node and writes nothing —
+    // a run exists once its first roll settles — so there is nothing here to pin a park to. It is also
+    // a single cube, which the length check below would refuse anyway.
+    const live = persist.ladderOf(db, discordId);
+    if (!live) return refuse('no_run', 'There is no run to hold.');
+    // **Per pick owned, not both.** `swapped && scrapped` let a player who owns only Scrap go on being
+    // held after spending it, because the flag for the pick they never had stayed false forever.
+    const canSwap = !!s.shuffle && !live.swapped;
+    const canScrap = !!s.scrap && !live.scrapped;
+    const canSplit = !!s.split && !live.split;
+    if (!canSwap && !canScrap && !canSplit) {
+        return refuse('spent', 'You have nothing left to change this run.');
+    }
+
+    const kind = run.again ? (run.level >= MAX_LEVEL ? 'overtime' : 'again') : 'level';
+    const held = parked || (() => {
+        const drawn = kind !== 'level'
+            ? { set: run.set || [], bag: run.bag || [] }
+            : engine.drawCubes(run.set || [], run.bag || [], run.level);
+        return { line: engine.throwSet(drawn.set), bag: drawn.bag };
+    })();
+    // **Nothing can be done to a line of one.** A swap needs two positions and a scrap would leave
+    // none — so a rung this short settles rather than stopping to ask a question with no answers.
+    // Level 1 is the only rung the table makes this way, but a bag run dry can make another.
+    // **A Split alone can act on a line of one**, because one weld coming apart *is* the second cube —
+    // so the short-line refusal is asked of the two picks that need a neighbour and not of this one.
+    if (held.line.length < 2 && !(canSplit && engine.canSplitAt(held.line, 0))) {
+        return refuse('too_few', 'There is nothing to change on a single cube.');
+    }
+
+    // Carried through from a premonition's node, which has nothing on it today — a look is spent
+    // before the call and nothing can have been scrapped yet. Passed anyway, so the one place that
+    // re-parks a line someone else parked does not decide it can forget half of it.
+    const shown = parkThrow(ctx, run, {
+        line: held.line, bag: held.bag, kind, wrecked: held.wrecked || [],
+    });
+    if (!shown) return refuse('no_run', 'There is no run to hold.');
+    return {
+        ok: true,
+        held: true,
+        faces: engine.rolledFaces(held.line),
+        state: engine.lineState(held.line),
+        // The side, so the board can light the call it is holding for rather than the last one.
+        call: run.call,
+        can: { swap: canSwap, scrap: canScrap, split: splittable(s, live, held.line) },
+    };
+};
+
+// **Names one of the three Watto has chalked up**, or takes the name back.
+//
+// Free, and it stays changeable right up until the cubes are thrown — a bet is a reading of the rung
+// ahead, and nothing has been risked on it until the rung is rolled. `id` of null clears it.
+//
+// **One a run.** Deciding is free and undoing it is free; what is spent is the throw. So this refuses
+// only once a rung has actually been *rolled* with a bet standing — see `betUsed` in the settlement —
+// and a player who names one and thinks better of it still has their bet. The empty book the settlement
+// then writes is what takes the offer off the board; this is the rule behind it, for a client that asks
+// anyway.
+//
+// **Validated against the stored book, not against the whole table.** The three are drawn per rung and
+// written onto the ladder by the settlement that opened it, so this is what stops a client naming the
+// long shot it fancies rather than the one it was offered.
+exports.placeBet = function (ctx, { id }) {
+    const { s, db, database, discordId } = ctx;
+    if (!s.sidebet) return refuse('not_owned', "You haven't taken the Side Bet off the rack.");
+    if (persist.tieOf(db, discordId)) return refuse('tie_pending', 'Answer the tie first.');
+    const live = persist.ladderOf(db, discordId);
+    if (!live || !live.standing) return refuse('no_run', 'There is no rung to bet on.');
+    if (live.betUsed) return refuse('bet_spent', 'You have already had your bet this run.');
+    // Once the cubes are down the line is known, and a bet placed against a line you can see is not a
+    // bet. The same rule that stops `bank` taking a called rung back.
+    if (persist.shownOf(db, discordId)) return refuse('already_shown', 'The cubes are already down.');
+
+    // **One cube is the whole line, so there is nothing on it to bet on.** No majority to read, no
+    // line to grow, no second cube for anything to happen to — the same reason Premonition is refused
+    // on one, and the same note applies: written against the rung ahead rather than named as a level,
+    // and `LEVELS` being 1, 3, 5, 7, 9 means it excludes Level 1 and its Agains and nothing else.
+    //
+    // Placing only. Clearing a bet is `id` of null and stays allowed whatever the rung is, so a bet
+    // standing on one from before this rule existed can still be taken back.
+    const ahead = pstate.nextRung(s, live.level);
+    if (id != null && !((LEVELS[ahead.level] || {}).cubes > 1)) {
+        return refuse('too_few', 'There is nothing to bet on a single cube.');
+    }
+
+    const book = Object.values(live.book || {});
+    if (id != null && !book.includes(id)) return refuse('bad_bet', 'That is not chalked up.');
+    persist.saveLadder(database, db, discordId, { ...live, bet: id || null });
+    return { ok: true, bet: id || null };
 };
 
 // ---------------------------------------------------------------------------
@@ -659,6 +1187,16 @@ exports.bank = function (ctx) {
     const { s, db, database, profile, profileRef, discordId, moveTruguts } = ctx;
     const ladder = persist.ladderOf(db, discordId);
     if (!ladder || !ladder.standing) return refuse('no_run', 'There is nothing to bank.');
+    // **A look can be walked away from; a called rung cannot.**
+    //
+    // A premonition parks a throw with no side named, and the run under it is untouched — so banking
+    // is exactly as available as it was before the look, which is what stops the ability costing
+    // anything to use. Once the side *is* named the cubes are in the air: the line is known and
+    // banking on it would be taking a decision back after seeing the answer.
+    const shown = persist.shownOf(db, discordId);
+    if (shown && shown.called) {
+        return refuse('roll_live', 'The cubes are down and called. Finish the roll.');
+    }
     // **Malastare sealed the bank.** The only refusal in the mode that stops a player leaving with
     // money they have already won, and it is deliberately a refusal rather than a hidden button: the
     // run is still live, the standing is still theirs, and what they are short of is a level rung.
@@ -706,6 +1244,51 @@ exports.buyReroll = function (ctx) {
     return { ok: true, rerolls: s.rerolls, spent: cost, nextCost: s.rerollCost, balance: balanceOf(profile) };
 };
 
+
+// Buys one set off the cosmetics shelf — a matched colour pair, or one racer's flag.
+//
+// **Named by set id, and every term of the sale is looked up from it.** The client sends the id of a
+// row it drew and nothing else: the price, the gate and the variants all come off `SKIN_SETS` here, so
+// a client cannot pair one set's price with another set's contents. Same reason `spendPoint` re-checks
+// eligibility on the select rather than trusting the menu that offered it.
+//
+// **Not refused mid-run**, which is the one place this differs from `buyReroll` above. A reroll changes
+// what a bust can do next, so buying one halfway through a run is a change to a live game; a skin
+// changes a picture, touches neither the bag nor the ladder, and the client only greys the button to
+// keep the shop quiet while a roll is in the air. There is nothing here for a run to be inconsistent
+// with.
+//
+// The truguts are filed as **spent** rather than lost, like a bought reroll and a bought tie: nothing
+// was ever riding on it, and a purchase on the loss ledger reads as if the cubes had taken it.
+exports.buySkin = function (ctx, { id }) {
+    const { s, profile, profileRef, moveTruguts } = ctx;
+    const set = pstate.skinSetById(id);
+    if (!set) return refuse('no_such_set', 'Nothing on the shelf goes by that.');
+    if (set.ids.every(v => s.skins.includes(v))) return refuse('owned', 'That one is already yours.');
+    const gate = pstate.skinGate(s, set.gate);
+    if (!gate.open) return refuse('locked', gate.need || 'That is not for sale yet.');
+    const cost = Math.round(set.price);
+    const balance = balanceOf(profile);
+    if (cost > balance) {
+        return refuse('insufficient', `That costs ${cost} but you only have ${balance}.`, { cost, balance });
+    }
+    moveTruguts({ transaction: 'w', amount: cost });
+    const patch = {};
+    pstate.grantSkins(s, patch, set.ids);
+    pstate.recordSpent(s, patch, cost);
+    persist.writeCube(profileRef, profile, patch);
+    return {
+        ok: true,
+        set: set.id,
+        // What the purchase actually put on the profile, so a client can paint the row it just bought
+        // without waiting for the board that follows.
+        ids: set.ids,
+        skins: s.skins,
+        spent: cost,
+        balance: balanceOf(profile),
+    };
+};
+
 // ---------------------------------------------------------------------------
 // The press
 // ---------------------------------------------------------------------------
@@ -714,8 +1297,8 @@ exports.buyReroll = function (ctx) {
 // loadout is: the bag is shuffled when a run starts, so changing what is in it halfway through would
 // either do nothing or do something incoherent.
 //
-//   weld    two cubes in, one out          1 prestige point
-//   reroll  a fresh cut of the same two    truguts, or 1 prestige point
+//   weld    two cubes in, one out          1 build token
+//   reroll  a fresh cut of the same two    truguts, or 1 build token
 //   unweld  the two cubes back, whole      free
 //
 // **Either currency buys a reroll**, which is simpler to explain than splitting them across the split
@@ -734,16 +1317,49 @@ const pressReady = function (ctx, id) {
     return null;
 };
 
+// **What the press has to be told, and never was.**
+//
+// `rollWeld` has always accepted both of these and no caller has ever passed either, so The Keeper and
+// The Heavy Half were sold off the rack, written to the profile and reported to the client while doing
+// nothing whatsoever. This is the gate the note on `orderFor` promised was here.
+//
+// `major` is an index into `ids` — which parent the major share of an uneven cut lands on. It used to be
+// The Heavy Half and is now part of **Deep Cuts**, press rung 4, because 5+1 is the only thing that rung
+// unlocks and a useful 5+1 is "one press in 220" precisely because the choice is otherwise a coin flip.
+// Below rung 4 the request is dropped rather than refused: an even cut has no major share to name, so a
+// client sending one at rung 1 is early rather than wrong.
+//
+// `keep` is The Keeper: one **face id**, and the parent it has to survive on. `pickWith` already ignores
+// a face the parent does not carry, so a stale client naming a face off the wrong cube gets the ordinary
+// draw instead of an error.
+const pressPicks = function (s, ids, { major, keep } = {}) {
+    // **Both name a cube by id on the wire and by position in the engine**, and the translation is here.
+    // `orderFor` and `pickWith` both index into the parent list, which is the caller's own array — so a
+    // client sending an index would be sending one against an ordering it has to guess right, and getting
+    // it wrong points the whole pick at the other cube with nothing to say it went wrong.
+    const at = id => (typeof id === 'string' ? ids.indexOf(id) : -1);
+    const majorAt = at(major);
+    const keepAt = keep ? at(keep.parent) : -1;
+    return {
+        // Deep Cuts, press rung 4. Below it an even cut has no major share to name, so an early request is
+        // dropped rather than refused.
+        major: s.pressTier >= config.weldTiers.length && majorAt >= 0 ? majorAt : null,
+        keep: s.keeper && keepAt >= 0 && typeof keep.faceId === 'string'
+            ? { parent: keepAt, faceId: keep.faceId }
+            : null,
+    };
+};
+
 // Presses two cubes into one. **Both are consumed** and the weld takes their seat in the loadout.
 //
 // Re-checked here rather than trusted from the screen it came off, exactly as `spendPoint` is: a
 // stale press must not be able to spend one point and eat four cubes.
-exports.weldCubes = function (ctx, { ids }) {
+exports.weldCubes = function (ctx, { ids, major = null, keep = null }) {
     const { s, profile, profileRef } = ctx;
     const stop = pressReady(ctx);
     if (stop) return stop;
     if (s.pressTier < 1) return refuse('no_press', "You haven't taken the press off Watto's rack.");
-    if (s.points < 1) return refuse('no_points', 'You have no build points to spend. A prestige pays one.');
+    if (s.points < 1) return refuse('no_points', 'You have no build tokens to spend. A prestige pays one.');
     // **How many cubes go in is a tier, not a constant.** Two until The Third Cube is bought, and the
     // refusal names the number rather than saying "wrong" — a player who has not bought that rung has
     // no way to know it exists otherwise.
@@ -757,7 +1373,7 @@ exports.weldCubes = function (ctx, { ids }) {
     if (!ids.every(id => s.cubes.includes(id))) return refuse('not_owned', "That isn't yours.");
     if (ids.some(id => pstate.pairKeyOf(id))) return refuse('already_welded', 'Break it apart first.');
 
-    const id = engine.rollWeld(ids, { tier: s.pressTier });
+    const id = engine.rollWeld(ids, { tier: s.pressTier, ...pressPicks(s, ids, { major, keep }) });
     if (!id) return refuse('cannot_weld', 'Those will not go in the press.');
 
     const patch = {};
@@ -771,7 +1387,7 @@ exports.weldCubes = function (ctx, { ids }) {
 
 // A fresh cut of the same two cubes, paid for either way. The old weld is destroyed by definition —
 // there is only ever one cube in that seat.
-exports.rerollWeld = function (ctx, { id, paying = 'truguts' }) {
+exports.rerollWeld = function (ctx, { id, paying = 'truguts', major = null, keep = null }) {
     const { s, profile, profileRef, moveTruguts } = ctx;
     const stop = pressReady(ctx, id);
     if (stop) return stop;
@@ -781,7 +1397,7 @@ exports.rerollWeld = function (ctx, { id, paying = 'truguts' }) {
     const points = paying === 'points';
     const cost = points ? 0 : s.weldRerollCost;
     const balance = balanceOf(profile);
-    if (points && s.points < 1) return refuse('no_points', 'You have no build points to spend. A prestige pays one.');
+    if (points && s.points < 1) return refuse('no_points', 'You have no build tokens to spend. A prestige pays one.');
     if (!points && cost > balance) {
         return refuse('insufficient', `That costs ${cost} but you only have ${balance}.`, { cost, balance });
     }
@@ -794,7 +1410,9 @@ exports.rerollWeld = function (ctx, { id, paying = 'truguts' }) {
     // afterwards. An upgrade that only applied to future welds would quietly punish having used the
     // press before buying it.
     const seen = s.weldSeen[pstate.pairKeyOf(id)] || [];
-    const next = engine.rollWeld(parents, { seen: [...seen, id], tier: s.pressTier });
+    const next = engine.rollWeld(parents, {
+        seen: [...seen, id], tier: s.pressTier, ...pressPicks(s, parents, { major, keep }),
+    });
     if (!next) return refuse('cannot_weld', 'The press jammed.');
 
     const patch = {};
@@ -861,7 +1479,13 @@ exports.prestige = function (ctx) {
 // starts, so a cube unlocked halfway up could not join it anyway.
 exports.spendPoint = function (ctx, { reward }) {
     const { s, db, profile, profileRef, discordId } = ctx;
-    if (s.points < 1) return refuse('no_points', 'You have no build points to spend. A prestige pays one.');
+    // **The Heavy Half's point comes back before the balance is read**, so it lands as something to spend
+    // on this visit rather than as a number to notice and come back for. See `refundDeadHeavy` — it is a
+    // migration with an expiry date, and this is the one screen that can pay it out.
+    const refund = {};
+    const refunded = pstate.refundDeadHeavy(s, refund);
+    if (refunded) persist.writeCube(profileRef, profile, refund);
+    if (s.points < 1) return refuse('no_points', 'You have no build tokens to spend. A prestige pays one.');
     if (persist.ladderOf(db, discordId)) return refuse('run_live', 'The rack is locked while a run is live.');
     const offered = pstate.rewardChoices(s).some(c => c.value === reward);
     if (!offered) return refuse('bad_reward', 'That is not on the rack.');
@@ -970,9 +1594,27 @@ exports.parkTie = function (ctx, thrown, { reverse = 0 } = {}) {
         recovered: res.recovered || [],
         carryJail: engine.encodeSet(run.jail || []),
         carryHold: engine.encodeSet(run.hold || []),
+        // Already swept into `hold` above, and stored a second time on its own because a *bust* settled
+        // off this node is filed against `carryHold` — the hold as the rung began — and the corpse a
+        // reroll replays has to carry the scrap forward all the same. See `settleLoss`.
+        wrecked: engine.encodeSet(thrown.wrecked || []),
         carryRungs: Number(run.rungs) || 0,
         carryLocked: !!run.locked,
         carrySealed: run.sealed || null,
+        saw: !!run.saw, swapped: !!run.swapped, scrapped: !!run.scrapped, split: !!run.split,
+        // **The bet the tied rung was riding on, and that the run has spent it.** This node is built
+        // from scratch rather than spread over the stored one — see the note in `parkThrow` about the
+        // run-scoped flags, which is the same trap — so anything not named here is gone by the time the
+        // tie is answered. Without `betUsed` a run could park on a tie and be handed a second bet by the
+        // settlement that picked it back up.
+        bet: run.bet || null,
+        betUsed: !!run.betUsed || !!run.bet,
+        // **What it paid, stored rather than recomputed.** `mult` above is `thrown.base`, which already
+        // has the bet folded into it — the money is settled and this is only how much of it the bet was.
+        // It cannot be worked out again on the way back: `betPaid` reads the roll's *notes*, and the
+        // `res` a resumed tie is rebuilt from deliberately carries none, so asking a second time would
+        // report a proposition that hit as one that missed.
+        betPaid: Number(thrown.betPaid) || 0,
         reverse, cost: thrown.cost, worth: thrown.worth, tie: true,
     });
 };
@@ -1005,6 +1647,10 @@ const resumeTie = function (parked) {
         rungs: Number(parked.carryRungs) || 0,
         locked: !!parked.carryLocked,
         sealed: parked.carrySealed || null,
+        saw: !!parked.saw, swapped: !!parked.swapped, scrapped: !!parked.scrapped, split: !!parked.split,
+        // The run's bet, and spent whichever way the tie goes.
+        bet: parked.bet || null,
+        betUsed: !!parked.betUsed || !!parked.bet,
     };
     const res = {
         cubes: Object.values(parked.roll || {}),
@@ -1045,9 +1691,16 @@ const resumeTie = function (parked) {
     const base = Number(parked.mult) || LEVELS[parked.level].payout;
     return {
         run, res, base, opening: base,
+        // **The bet, reported rather than re-settled.** It was paid when the tie was parked — `base`
+        // above is the figure it was folded into — so both of these are read back off the node instead
+        // of being asked of `betPaid` again, which would answer off a `res` that carries no notes. A tie
+        // used to answer with neither, which paid the bet and then told the player it had missed.
+        bet: parked.bet || null,
+        betPaid: Number(parked.betPaid) || 0,
         level: LEVELS[parked.level],
         kind: run.again ? 'again' : 'level',
         rolled: res.faceIds, set: run.set, bag: run.bag,
+        wrecked: engine.decodeSet(parked.wrecked),
         tie: true, asking: false, breaker: null, boonta: false,
         cost: Number(parked.cost) || 0, worth: Number(parked.worth) || 0,
         reverse: Number(parked.reverse) || 0,
@@ -1090,4 +1743,5 @@ exports.answerTie = function (ctx, { buying }) {
     };
 };
 
+exports.resolveThrown = resolveThrown;
 exports.MAX_LEVEL = MAX_LEVEL;
