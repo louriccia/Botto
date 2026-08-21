@@ -195,7 +195,10 @@ constant — one face, and the right to walk — where Scrap's scales with the s
 rungs where walking away is worth something. Free and played well it measured a small faucet (L2 1.04
 against 0.84 for not owning it). `betAnte` is the side bet's missing half: `scripts/cubeSideBet.js`
 derives every price in `SIDE_BETS` as `1/p - 1`, the fair return on a **one-unit wager**, and nothing
-ever staked the unit — so each card was a free option worth `price × p` on top of the rung.
+ever staked the unit — so each card was a free option worth `price × p` on top of the rung. Because
+`price` is *net* odds, the ante comes back inside the payout: a card that lands pays `price + betAnte`,
+and paying only `price` would charge the stake twice and cost the player a further `p` a card. The book
+advertises the gross, so the figure on the card is the figure the multiple is seen to climb by.
 
 **You always bank exactly what you are standing on.** A purchase reduces the standing, and the
 previous rung's bank offer is unaffected only because it was declined before anything was bought. The

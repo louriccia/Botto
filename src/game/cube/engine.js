@@ -1027,10 +1027,26 @@ exports.drawBook = function (equipped) {
 // It goes in beside the roll's own paying faces rather than anywhere new — `rungMultiple` takes the
 // added bonus and has always taken it — so a side bet compounds, shrinks and is capped by exactly the
 // same rules a Greed is.
+//
+// **The ante comes back inside the payout, and leaving it out was a second house edge nobody chose.**
+// `scripts/cubeSideBet.js` derives every `price` as `1/p - 1`, which is the **net** return on a
+// one-unit stake — the profit, with the stake already excluded. So a card is a whole bet in two halves:
+// `betAnte` off the standing when it is named, and `price + betAnte` back if it lands. Paying only
+// `price` charged the stake and then never returned it, which costs the player a further `p` on top of
+// the ~15% the prices already shave:
+//
+//     card      price   implied p   paid `price`   paid `price + ante`
+//     broken        3       0.250        -0.250                  0.000
+//     clone         5       0.167        -0.167                  0.000
+//     engine       20       0.048        -0.048                  0.000
+//
+// The right-hand column is the fair bet the price list was written for; the middle one is what a
+// straight `bet.price` actually settled. The card still *advertises* `price`, because that is the net
+// profit and net is how odds are quoted — what moves on the multiple is the gross.
 exports.betPaid = function (id, res) {
     const bet = id ? SIDE_BETS.find(b => b.id === id) : null;
     if (!bet || !res) return 0;
-    return bet.hit(res) ? bet.price : 0;
+    return bet.hit(res) ? bet.price + config.betAnte : 0;
 };
 
 // The other half of the same trip: everything about a thrown line that has to survive being written

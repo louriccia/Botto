@@ -15,7 +15,7 @@ const actions = require('../src/game/cube/actions.js');
 const engine = require('../src/game/cube/engine.js');
 const pstate = require('../src/game/cube/state.js');
 const persist = require('../src/game/cube/persist.js');
-const { LEVELS, cube: config } = require('../src/game/cube/tuning.js');
+const { LEVELS, SIDE_BETS, cube: config } = require('../src/game/cube/tuning.js');
 
 const ME = 'arm-test';
 let failures = 0;
@@ -231,6 +231,28 @@ console.log('\nTHE ANTE — charged on naming, returned on taking the name back'
     eq('a card that is not chalked up is refused',
         actions.placeBet(w.ctxOf(), { id: 'engine' }).code, 'bad_bet');
     near('a refusal costs nothing', w.ladder().mult, 7.301384);
+}
+
+console.log('\n  ...and the ante comes back inside the payout');
+{
+    // **The half that was missing and cost the player a whole `p` a card.** `price` is net odds — the
+    // profit on a one-mult stake — so a hit has to return the stake with it or the bet is charged twice.
+    const hit = { notes: [{ kind: 'broken' }], ended: false, faceIds: ['x'], majority: 'red' };
+    const miss = { notes: [], ended: false, faceIds: ['x'], majority: 'red' };
+    const card = SIDE_BETS.find(b => b.id === 'broken');
+    eq('a card that lands pays its price plus the ante',
+        engine.betPaid('broken', hit), card.price + config.betAnte);
+    eq('a card that misses pays nothing', engine.betPaid('broken', miss), 0);
+    eq('an unnamed card pays nothing', engine.betPaid(null, hit), 0);
+
+    // At the fair price the round trip is a wash, which is the property the price list was written
+    // against — `cubeSideBet.js` derives `price` as `1/p - 1`, so `p x (price + ante) - ante` is zero.
+    for (const b of SIDE_BETS) {
+        const p = 1 / (b.price + 1);
+        const ev = p * (b.price + config.betAnte) - config.betAnte;
+        ok(`${b.id} at its own fair rate is a wash, not a second edge`, Math.abs(ev) < 1e-9,
+            `EV ${ev.toFixed(4)} — paying bare price would be ${(p * b.price - config.betAnte).toFixed(4)}`);
+    }
 }
 
 console.log('\nEXPIRY — an arm belongs to one rung');

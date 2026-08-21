@@ -1546,6 +1546,12 @@ exports.cube = {
     // `1/p - 1` — the fair return on a **one-unit wager** — and nothing ever staked the unit, so each
     // card was a free option worth `price x p` on top of the rung. This is that unit. Whole, flat, and
     // in the same currency as everything else on this list.
+    //
+    // **It is a stake, so it comes back when the card lands.** `price` is *net* odds — profit with the
+    // stake already excluded — which makes a card a bet in two halves: this off the standing when it is
+    // named, and `price + betAnte` back if the proposition happens. `betPaid` pays the gross for exactly
+    // this reason; taking the ante and then paying only `price` charges the stake twice and costs the
+    // player a further `p` a card on top of the ~15% the prices already shave. See `betPaid`.
     betAnte: 1,
     // What an Again is worth **past Level 5**, where there are no levels left to double it.
     //

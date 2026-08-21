@@ -80,6 +80,12 @@ const boardOf = function (ctx, req) {
             .filter(Boolean)
             .map(b => ({
                 id: b.id, band: b.band, price: b.price, say: b.say,
+                // **What the multiple actually moves by if it lands**, which is the price *plus the
+                // ante back* — see `betPaid`. Sent rather than left to the client to add, for the same
+                // reason the arm prices are: the figure on the card has to be the figure the reveal
+                // shows climbing, or the two disagree on screen and one of them is wrong.
+                pays: b.price + engine.betPriceOf(),
+                ante: engine.betPriceOf(),
             })),
         // **What everything Watto sells costs on this rung, already worked out.** The rules are on
         // `/tuning` and the client could round them itself, but two roundings are two prices — and the
