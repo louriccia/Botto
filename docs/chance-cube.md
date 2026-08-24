@@ -209,6 +209,85 @@ ever staked the unit — so each card was a free option worth `price × p` on to
 and paying only `price` would charge the stake twice and cost the player a further `p` a card. The book
 advertises the gross, so the figure on the card is the figure the multiple is seen to climb by.
 
+**The look and the book are played in either order, because the look re-chalks the book.** These
+used to be a sequencing puzzle: `placeBet` refused any bet once a throw was parked, so bet-then-look
+worked and look-then-bet did not, and the only way to discover that was to lose the option for a rung.
+The refusal was right about the reason — every price in `SIDE_BETS` is derived blind, and a look that
+showed Sebulba turned `engine` from a 4.8% long shot into a near-certain +20 — but the cheaper remedy
+is to redraw rather than to refuse. `drawBook` now takes the seen face's kind and drops every card that
+kind could settle, so the three chalked up after a look are three the look could not have answered:
+blind again, three deep again, in whichever order the player likes.
+
+Each card declares `spoils` — what a player who has seen one face already knows about it — which is the
+same list as `needs` for eleven of the thirteen and deliberately wider for two. `saved` needs only a
+shield but waits on a mine as well, so a look showing one took it from 2.4% to 8.2% (+31% on a price
+shaved to lose 66%). `tie` leaks twice over, because its predicate is *survived* **and** *no majority*:
+`wild` is the densest ending cube in the game and reading one of its faces is the strongest news that
+the run did not stop (19.0% → 26.4%), while `raze` and `cull` each take a neighbour off the line and a
+shortened line comes out level far more often (41.4% and 32.1%). Everything else measured negative and
+is left standing — one entry per number that came back, not per cube that looked suspicious.
+
+Two things this does not fix. The **rack gap** is unrelated to looking and deliberate: `grow` measures
+46% on a rack built for it against a price shaved for 20%, blind, and reading that gap is the skill the
+book exists to reward. The **line-length leak** is real and small — a growth face means a longer line,
+which lifts every per-cube effect at once, taking `broken` from 28.7% to 32.9% on a growth rack. Having
+the growth kinds spoil the whole book is worse than the leak, since it hands back an empty book on the
+one rack that plays for length; pricing it out properly wants its own pass through `cubeSideBet.js`
+against a distribution conditioned on line length rather than on level.
+
+**Clearing a card after a look stays refused.** Taking a name back returns the ante, so a look that
+could then walk away from its own wager is exactly the free option on the rung that `betAnte` was added
+to close. Swapping one card for another is a clear and a name in one press and goes with it. A card
+placed before the look rides the line — `takeThrow` carries it across the park.
+
+### The prestige comb
+
+**Every prestige leaves one hexagon behind, and the hexagon is the skin that took the most calls in it.**
+The comb is laid out as centred hex rings, so ring closes land at prestige 1, 7, 19, 37, 61 — rings add
+`6n`, which is why the gaps run 6, 12, 18, 24 rather than doubling. `combRings` derives them rather than
+tabling them; a table of five numbers is a table that disagrees with the drawing the first time somebody
+adds a ring to it.
+
+**What it buys is an option set.** The cells in a comb are the only symbols a player may wear, so
+somebody who spends every period on the stock red square has exactly one emblem available to them, and a
+rarer one has to be played for — a whole period, on a skin that was bought first. **The scarcity is
+temporal rather than economic**, which is what a prestige emblem should be: any skin can be bought at any
+time, and it can only be put in the comb during a period you are living through. Ring two's cells are
+gone the moment ring two is behind you.
+
+The winner is `pressWinner`: most-pressed, ties to whichever of the tied was pressed most recently, which
+is the only reason `pressedLast` is stored. A tie broken by catalogue order would hand every dead heat to
+whichever colour is listed first, forever.
+
+**The unrecorded past is padded and its holes are honest.** A profile older than the tally has a prestige
+count and no comb, so `combOf` pads the front with holes — a hole cannot be worn, and it says *a prestige
+happened here and nobody was counting*. The alternatives were inventing a history the server never watched,
+or starting a prestige-40 player's comb at zero and having the emblem's ring count disagree with the
+prestige count it exists to show.
+
+**The emblem is chosen at the prestige and nowhere else**, which makes it a commitment rather than a
+settings field: you pick at the press and wear it for the period. So `pick` is set by `applyPrestige` and
+spent by `/emblem`, and it is *stored* rather than held by the client — the Activity re-mounts whenever
+Discord feels like it, and the one press that can only be made at a prestige must not be lost with the
+frame that offered it. The client raises the prompt again on any board carrying the flag.
+
+The splash is two beats as a result. The comb, the number and the token are an announcement and time
+themselves out as they always did; the tally and the pick are a question and wait to be answered, with no
+path through them that resolves on a timer. Splitting them keeps the old timing load-bearing — the board
+is still swapped behind beat one, so the panel the press was made from is still never seen leaving.
+
+**The emblem flies on the cube board.** Each row carries `emblem` and `prestige` together, because one
+is unreadable without the other — the glyph is the worn cell and the outlines around it are the rings
+closed. Read through the same guards a board uses, so a stale emblem naming a cell no longer in the comb
+is nothing rather than a claim.
+
+Two things measured rather than assumed while drawing it. The glyph **grows outward from a constant
+face**: drawn the other way round — rings inside a fixed box — the outermost ring moved 1.3px a rank at
+row height, and more rings meant a *smaller* symbol, so the most decorated emblem in the game had the
+least legible picture in it. And the **seat is one size for every rank** even though the glyph is not,
+because sizing the element by ring count made the board's rows 27px to 39px tall depending on who was
+standing in them.
+
 **You always bank exactly what you are standing on.** A purchase reduces the standing, and the
 previous rung's bank offer is unaffected only because it was declined before anything was bought. The
 one place this is visible is the look: Premonition can still be walked away from, and walking banks

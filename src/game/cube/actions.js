@@ -1474,6 +1474,41 @@ exports.buySkin = function (ctx, { id }) {
     };
 };
 
+// Puts one owned variant on one side.
+//
+// **A cosmetic press that now has to reach the server**, which it did not before: the choice lived in
+// one browser's `localStorage` on the argument that nothing in the rules could read it. Still true of
+// the rules — and false of the profile, which counts every press by the picture that was on it. See
+// the section head above `settleSides` in `state.js`.
+//
+// **Never refused mid-run**, for the same reason `buySkin` is not: it changes a picture and touches
+// neither the bag nor the ladder, so there is nothing for a live run to be inconsistent with. What it
+// *does* touch is the tally — the next call is counted against whatever is worn when it settles — and
+// that is the mechanic rather than an inconsistency. Switching mid-period is exactly the decision the
+// press is there to make.
+//
+// The two refusals are the picker's own greyed-out states, moved somewhere they hold for every client:
+// a variant that is not owned, and one that would leave both sides the same colour.
+exports.equipSide = function (ctx, { side, id }) {
+    const { s, profile, profileRef } = ctx;
+    const patch = {};
+    const out = pstate.equipSide(s, patch, side, id);
+    if (!out.ok) {
+        // One sentence per code, written here because a refusal is something a player reads and the
+        // state module deals in codes. `clash` names the rule rather than the variant in the way: the
+        // picker already draws which side is holding it.
+        const say = {
+            bad_side: 'A skin goes on blue or on red.',
+            no_such_skin: 'Nothing in the catalogue goes by that.',
+            not_owned: "That one isn't yours yet.",
+            clash: 'The two sides cannot both wear the same colour.',
+        };
+        return refuse(out.code, say[out.code] || 'That cannot go on.');
+    }
+    persist.writeCube(profileRef, profile, patch);
+    return { ok: true, sides: s.sides };
+};
+
 // ---------------------------------------------------------------------------
 // The press
 // ---------------------------------------------------------------------------
@@ -1644,6 +1679,9 @@ exports.prestige = function (ctx) {
     if (persist.ladderOf(db, discordId)) return refuse('run_live', 'Not while a run is live.');
 
     const patch = {};
+    // Read before it is banked and cleared: the splash quotes the period it just closed, and by the
+    // time this returns there is nothing left on the profile to quote.
+    const pressed = { ...s.pressed };
     pstate.applyPrestige(s, patch);
     persist.writeCube(profileRef, profile, patch);
     return {
@@ -1651,7 +1689,36 @@ exports.prestige = function (ctx) {
         prestige: s.prestige,
         maxStake: s.maxStake,
         points: s.points,
+        // **What the period counted, and what it banked off it.** Sent with the press rather than left
+        // to the board that follows, because the board carries the *cleared* tally — this is the only
+        // moment the figures the splash is about still exist.
+        pressed,
+        // The cell just laid, which is `comb`'s last. Named separately so the splash knows which one to
+        // land rather than having to work out that the newest is the one it has not drawn yet.
+        cell: s.comb[s.comb.length - 1] || null,
+        comb: s.comb,
     };
+};
+
+// Wearing one cell of the comb.
+//
+// **Only at a prestige, and that is the mechanic rather than a restriction.** An emblem is what a
+// player reps, and pinning the choice to the one press that earns a cell is what makes it a commitment:
+// you pick at the prestige and wear it for the period. So `pick` gates this, is set by `applyPrestige`,
+// and is spent here.
+//
+// Refused when nothing is pending, which is what a second client answering the same prompt looks like
+// from here — and what a stale prompt left up by a re-mount would send.
+exports.pickEmblem = function (ctx, { id }) {
+    const { s, profile, profileRef } = ctx;
+    if (!s.pick) return refuse('no_pick', 'There is no emblem waiting to be chosen.');
+    const patch = {};
+    const out = pstate.pickEmblem(s, patch, id);
+    if (!out.ok) {
+        return refuse(out.code, 'That is not a cell of your comb.');
+    }
+    persist.writeCube(profileRef, profile, patch);
+    return { ok: true, emblem: s.emblem };
 };
 
 // Spends one banked point on one thing off the rack.

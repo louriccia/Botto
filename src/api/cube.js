@@ -95,8 +95,19 @@ const boardOf = function (ctx, req) {
         // `armed` rides beside them because the pair is one question on screen: what is already bought
         // for this rung, and what the rest would cost. Null between runs, where nothing is for sale.
         prices: live ? {
+            // **Per arm, because they are no longer one price.** Scrap and Swap are priced separately —
+            // see `armShares` in `tuning.js` — so a single `arm` figure would put Scrap's price on Swap's
+            // button and the standing would jump when it was pressed. `arm` is kept as the fallback for
+            // anything unlisted, which today is Split.
             arm: engine.armPriceOf(live.mult),
-            look: engine.lookPriceOf(),
+            arms: {
+                scrap: engine.armPriceOf(live.mult, 'scrap'),
+                swap: engine.armPriceOf(live.mult, 'swap'),
+                split: engine.armPriceOf(live.mult, 'split'),
+            },
+            // The look is a share of the standing now rather than a flat mult, so it has to be worked out
+            // against the live multiple like the arms are.
+            look: engine.lookPriceOf(live.mult),
             bet: engine.betPriceOf(),
             // Which of the three are paid up for the rung ahead. Cleared by every settlement, so a
             // board drawn between rungs shows an empty set even if the last rung was fully armed.
@@ -649,11 +660,37 @@ module.exports = function mountCube(app, ctx) {
         return res.json({ ...out, board: boardOf(ctx, req) });
     });
 
+    // Wearing one. Separate from buying it for the same reason spending a point is separate from the
+    // prestige that earned it: owning a picture and choosing to field it are two decisions, and the
+    // second one is made over and over.
+    app.post('/sides', auth, rateLimit({ perMinute: 60 }), (req, res) => {
+        const ctx = ctxOf(req);
+        if (typeof req.body?.side !== 'string' || typeof req.body?.id !== 'string') {
+            return res.status(400).json({ error: 'Expected { side, id }.', code: 'bad_body' });
+        }
+        const out = actions.equipSide(ctx, { side: req.body.side, id: req.body.id });
+        if (!out.ok) return refused(res, out);
+        return res.json({ ...out, board: boardOf(ctx, req) });
+    });
+
     // Handing the ladder back for a bigger ceiling and a point to spend. Takes no body: what the
     // point buys is a separate decision, made whenever the player feels like making it.
     app.post('/prestige', auth, rateLimit({ perMinute: 10 }), (req, res) => {
         const ctx = ctxOf(req);
         const out = actions.prestige(ctx);
+        if (!out.ok) return refused(res, out);
+        return res.json({ ...out, board: boardOf(ctx, req) });
+    });
+
+    // Wearing one cell of the comb, which is only offered at a prestige — `player.pick` on the board is
+    // whether one is waiting, and it is on the board rather than only in the answer above so a client
+    // that re-mounted mid-prompt still knows to raise it.
+    app.post('/emblem', auth, rateLimit({ perMinute: 20 }), (req, res) => {
+        const ctx = ctxOf(req);
+        if (typeof req.body?.id !== 'string') {
+            return res.status(400).json({ error: 'Expected { id }.', code: 'bad_body' });
+        }
+        const out = actions.pickEmblem(ctx, { id: req.body.id });
         if (!out.ok) return refused(res, out);
         return res.json({ ...out, board: boardOf(ctx, req) });
     });
@@ -693,7 +730,17 @@ module.exports = function mountCube(app, ctx) {
             for (const u of Object.values(ctx.db.user || {})) {
                 const c = u?.random?.cube;
                 if (!u?.discordID || !c) continue;
-                const who = { id: String(u.discordID), name: u.random?.name || u.name || null };
+                // **Who, and what they rep.** The emblem is the cell of their comb they are wearing and
+                // the prestige count is what the rings around it are drawn from, so the pair travels
+                // together — one is unreadable without the other. Read through the same guards a board
+                // does: a stale emblem naming a cell no longer in the comb is nothing, not a claim.
+                const prestige = Math.max(Number(c.prestige) || 0, 0);
+                const who = {
+                    id: String(u.discordID),
+                    name: u.random?.name || u.name || null,
+                    emblem: pstate.emblemOf(c, pstate.combOf(c, prestige)),
+                    prestige,
+                };
                 // A rolling window only counts if its stored key is the current one — a stale block is
                 // last week's numbers and must not be ranked against this week's.
                 for (const name of ['week', 'month']) {
@@ -729,6 +776,10 @@ module.exports = function mountCube(app, ctx) {
                         top: ranked.slice(0, 10).map((r, i) => ({
                             rank: i + 1, id: r.id, name: r.name, value: r[key], you: r.id === me,
                             at: r.at?.[key] || 0,
+                            // Projected explicitly like everything else on a row: the rank objects are
+                            // built rather than spread, so a field added to `who` above reaches the
+                            // board only by being named here.
+                            emblem: r.emblem, prestige: r.prestige,
                         })),
                         // Where the caller sits, so a player outside the top ten is told something
                         // rather than left to assume the board is broken.

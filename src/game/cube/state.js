@@ -270,6 +270,188 @@ exports.skinShelf = function (s) {
     });
 };
 
+// ---------------------------------------------------------------------------
+// Which skin is worn on which side
+// ---------------------------------------------------------------------------
+//
+// **The half of a skin the server used not to have an opinion about, and now needs one.** Ownership
+// was always here; the *choice* lived in one browser's `localStorage`, on the argument that nothing
+// in the rules can read it and a board is single-player. Both halves of that are still true — the
+// engine goes on naming positions `side:blue` forever — and it stopped being the whole story the
+// moment a press became something the profile counts. A tally of which button was pressed cannot be
+// derived from a fact only one client knows.
+//
+// It also fixes a wart that was never about the comb: a choice kept per browser meant a phone and a
+// desktop drew two different boards for the same player. `skins.js` anticipated this — its `worn` is
+// commented as local "for as long as ownership is stubbed", and `learnSkins` already reads a
+// `profile.sides` nothing has ever sent.
+
+// What a slot falls back to, and what the mode has always drawn. The two stock variants are one
+// colour each and different, which is what makes them a safe last resort for either side.
+const SKIN_STOCK = { blue: 'sq:blue', red: 'sq:red' };
+exports.SKIN_STOCK = SKIN_STOCK;
+
+// **What the two sides may not have in common: the colour, not the variant.** Two sides in purple are
+// unreadable whether one of them is a heart or not, so a shape is never enough to tell them apart. Read
+// off the id rather than the catalogue, which is all it takes — every variant is `shape:colour` except a
+// flag, which is a racer and has no colour, so it clashes only with itself.
+const skinColorOf = function (id) {
+    if (typeof id !== 'string') return null;
+    const [shape, rest] = id.split(':');
+    return shape === 'flag' ? null : rest || null;
+};
+
+const skinsClash = function (a, b) {
+    if (!a || !b) return false;
+    if (a === b) return true;
+    const ca = skinColorOf(a);
+    return !!ca && ca === skinColorOf(b);
+};
+
+// The stored pair, made safe to draw. Mirrors `settle` in the client's `skins.js` and has to: both
+// ends read the same field, and a pair one of them would correct and the other would not is a board
+// disagreeing with the profile behind it.
+//
+// Three ways a stored pair can be wrong, and all three are reachable without anybody cheating: a
+// variant dropped from the catalogue between releases, a variant sold back or never owned, and a
+// clash written by a build that did not have this rule. **Red gives way**, because Blue is the side
+// the picker opens on. Two fallbacks, because the first still clashes if Blue happens to be wearing
+// the stock red — and the second cannot fail.
+const settleSides = function (worn, held) {
+    const out = { ...SKIN_STOCK };
+    for (const side of ['blue', 'red']) {
+        const want = worn?.[side];
+        if (typeof want === 'string' && SKIN_IDS.has(want) && held.has(want)) out[side] = want;
+    }
+    if (skinsClash(out.red, out.blue)) out.red = SKIN_STOCK.red;
+    if (skinsClash(out.red, out.blue)) out.red = SKIN_STOCK.blue;
+    return out;
+};
+exports.settleSides = settleSides;
+
+// Which picture is worn on which side, as the profile stores it and off the skins actually held.
+// `ownedSkins` is passed in rather than re-derived so a read never disagrees with the list beside it.
+exports.wornSides = (c, owned) => settleSides(c?.sides, new Set(owned));
+
+// Puts one variant on one side. Refuses for the two reasons the picker greys a tile out — not owned,
+// and it would clash with the other slot — because a rule enforced only in the picker is a rule the
+// next client to be written does not have.
+//
+// Written as the whole pair rather than one key, so the patch says exactly what the state says. The
+// caller is `actions.equipSide`, which is where a refusal has somewhere to go.
+exports.equipSide = function (s, patch, side, id) {
+    if (side !== 'blue' && side !== 'red') return { ok: false, code: 'bad_side' };
+    if (!SKIN_IDS.has(id)) return { ok: false, code: 'no_such_skin' };
+    if (!s.skins.includes(id)) return { ok: false, code: 'not_owned' };
+    const other = side === 'blue' ? 'red' : 'blue';
+    if (skinsClash(id, s.sides[other])) return { ok: false, code: 'clash' };
+    s.sides = { ...s.sides, [side]: id };
+    patch.sides = s.sides;
+    return { ok: true, sides: s.sides };
+};
+
+// ---------------------------------------------------------------------------
+// The comb
+// ---------------------------------------------------------------------------
+//
+// **One cell per prestige, and the cell is the skin that took the most calls in it.** The comb is the
+// whole of what a prestige leaves behind besides the ceiling and the token: a record of which button
+// the player actually pressed, laid out in hexagonal rings.
+//
+// **What it buys is an option set.** The cells in a player's comb are the only symbols they may wear —
+// so a player who spends every period on the stock red square has exactly one emblem available to
+// them, and a rarer one has to be *played for*, in a stretch of a period, with a skin they went and
+// bought. Nothing here can be shortcut with truguts, and nothing here can be caught up on: the cell
+// for ring two is gone the moment ring two is behind you.
+//
+// **Positional, and one-indexed by prestige.** `comb[0]` is the first prestige ever taken. That is
+// what lets a ring count be read straight off the length, and it is why a gap is stored as a hole
+// rather than closed up — see `combOf`.
+
+// Which prestige numbers close a ring. Centred hex rings add `6n` cells, so the gaps run 6, 12, 18,
+// 24 — **not** doubling, which would put the fourth landmark at 91 and out of anybody's reach.
+//
+// Derived rather than tabled: a table of five numbers is a table that disagrees with the geometry the
+// first time somebody adds a ring to the drawing.
+const combRings = function (n) {
+    const rings = [];
+    for (let ring = 0, at = 1; at <= n; ring += 1) {
+        rings.push(at);
+        at += 6 * (ring + 1);
+    }
+    return rings;
+};
+exports.combRings = combRings;
+
+// How many rings are *complete*, which is what the emblem wears as outlines. One more than the number
+// of landmarks passed, and zero until the first prestige — an emblem with no rings is a player who has
+// never handed the road back.
+exports.combRing = n => combRings(n).length;
+
+// The stored comb, made safe to draw and padded to the prestige count.
+//
+// **Three things it has to survive.** Firebase turns a sparse array into a keyed object, so the read
+// takes either shape. A cell naming a variant the catalogue has dropped is a picture nothing can paint
+// and comes back as a hole. And a profile older than this feature has a prestige count and no comb at
+// all, which is the interesting one:
+//
+// **The unrecorded past is padded at the front, and the holes are honest.** A player at prestige 40
+// when this shipped has forty rings' worth of geometry and no record of what they pressed for any of
+// it. Their comb is forty holes, filling from here — because the alternative is either inventing a
+// history the server never watched, or starting their comb at zero and having the emblem's ring count
+// disagree with the prestige count it exists to show. A hole cannot be worn, which is the honest part:
+// it says *a prestige happened here and nobody was counting*, and it says it in the one place a player
+// can see how much of their own history predates the record.
+const combOf = function (c, prestige) {
+    const raw = Array.isArray(c?.comb) ? c.comb : Object.values(c?.comb || {});
+    const seen = raw.map(id => (typeof id === 'string' && SKIN_IDS.has(id) ? id : null));
+    const pad = Math.max(0, prestige - seen.length);
+    return [...Array.from({ length: pad }, () => null), ...seen].slice(0, prestige);
+};
+exports.combOf = combOf;
+
+// Which cell of the comb the player is wearing. Held to the comb on read rather than trusted: an
+// emblem is a *choice among cells*, so one naming a variant that is not in there is not a stale
+// preference to honour, it is a claim to something never earned.
+const emblemOf = function (c, comb) {
+    const want = c?.emblem;
+    return typeof want === 'string' && comb.includes(want) ? want : null;
+};
+exports.emblemOf = emblemOf;
+
+// The winner of a period, off the tally. **Most-pressed, and a tie goes to whichever of the tied was
+// pressed most recently** — which is what `pressedLast` is for and the only reason it is stored. A
+// tie broken by catalogue order would hand a dead heat to whichever colour happens to be listed first
+// forever, and a player who split a period evenly between two skins and finished on one of them has
+// said which one they meant.
+//
+// Null on a period with no calls in it at all, which is a prestige taken off a banked offer without
+// rolling since the last one.
+exports.pressWinner = function (s) {
+    const at = id => Number(s.pressed[id]) || 0;
+    const ids = Object.keys(s.pressed).filter(id => SKIN_IDS.has(id) && at(id) > 0);
+    if (!ids.length) return null;
+    const most = Math.max(...ids.map(at));
+    const tied = ids.filter(id => at(id) === most);
+    if (tied.length === 1) return tied[0];
+    return tied.includes(s.pressedLast) ? s.pressedLast : tied[0];
+};
+
+// Wears one cell. Refused for anything not in the comb — including a hole, which is what `null` in
+// there means and is deliberately unwearable.
+exports.pickEmblem = function (s, patch, id) {
+    // **The string test is the half that refuses a hole**, and it is not redundant with the membership
+    // test below it: a comb with an unrecorded prestige in it *contains* `null`, so `includes` alone
+    // hands back `ok` for a cell that is by definition nothing to wear.
+    if (typeof id !== 'string') return { ok: false, code: 'not_in_comb' };
+    if (!s.comb.includes(id)) return { ok: false, code: 'not_in_comb' };
+    s.emblem = id;
+    s.pick = false;
+    patch.emblem = id;
+    patch.pick = null;
+    return { ok: true, emblem: id };
+};
+
 // Grants every variant in a set. Reached only through `buySkin`, which is what charges for it, and
 // written as the whole map rather than one key so the patch says the same thing the state does.
 exports.grantSkins = function (s, patch, ids) {
@@ -321,6 +503,9 @@ exports.cubeState = function (user_profile) {
     const effects = user_profile?.effects || {};
     const unlocked = Math.min(Number(c.unlocked) || 0, MAX_LEVEL);
     const prestige = Math.max(Number(c.prestige) || 0, 0);
+    // Read here rather than inline below, because the emblem is held against it and two reads of a
+    // padded array are two chances for the pair to disagree about what is in the comb.
+    const comb = combOf(c, prestige);
     const maxStake = maxStakeFor(prestige);
     const stored = Math.floor(Number(c.stake) || 0);
     // Kept in SPECIALS order like the rack picks, so the loadout screen never reshuffles itself when a
@@ -436,9 +621,31 @@ exports.cubeState = function (user_profile) {
         // this is the summary over it.
         faceProgress: faceProgressOf(c, cubes),
         // **Which side skins the player holds**, in catalogue order and with the free four folded in —
-        // see `ownedSkins`. The only cosmetic fact on the profile: which *picture* is worn on which
-        // side is the client's, because nothing in the rules can read it and a board is single-player.
+        // see `ownedSkins`.
         skins: ownedSkins(c),
+        // **And which of them is worn on which side.** Cosmetic still — the engine names positions
+        // `side:blue` and `side:red` forever, and nothing in the rules reads this — but no longer only
+        // the client's, because `pressed` below counts it. Settled on read rather than trusted: see
+        // `settleSides` for the three ways a stored pair goes stale.
+        sides: exports.wornSides(c, ownedSkins(c)),
+        // **How many calls each skin has taken since the last prestige.** `{ [variantId]: n }`, bumped
+        // by `recordRoll` and cleared by `applyPrestige` — which is what makes it a period rather than a
+        // lifetime. Not to be confused with `calls` below, which counts *sides* and counts them forever.
+        pressed: (c.pressed && typeof c.pressed === 'object') ? c.pressed : {},
+        // The last variant a call was made on, which exists for one job: breaking a tie in the tally
+        // toward the skin the player finished the period on. See `pressWinner`.
+        pressedLast: typeof c.pressedLast === 'string' ? c.pressedLast : null,
+        // **One cell per prestige, and the cell is what won that period's tally.** Positional and
+        // padded to the prestige count, so a ring count reads off the length — see `combOf` for what a
+        // hole in it means.
+        comb: comb,
+        // Which cell is being worn. Held to the comb on read, because an emblem is a choice among cells
+        // rather than a preference to be honoured.
+        emblem: emblemOf(c, comb),
+        // **A prestige waiting for its emblem to be chosen.** Stored rather than held by the client
+        // because the Activity re-mounts whenever Discord feels like it, and the one press that can only
+        // be made at a prestige must not be lost with the frame that offered it.
+        pick: !!c.pick,
         // The two things off the rack that only ever matter on a tie: the Nudge turns Watto's
         // tie-breaker cube around, and the bribe lets you buy the tie instead of rolling for it.
         // `bribes` is how many have been paid since the last prestige, which is the price ladder.
@@ -568,6 +775,24 @@ exports.recordRoll = function (s, patch, {
     s.rolled = { blue: s.rolled.blue + blue, red: s.rolled.red + (cubes.length - blue) };
     patch.calls = s.calls;
     patch.rolled = s.rolled;
+    // **The same press, counted by its picture.** `calls` above is the side and is kept forever;
+    // this is the skin that side was wearing and is kept only until the next prestige, because what
+    // it feeds is one period's answer to which button the player actually pressed.
+    //
+    // Here rather than in a writer of its own for the reason `calls` is: `call` is in hand, this runs
+    // exactly once per settled throw, and a second counter of the same event written somewhere else is
+    // a second thing to keep in step. Replaced rather than mutated, like every level around it — a
+    // frame mid-reveal is still holding the pre-roll object.
+    const wore = s.sides[call];
+    if (wore) {
+        s.pressed = { ...s.pressed, [wore]: (Number(s.pressed[wore]) || 0) + 1 };
+        patch.pressed = s.pressed;
+        // Which one the period finished on, for the one job of breaking a dead heat toward it. Written
+        // every call rather than only on a tie, because a tie is only knowable at the prestige and by
+        // then every call it would be about has been made.
+        s.pressedLast = wore;
+        patch.pressedLast = wore;
+    }
     if (won) {
         s.wins = { ...s.wins, [call]: s.wins[call] + 1 };
         patch.wins = s.wins;
@@ -1164,6 +1389,32 @@ exports.applyPrestige = function (s, patch) {
     // permanently — the ladder it climbs is per-prestige, like the ladder of levels.
     s.bribes = 0;
     patch.bribes = 0;
+    // **The press tally is a period, and this is the end of one.** Cleared here beside the other three
+    // per-prestige counters, which is what makes the figure the prestige screen quotes an answer about
+    // the stretch just finished rather than a lifetime total nothing could ever move off its winner.
+    //
+    // `null` rather than `{}` in the patch, which is a Firebase delete: `pruned` strips only
+    // `undefined`, so the null survives the trip and takes the whole map with it. Written as an empty
+    // object in memory, because that is what the read hands back and the two must agree.
+    // **Banked before it is cleared**, which is the whole of what a prestige leaves behind here: the
+    // winner of the tally becomes the cell for the prestige just taken. Appended at `prestige - 1`
+    // because the comb is positional, and the increment above has already happened — so this lands at
+    // the end of an array `combOf` will read back as exactly `prestige` long.
+    //
+    // A period with no calls in it banks a hole, the same as an unrecorded past one. A prestige taken
+    // off an offer banked long ago, with nothing rolled since, has nothing to say about what was
+    // pressed — and saying so is better than crediting it to whatever happens to be equipped.
+    s.comb = [...s.comb, exports.pressWinner(s)];
+    patch.comb = s.comb;
+    // **And the choice it opens.** Every prestige is a chance to re-wear any cell in the comb, and this
+    // is the only press that offers it — so the offer is stored, not held, and it survives the Activity
+    // being re-mounted under it.
+    s.pick = true;
+    patch.pick = true;
+    s.pressed = {};
+    patch.pressed = null;
+    s.pressedLast = null;
+    patch.pressedLast = null;
 };
 
 // Spends one banked point on one thing off the rack. The caller checks the value is actually on
