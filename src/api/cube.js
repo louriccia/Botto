@@ -108,7 +108,17 @@ const boardOf = function (ctx, req) {
             // Whether the standing can carry one more purchase at all. `spendMultiple` refuses a price
             // that would leave nothing behind, and a button that offers a refusal is a bug on screen.
             canAfford: (Number(live.mult) || 0) > engine.armPriceOf(live.mult),
-            canLook: (Number(live.mult) || 0) > engine.lookPriceOf(),
+            // Per arm too: Swap can be affordable on a standing that cannot carry Scrap.
+            canAffordArm: {
+                scrap: (Number(live.mult) || 0) > engine.armPriceOf(live.mult, 'scrap'),
+                swap: (Number(live.mult) || 0) > engine.armPriceOf(live.mult, 'swap'),
+                split: (Number(live.mult) || 0) > engine.armPriceOf(live.mult, 'split'),
+            },
+            canLook: (Number(live.mult) || 0) > engine.lookPriceOf(live.mult),
+            // **The ante has its own test.** The board was reading `canAfford` for it, which is the *arm*
+            // test — so on a standing that covers an arm but not the ante it offered a bet the server
+            // would refuse. They were the same number once and are not now.
+            canAnte: (Number(live.mult) || 0) > engine.betPriceOf(),
         } : null,
         // **A roll stopped with the cubes down, for a board that has just re-mounted.** Sent for the
         // same reason `seen` is: the hold is a state of the *run*, not of the frame it was drawn in,

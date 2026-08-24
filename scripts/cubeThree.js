@@ -69,8 +69,21 @@ for (const sp of [turbine, scavenger, guide]) {
         'a face is a side or it does a thing, never both');
 }
 
-ok('guideBonus is half pureBonus', config.guideBonus * 2 === config.pureBonus,
-    `guide ${config.guideBonus} against pure ${config.pureBonus}`);
+// **This used to assert `guideBonus * 2 === pureBonus` and the relation is retired, not broken.**
+//
+// It encoded a real symmetry while both numbers meant the same thing: a pure paid `pureBonus` per cube
+// for a whole clean line and a Guide paid half that per cube for the run touching it. `pureBonus` has
+// since been re-cut from 1 to 0.25 for a reason that has nothing to do with the Guide — it was the whole
+// of a bare ladder's 12.8% edge, because it is added to a multiple that then compounds, and a pure on a
+// three-cube line is a 1-in-4 event. See its note in `tuning.js`.
+//
+// Holding the relation would mean dragging `guideBonus` down to 0.125 to match, which is backwards: the
+// Guide is one of the six mine-carriers measured *below an empty seat*, and the open work on it is making
+// it stronger, not weaker. So the two dials are independent now and the pair is asserted apart.
+ok('pureBonus is priced for the bare ladder', config.pureBonus > 0 && config.pureBonus <= 0.5,
+    `pureBonus ${config.pureBonus} — above 0.5 and an empty rack is a faucet again`);
+ok('guideBonus is a live per-cube bonus', config.guideBonus > 0,
+    `guideBonus ${config.guideBonus}`);
 
 // ---------------------------------------------------------------------------
 // Phase two: the slot round-trips
@@ -133,7 +146,14 @@ for (let n = 0; n <= 5; n++) {
     near(`P(exactly ${n} heats) is 1/6`, heats[n] / CLIMBS, 1 / 6, 0.012);
 }
 check('a turbine can never land a sixth heat', heats.length, 6);
-near('E[total paid] is 2.92', paidTotal / CLIMBS, 2.9166, 0.05);
+// **Derived from `heatBonus`, not hardcoded.** The number of heats before the wipeout is uniform on
+// 0..5, and a run of `n` heats pays `heatBonus × (1+2+...+n)`, so the expectation is
+// `heatBonus × (1/6)Σ n(n+1)/2` = `heatBonus × 35/6`. That was 2.9166 at `heatBonus 0.5` and is
+// 1.4583 at 0.25 — the assertion used to carry the first of those as a literal and broke the moment
+// the dial moved, which made a tuning change look like a broken invariant.
+const EXPECTED_PAID = config.heatBonus * (35 / 6);
+near(`E[total paid] is ${EXPECTED_PAID.toFixed(2)} at heatBonus ${config.heatBonus}`,
+    paidTotal / CLIMBS, EXPECTED_PAID, 0.05);
 
 // ---------------------------------------------------------------------------
 // Phase four: the Guide counts what a player would
@@ -200,9 +220,24 @@ const nothing = scav(['red', 'red', 'scavenger.haul'], 'red');
 check('a haul at the tail takes nothing', nothing.faceIds.length, 3);
 ok('and says so', nothing.notes.some(n => n.kind === 'haul.nothing'));
 
-const back = scav(['red', 'scavenger.scavenge', 'red'], 'red', {
-    hold: [{ id: 'wild', burned: [], frozen: null, heat: 0, hauled: false }],
-});
+// **The recovery is re-drawn until the cube that comes back is not a mine, and that is the fix for a
+// flake this test carried for a long time.** `liftOne` rolls a face for whatever it lifts, and the Wild
+// is four wilds and two Ratts — so one recovery in three detonated and took these three assertions with
+// it. Measured at 33.3% under an unbounded blast and 34.2% at `blastReach 1`, i.e. exactly the Wild's own
+// mine rate and nothing to do with the blast.
+//
+// Substituting an inert cube was tried and there isn't one: a Mirror reflects and changes the line
+// length, a Multiplier and a Boost carry wipeouts, a Greed and a Guide carry mines. So the scenario is
+// re-rolled instead, which keeps the assertions exactly as written and tests the Scavenger rather than
+// the dice of whatever is in the hold. What a *detonating* recovery does is the mine's business and is
+// covered where the mine is.
+let back = null;
+for (let i = 0; i < 200; i += 1) {
+    back = scav(['red', 'scavenger.scavenge', 'red'], 'red', {
+        hold: [{ id: 'wild', burned: [], frozen: null, heat: 0, hauled: false }],
+    });
+    if (!back.notes.some(n => n.kind === 'end' || n.kind === 'end.shielded')) break;
+}
 check('a scavenge puts the cube back on the line', back.faceIds.length, 4);
 check('and empties the hold by one', back.hold.length, 0);
 check('and reports what it recovered', back.recovered, ['wild']);

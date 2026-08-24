@@ -327,9 +327,37 @@ exports.SPECIALS = [
         //
         // The empty rack does not move in any row, which is the whole argument for fixing this here
         // rather than in the pay table.
+        // ---------------------------------------------------------------------
+        // **Three and three, because `blastReach` changed what a mine costs.**
+        // ---------------------------------------------------------------------
+        //
+        // Every number in the sweep above was measured against an *unbounded* blast, where a mine took
+        // the whole row and therefore cost the run. Two of them were the price of this cube's guaranteed
+        // vote. Bounding the blast to one position either side (see `blastReach`) cut that price hard,
+        // and this cube felt it more than anything else in the game because it was the only one paying
+        // it willingly: at 4 wild + 2 mines it measured **1.740** in a seat against an empty seat at
+        // 1.048, and the best seven a greedy build could find came back at **1.66 EV** — a 66% edge.
+        //
+        // Re-swept at `blastReach 1`, 250k climbs a cell:
+        //
+        //     wild faces                  in a seat   best-seven L5   best-seven L3
+        //     4 wild + 2 mines              1.740         1.656          1.160
+        //     3 wild + 3 mines              1.305         1.345          1.057   <- shipped
+        //     3 wild + 2 mines + 1 wipe     1.340         1.447          1.094
+        //     2 wild + 4 mines              1.143         1.133          0.983
+        //     2 wild + 3 mines + 1 wipe     1.170         1.188          1.008
+        //
+        // **3 and 3 rather than 2 and 4**, even though 2+4 prices closer to even, because the cube has to
+        // stay the thing its name says. A Wild that votes your way twice in six and detonates four times
+        // is a bomb with a colour preference, not a wild — and the remaining edge belongs to the pay
+        // table rather than to this face list, which is the same argument the sweep above makes.
+        //
+        // It also reads as what it now is. Half the faces hand you the position and half blow a hole in
+        // the line, which is the cube the bounded blast wants: something that destroys and can be
+        // destroyed, on a table with enough cubes on it for that to be a trade rather than an ending.
         id: 'wild', name: 'Wild Cube',
-        blurb: 'Four faces land on the side you called. Two end the run.',
-        faces: [...rep(4, { kind: 'wild', id: 'wild' }), END, END],
+        blurb: 'Three faces land on the side you called. Three blow a hole in the line.',
+        faces: [...rep(3, { kind: 'wild', id: 'wild' }), ...rep(3, END)],
     },
     {
         id: 'greed', name: 'Greed Cube',
@@ -337,21 +365,48 @@ exports.SPECIALS = [
         faces: [...rep(5, { kind: 'greed', id: 'greed' }), END],
     },
     {
+        // **The Wild Cube's disease at four fifths strength, and it went untreated for exactly as long
+        // as it took to measure a rack that leaned one way.** The note above prices a guaranteed vote;
+        // this is a 4:1 vote, which is the same property with the certainty filed off — majority-of-N
+        // amplification with the player holding the dial, and the dial is which colour they say.
+        //
+        // What hid it is that a lean *inside a rack* cancels. The shipped hand-picked eight fields Shmi
+        // and Anakin together, and `cubeLean.js` called one fixed colour, so the pair measured as two
+        // ordinary cubes and the mode was priced against that. A rack holding one of them and a player
+        // saying its colour is a different game, on a rack of otherwise safe cubes at 5% of purse:
+        //
+        //     shmi faces        call red   growth/roll   call blue   red/blue gap
+        //     4R 1B 1wipe        1.266       +0.29%        0.959         32%      ← was
+        //     4R 1B 1mine        1.073       -0.02%        0.978         10%      ← shipped
+        //     4R 2mines          1.018       -0.29%        0.971          5%
+        //     3R 2B 1wipe        1.062       -0.08%        1.033          3%
+        //
+        // **The face that changed is the downside one, and that is the whole of the fix.** A wipeout
+        // costs a cube; a mine costs the run. Every other biased or guaranteed vote in the game is
+        // fenced by mines — the Wild pays two for its certainty — and these two were fenced by the one
+        // downside face in the mode that a climb can shrug off, which is why the bias was free.
+        //
+        // The face list is also the flavour, so trimming the bias to 3:2 was the wrong lever even though
+        // it measures well: "red four times in six" is the line, and a Shmi Cube that calls red three
+        // times in six is not a Shmi Cube. The mine keeps the character and prices it.
         id: 'shmi', name: 'Shmi Cube',
-        blurb: 'Red four times in six, blue once — red was his mother.',
+        blurb: 'Red four times in six, blue once — red was his mother. One face ends the run.',
         faces: [
             ...rep(4, { kind: 'side', side: 'red', id: SIDE_IDS.red }),
             { kind: 'side', side: 'blue', id: SIDE_IDS.blue },
-            BROKEN,
+            END,
         ],
     },
     {
+        // Shmi's mirror in every respect, including the mine — see her note for why it is a mine and
+        // not a wipeout. A one-sided rack is one-sided whichever colour it leans, so a change to one of
+        // these that is not made to the other just moves the exploit to the other colour.
         id: 'anakin', name: 'Anakin Cube',
-        blurb: 'Blue four times in six, red once — blue was the boy.',
+        blurb: 'Blue four times in six, red once — blue was the boy. One face ends the run.',
         faces: [
             ...rep(4, { kind: 'side', side: 'blue', id: SIDE_IDS.blue }),
             { kind: 'side', side: 'red', id: SIDE_IDS.red },
-            BROKEN,
+            END,
         ],
     },
     {
@@ -439,8 +494,16 @@ exports.SPECIALS = [
         //
         // The wipeout save is the other half, and it is what stops the cube being dead on the ~85% of
         // throws with no mine on them. It costs the shield nothing, because a cube coming apart is not
-        // a blast — and it covers Shmi, Anakin, the Multiplier, the Reroll Cube and the Boost Cube, so
-        // its hit rate scales with how much fragile kit is on the table. Same shape as the mine half.
+        // a blast — and it covers the Reroll Cube, the Midi-chlorian, the Boost, the Sebulba, the
+        // Turbine and the Scavenger, so its hit rate scales with how much fragile kit is on the table.
+        // **Not itself, any more:** it carries no wipeout face now, because blocking a blast is the whole
+        // of what this cube costs. See the note on its face list.
+        //
+        // **It used to cover Shmi and Anakin and no longer does**, because those two traded their
+        // wipeout for a mine — see Shmi's note. That moves them from the save's list to the blast's,
+        // which is a straight loss to this cube on a rack fielding either: measured on a fragile eight
+        // the save fires 0.19 times a run, and the two of them were the only members of the list that
+        // cast a vote when rescued.
         // **All six faces, no downside face** — the Mirror's and the Binder's shape, and for the same
         // reason: the effect is defensive, so permanence can't run away with a climb. It measures
         // **0.85 at Level 5 fielded alone**, which is a real price for a slot and exactly the "worth
@@ -454,7 +517,7 @@ exports.SPECIALS = [
         //   6 shield            0.85    0.78    **0.98**
         //
         // That last column is the whole argument. Greed, Shortcut and Wild fielded together — three of
-        // the four cubes that carry a mine — measure **0.56** on their own, which is unplayable. A
+        // the mine-carrying cubes of the day — measure **0.56** on their own, which is unplayable. A
         // six-face shield takes them to **0.98**. Every wipeout face taken off this cube is a level it
         // is still on the table for, and the mine it stops is the only thing it exists to stop.
         //
@@ -513,10 +576,88 @@ exports.SPECIALS = [
         // than without it, but it measures worse at **six** shields too (1.003 against 1.017), so
         // that is a property of spending a bag seat on a cube that casts no vote and not of anything
         // changed here. Comparing racks of different sizes is what produces the false reading.
+        // ---------------------------------------------------------------------
+        // **The mine came back off, and the sweep above is the reason it should never have gone on.**
+        // ---------------------------------------------------------------------
+        //
+        // Every row of that sweep prices the cube against a *mine-heavy* best-of-breed eight, and that
+        // rack is no longer what a best-of-breed eight is. Greedily building the strongest seven from
+        // the whole set, one cube at a time, gets **sebulba, boost, multiplier, turbine, pitdroid,
+        // mirror, symbiont** at 1.10 EV banking L3 — and not one of them carries a mine. Wild, Greed,
+        // Shortcut, Guide, Shmi, Anakin and the Reroll Cube are all left on the bench.
+        //
+        // So the premise is gone. Re-swept against that seven, 40k climbs a cell, slot 8 measured
+        // against the same seat holding Greed:
+        //
+        //     gungan faces              slot worth   mines blocked   wipeouts saved   own mine's
+        //                                              per run          per run       share of busts
+        //     6 shield                     +14.4%       0.000            0.064             —
+        //     5 shield + 1 wipeout         +22.6%       0.000            0.052             —      ← shipped
+        //     5 shield + 1 mine             -2.9%       0.005            0.051           90.0%
+        //     4 shield + mine + wipeout     +0.3%       0.002            0.036           87.7%    ← was
+        //
+        // **The mine-stop fires 0.000 times a run.** Not rarely — never. The cube exists to answer a
+        // mine and the strongest rack in the game has no mine in it, so the whole of its stated job is
+        // dead content on the only loadout worth building. Everything it is actually worth is the
+        // wipeout save, the half the note above calls "the other half".
+        //
+        // And with nothing else on the rack carrying a mine, **its own Ratts became 90% of that rack's
+        // deaths.** A cube whose blurb leads with "stops a mine" was, in practice, the mine. That is
+        // not a price for a strong effect, it is the cube inverting itself: -2.9% for the slot, against
+        // +22.6% for the same cube with the Ratts taken off. The old configuration measured +0.3%,
+        // which is a prestige reward worth precisely nothing.
+        //
+        // **+25% is still the target and 5 shield + 1 wipeout is the row that hits it** — the note above
+        // says so in as many words, and the mine was the reason nothing did. 6 shield is not cleanly
+        // separated from it on this data (+14.4% ±0.026 against +22.6% ±0.026) and there is no argument
+        // for handing back the downside face as well, so the wipeout stays: the answer to the rack's
+        // fragile kit should be able to come apart too.
+        //
+        // **What this does not fix**, and it is the larger finding: the mine-block half is dead content
+        // because *mine-carrying cubes are unfieldable*, not because this cube is mispriced. Nine cubes
+        // the greedy build refuses to touch is the thing to look at next, and it is a question about the
+        // Wild's and Greed's prices rather than about this one.
         id: 'gungan', name: 'Gungan Shield Cube',
-        blurb: 'Four faces stop a mine on their own side of the line, and hold a neighbour that '
-            + 'wipes out together. One shatters. One ends the run.',
-        faces: [...rep(4, { kind: 'shield', id: 'shield' }), END, BROKEN],
+        // ---------------------------------------------------------------------
+        // **Six shield faces. One rule: it stops the blast on its side and dies holding.**
+        // ---------------------------------------------------------------------
+        //
+        // This cube collected costs it did not need. At various points it carried a **mine**, a
+        // **wipeout**, a per-throw "already spent" flag, and a **deflection** rule that checked the colour
+        // of everything inside the blast window. Four mechanisms, and a player could not say what the cube
+        // did or cost without reading all of them.
+        //
+        // What it does now is the original rule with a reach on it: the blast travels out from Ratts, a
+        // shield stops it on that flank, the shield goes, and everything behind the shield lives. Position
+        // is the whole of the skill and it needs no second mechanic — a blast stopped on one side already
+        // eats the other side, which is what the deflection rule was reinventing at the cost of a dial
+        // and a comparison per position.
+        //
+        // **Side faces were tried as a price and they are a trap worth recording.** The idea was to trade
+        // shield faces for faces that simply vote, so the cube had a cost with no downside. Measured on
+        // log-growth against the same seat holding a Boost, four repeats a row:
+        //
+        //     faces                  dg x1e-4     note
+        //     5 shield + 1 red         +6.57      best measured, and the reason is bad
+        //     3 shield + 3 sides       +3.66      2 red to 1 blue
+        //     6 shield                 +2.85      shipped
+        //     4 shield + 1R + 1B       +0.51      balanced, and nearly worthless
+        //
+        // The ranking is non-monotonic in both shield count and side count, and the cause is colour bias.
+        // A side face on a special is a *fixed* vote, so an unbalanced pair is a lean — and by the
+        // convexity argument at `rollSide` in `engine.js`, any lean mints truguts whichever way it points.
+        // Measured by fixed call on a Shmi rack: 6 shield spreads 225/148 red-to-blue, and adding one red
+        // face widens it to 245/137 while lifting the average 2.5%. A *balanced* pair adds 0.2% and is
+        // therefore not a price at all. So side filler is either an exploit or a no-op, and neither is
+        // useful. That is the same lesson Shmi's mine exists to teach.
+        //
+        // Which leaves six shields and no downside face, and that is fine now in a way it was not before.
+        // The old note argued a downside-free shield was worth +97.9% — true when a blast took the row and
+        // stopping it saved the *run*. At `blastReach 2` it saves some cubes, and the cube measures around
+        // **+17%**: a real prize, not the second-largest term in the economy.
+        blurb: 'Every face stops the blast from a mine on its own side of the line, and is destroyed '
+            + 'doing it. It also holds a neighbour that wipes out together.',
+        faces: rep(6, { kind: 'shield', id: 'shield' }),
     },
     {
         // Tempo, not size. Every cube it hands you comes off the **bag**, and the bag is the whole of
@@ -797,7 +938,7 @@ exports.SPECIALS = [
 exports.SIDE_BETS = [
     // Likely — 17-23% on a rack that can do them at all.
     {
-        id: 'broken', band: 'likely', price: 3, say: 'A cube shatters',
+        id: 'broken', band: 'likely', price: 2, say: 'A cube shatters',
         needs: ['broken'], hit: r => r.notes.some(n => n.kind === 'broken'),
     },
     {
@@ -807,11 +948,27 @@ exports.SIDE_BETS = [
     {
         // The Gambler reading itself: every paying face in that tree is sideless, so the tree that
         // sells this bet is the one that manufactures the thing it is betting on.
-        id: 'tie', band: 'likely', price: 3, say: 'Nobody wins the line',
-        needs: null, hit: r => !r.ended && !!r.faceIds.length && !r.majority,
+        //
+        // **The widest `spoils` in the book, because the predicate has two halves and a face can leak
+        // either.** A tie is a rung that survived *and* came out with no majority, so a look leaks it
+        // twice over — and these three are the faces measured leaking enough to matter.
+        //
+        // `wild` is the survival half. The Wild Cube is 4 paying faces to 2 ending ones, the densest
+        // ending cube in the game, so seeing one of its faces is the strongest available news that the
+        // run did not stop: 19.0% to 26.4%, or +5.7% on a price shaved to lose 33%. The other five cubes
+        // carrying an `end` face all stay negative — shortcut -29.5%, guide -29.7%, greed -36.4%,
+        // reroll -33.3%, the Gungan's shield the nearest miss at -9.3%.
+        //
+        // `raze` and `cull` are the majority half, and they are the larger hole of the two: both take a
+        // neighbour off the line, and a line with cubes removed from it is far likelier to come out
+        // level. 41.4% and 32.1% against 19.0% blind, which is +65.8% and +28.5%. Nothing else that
+        // shortens a line comes near — `purge` measures -69.7% because Order 66 ends the run instead.
+        id: 'tie', band: 'likely', price: 7.1, say: 'Nobody wins the line',
+        needs: null, spoils: ['wild', 'raze', 'cull'],
+        hit: r => !r.ended && !!r.faceIds.length && !r.majority,
     },
     {
-        id: 'burn', band: 'likely', price: 4, say: 'A cube gets burned',
+        id: 'burn', band: 'likely', price: 6.0, say: 'A cube gets burned',
         needs: ['burn'], hit: r => r.notes.some(n => n.kind === 'burn'),
     },
     // Middle — 12-17%.
@@ -820,34 +977,71 @@ exports.SIDE_BETS = [
         needs: ['mirror'], hit: r => r.notes.some(n => n.kind === 'mirror' && n.copied > 0),
     },
     {
-        id: 'clone', band: 'middle', price: 5, say: 'A cube gets copied',
+        id: 'clone', band: 'middle', price: 7.7, say: 'A cube gets copied',
         needs: ['clone'], hit: r => r.notes.some(n => n.kind === 'clone'),
     },
     {
         // Three faces feed this and no rack without one of them can ever win it — 0.0% on a spread
         // against 46.8% on a rack holding the Symbiont or the Pit Droid. The widest gap in the table,
         // and the clearest argument for offering only what a rack can actually produce.
-        id: 'grow', band: 'middle', price: 4, say: 'The line gets longer',
-        needs: ['pair', 'twins', 'draw'],
-        hit: r => r.notes.some(n => ['pair', 'twins', 'draw'].includes(n.kind)),
+        //
+        // ---------------------------------------------------------------------
+        // **Narrowed from "the line gets longer" over three note kinds, and repriced.**
+        // ---------------------------------------------------------------------
+        //
+        // Three separate mechanics fed one card — the Symbiont's Fode insert, its Padme twins, and the
+        // Pit Droid's draw — so a rack holding two of those cubes hit it on nearly **half of all rungs**,
+        // 52.9% at its peak across five farming racks. Against `price: 4` that measured **+0.71 an ante**,
+        // the largest edge in the book, on the only card a player could deliberately farm.
+        //
+        // **The narrowing is a design call, not an arithmetic necessity**, and the first version of this
+        // note wrongly claimed otherwise — it said no whole price could cover the broad predicate. That
+        // was an artifact of the wrong fair-value formula (see `betAnte`): the broad card prices fine at
+        // 2. Measured peaks, with the corrected `p*(price+ante) - ante*levelStep`:
+        //
+        //     predicate                    peak    priced at    EV there
+        //     any of the three (was)       52.9%       2          -0.35
+        //     Symbiont inserts only        40.3%       3          -0.33
+        //     Pit Droid draw only          30.7%       5          -0.10
+        //     matching twins only          26.2%       6          -0.11   <- shipped
+        //
+        // So the reason to take twins is that it is the better card. "The line gets longer" was three
+        // different things wearing one name, and a player could not tell which of them they were betting
+        // on; twins is a specific thing that visibly happens, which is what every other proposition in
+        // this list already is. It also lands in the same rate band as the rest of the book, so it needs
+        // no special pleading in the price.
+        //
+        // **The id stays `grow`.** A book is chalked up and stored per rung, so a live run may be holding
+        // this id right now and renaming it would fail that player's bet validation in `nameBet`. The id
+        // is a key, not a label — `say` is the label and it has changed.
+        id: 'grow', band: 'middle', price: 9.5, say: 'Padmé slips in matching twins',
+        needs: ['twins'],
+        hit: r => r.notes.some(n => n.kind === 'twins'),
     },
     // Long shots — 4-7%.
     {
-        id: 'raze', band: 'long', price: 10, say: 'Ben razes a neighbour',
+        id: 'raze', band: 'long', price: 19.9, say: 'Ben razes a neighbour',
         needs: ['raze'], hit: r => r.notes.some(n => n.kind === 'raze'),
     },
     {
-        id: 'purge', band: 'long', price: 12, say: 'Order 66',
+        id: 'purge', band: 'long', price: 15, say: 'Order 66',
         needs: ['purge'], hit: r => r.notes.some(n => n.kind === 'purge'),
     },
     {
         // The Gungan's wipeout save. Rare because it needs two things at once — a shield standing, and
         // something fragile beside it coming apart — which is exactly the shape a long shot wants.
-        id: 'saved', band: 'long', price: 15, say: 'A cube holds together',
-        needs: ['shield'], hit: r => r.notes.some(n => n.kind === 'broken.saved'),
+        //
+        // **And the only card whose `spoils` is wider than its `needs`**, for the same reason: `needs`
+        // is what a rack must own to produce the event, and a shield is the half you buy. The mine is
+        // the half you wait for, so a look that shows one has settled half a 2.4% proposition without
+        // touching anything in `needs` — measured at 8.2% after, which is +31% on a card priced to lose
+        // 66%. Every other card is a single event and its two lists are the same. See `drawBook`.
+        id: 'saved', band: 'long', price: 11, say: 'A cube holds together',
+        needs: ['shield'], spoils: ['shield', 'broken'],
+        hit: r => r.notes.some(n => n.kind === 'broken.saved'),
     },
     {
-        id: 'engine', band: 'long', price: 20, say: 'Sebulba turns a cube',
+        id: 'engine', band: 'long', price: 23, say: 'Sebulba turns a cube',
         needs: ['engine'], hit: r => r.notes.some(n => n.kind === 'engine'),
     },
 ];
@@ -1274,6 +1468,34 @@ exports.cube = {
     // prestige 0, 92 from prestige 2, 122 from 4, 153 from 6 — and `maxClears: 5` carries it one
     // gap past anything the old ladder ever charged: 181 from prestige 8, and never more. Every
     // pacing decision in the design doc survives; only the number they are written against moved.
+    // **How far a mine's blast reaches, in positions either side of it.**
+    //
+    // It was effectively infinite — an unshielded blast took the whole row, which is why a mine cost the
+    // *run* rather than some cubes. That is the most consequential number in the mode and it was never a
+    // number at all. See the note at `case 'end'` in `engine.js` for the measurement: an unbounded mine
+    // demands a cube that doubles the run, only the Wild was in that class, and every other carrier
+    // measured below an empty seat. Bounding it is what lets a mine be common enough for the mine-facing
+    // picks — the Gungan Shield, Scrap, Swap, Premonition — to have anything to act on.
+    //
+    // **2, and the reason is the survivability curve rather than the EV.** At reach 1 the geometry is
+    // almost toothless, and worse, it makes Ratts a *raze that dies* — Ben already takes both neighbours,
+    // so the two faces collide. Exact survivors by line length and mine position:
+    //
+    //     line   reach 1                    wiped    reach 2                    wiped
+    //       3    [1 0 1]                     33%     [0 0 0]                    100%
+    //       5    [3 2 2 2 3]                  0%     [2 1 0 1 2]                 20%
+    //       7    [5 4 4 4 4 4 5]              0%     [4 3 2 2 2 3 4]              0%
+    //       9    [7 6 6 6 6 6 6 6 7]          0%     [6 5 4 4 4 4 4 5 6]          0%
+    //
+    // So a three-cube line is certain death, a five survives unless he lands dead centre, and a seven or
+    // a nine always leaves something standing — with *how much* depending on where he fell. That is the
+    // shape worth having: the mine keeps its menace on a short table, the table itself is the defence on
+    // a long one, and position matters at every length instead of none. Reach 1 gave a flat 0% above
+    // three cubes, which is no curve at all.
+    //
+    // It also keeps him distinct from the raze at five positions against three, and it prices closer:
+    // the Wild measures 1.54 in a seat at reach 2 against 1.70 at reach 1.
+    blastReach: 2,
     clearsToUnlock: 1,
     // Prestiges between each extra required clear. Every prestige adding one made the
     // re-climb balloon; every *other* prestige keeps it growing without the grind running
@@ -1400,7 +1622,25 @@ exports.cube = {
     //
     // A tie is still always a coin flip that somebody owns; the two owners just no longer hold the
     // same weight.
-    nudgeLean: 0.55,
+    // **0.500 — the Nudge makes Watto's cube fair, it does not turn it around.** `tieLean` stays 0.60
+    // against you; this hands back exactly that lean and no more, which is the whole of the pick in one
+    // sentence a player can hold in their head.
+    //
+    // It was 0.55, and the 5 points it gave back on top of fair were never doing design work — they were
+    // the reason every dial in this file had to be read twice, once for the population holding the pick
+    // and once for the population without it. Measured on a best-of-breed seven, the pick is worth
+    // **+15.4% at 0.500** against +20.1% at 0.55: the fork narrows and does not close, which is the
+    // known cost of the pick existing at all.
+    //
+    // **A consumable was considered and measured and it does not work.** One charge a run captures
+    // **79%** of the permanent pick's value, and that ratio held at every lean tried (75–80%) — because
+    // ties are only **0.20 a run** and just **17.3%** of runs meet even one, so the natural usage rate
+    // is already about one and capping it caps nothing. Guaranteeing a single tie instead of leaning it
+    // measured **+63.5%**, three times the permanent pick: a tie is a coin flip you lose 60% of, it lands
+    // deep where the standing is largest, and losing it is a full bust, so removing the randomness is
+    // worth far more than removing the repeats. The charge-count axis is dead; the lean is the only live
+    // dial, and 0.500 is the one value on it with a sentence attached.
+    nudgeLean: 0.50,
     // Buying a tie off him instead, once the rack has handed that over. Priced as a share of
     // the standing it buys, because a tie at the top of the ladder is worth thirty-two times one
     // at the bottom and a flat price would be free money up there. Every bribe already paid makes
@@ -1522,12 +1762,116 @@ exports.cube = {
     // there on a small one compounded a few thousand times at a stake pinned to the ceiling. The band
     // between "worth owning" and "prints" is one notch of this dial wide, which is what the whole-number
     // rounding costs and is worth knowing before anyone nudges it again.
-    armShare: 0.35,
-    // **Never free, whatever the rounding says.** The price is whole mults (see `armPriceOf`) and 40%
-    // of an opening standing rounds to less than one. The floor cannot bite in practice — Level 1 is a
-    // single cube and every pick that needs a neighbour is already refused there — but a priced thing
-    // that rounds to nothing is a bug waiting for a dial change.
-    armFloor: 1,
+    // =====================================================================
+    // HOW TO PRICE A PERK
+    // =====================================================================
+    //
+    // Three of these were shipped as dead picks and none of them was a weak design. Every one was a
+    // pricing or measurement mistake, and they were the same three mistakes each time. Read this before
+    // touching `armShare`, `armShares`, `lookShare` or `betAnte`.
+    //
+    // ---------------------------------------------------------------------
+    // 1. Price the shape to the perk's LEVEL PROFILE, not by default.
+    // ---------------------------------------------------------------------
+    //
+    // There are two shapes available and they push a player in opposite directions.
+    //
+    //   - **A share of the standing** charges a constant *fraction*. The multiple roughly doubles every
+    //     level, so a flat share makes the shallow rungs the best buy: it pushes purchases EARLY.
+    //   - **A price locked to the level** charges a constant *amount*. As a fraction of a growing
+    //     standing that shrinks with depth, so it pushes purchases LATE.
+    //
+    // Which is right depends on where the perk is actually worth something. Measured free, allowed at
+    // exactly one level, on the rack a greedy build picks (dg x1e-4):
+    //
+    //     level  cubes   Scrap    Swap    Premonition
+    //     L2       3     +28.98   -0.96     +27.24
+    //     L3       5     +20.59   +6.99     +18.21
+    //     L4       7     +21.73  +13.38     +14.57
+    //     L5       9     +19.26   +4.48     +15.34
+    //
+    // Three perks, three different curves. **Premonition declines** — one face out of nine is thin
+    // evidence about a majority, and on a mineless rack it is worth -0.59 by L5. **Swap peaks at L4** —
+    // it needs room to reposition and a three-cube line has nowhere useful to move anything. **Scrap is
+    // roughly flat** — there is always something worth taking off.
+    //
+    // So Premonition wants a share (buy early, where the information is thick) and Swap is the one
+    // candidate for a locked price. Measured head to head on Premonition, share beat locked **+6.21
+    // against +1.61**. Swap is left on a share only because at 0.05 it is already affordable everywhere,
+    // and a second pricing shape for one perk is a rule that does not earn itself.
+    //
+    // **The failure mode to remember**: a price that does not scale with the standing is cheapest at the
+    // deep rungs. `lookCost 1` was 52% of an opening standing and 3.6% of a Level 5 one, so it sold the
+    // look most cheaply exactly where the look is worth least. That is what made Premonition read as a
+    // dead pick for as long as it did.
+    //
+    // ---------------------------------------------------------------------
+    // 2. A perk is worth what GOOD PLAY extracts from it.
+    // ---------------------------------------------------------------------
+    //
+    // Scrap was priced at `armShare 0.13` against a policy that removed a mine or an opposing vote and
+    // nothing else. It measured a slight edge. Re-measured at the *same price* against a policy playing
+    // the real priorities — fix the count first, survive when the blast would clear the table, then
+    // protect the payers — it measured **+48**. A weak policy under-prices a perk by however much it
+    // fails to play it.
+    //
+    // Worse, the mistake is not always a policy detail. Premonition measured negative at every price
+    // including free, because it was modelled as buying bank-or-push. It does not: `exports.premonition`
+    // calls `pushRun({ call: null })`, so the look lands *before a side is named* and what it buys is
+    // which side to call. Modelled correctly, one free look is worth **+96**. Check what a perk actually
+    // decides before pricing what it costs.
+    //
+    // ---------------------------------------------------------------------
+    // 3. Rank on log-growth. EV cannot rank these.
+    // ---------------------------------------------------------------------
+    //
+    // The ladder's EV is dominated by rare deep wins, so at 400k climbs a cell one repeat in three comes
+    // back tens of points away from its neighbours and the ordering is noise. Every figure above is
+    // paired log-growth, which damps the tail and ranks reliably. If a sweep comes out non-monotonic,
+    // that is the tell — re-run it on `g` before believing it.
+    //
+    // =====================================================================
+
+    // **The fallback share, for any arm `armShares` does not name.** Today that is Split alone.
+    //
+    // It only became a meaningful number when prices went to tenths. The note that stood here swept
+    // 0.40 / 0.35 / 0.30 and concluded the band between "worth owning" and "prints" was one notch wide.
+    // It was not: at whole-mult rounding the **floor** set the price, not this dial. `armFloor 1` charged
+    // 52% of an opening standing however low the share went, and an arm is bought blind before the
+    // throw, so Scrap, Swap and Split measured dead at every value of it.
+    //
+    // **0.21, and an earlier pass set it to 0.13 — see point 2 above for why that was wrong.** 0.13 was
+    // measured against a policy that scrapped a mine or an opposing vote and nothing else, and read as a
+    // slight edge; against a policy playing the real priorities the same 0.13 measured +48. Re-swept on
+    // log-growth (dg x1e-4, best / shield racks):
+    //
+    //     armShare    scrap
+    //     0.22       +3.3   -1.0
+    //     0.21       +8.0   +2.2      <- shipped
+    //     0.18      +26.8  +11.6
+    //     0.14      +45.0  +29.0
+    //     0.12      +62.3  +45.8
+    //
+    // The curve is steep — a hundredth of this dial is worth several points of growth — so it wants
+    // re-measuring rather than nudging, and re-measuring against a policy that plays the perk properly.
+    armShare: 0.21,
+    // **Per-arm shares, because the three picks are not the same size.** See `armPriceOf`. Scrap takes a
+    // problem off the line; Swap can only relocate one, and measured about four times weaker for it.
+    // Split is unlisted and falls back to `armShare` — it needs a weld on the line to do anything, which
+    // this harness does not model, so pricing it would be a guess dressed as a measurement.
+    //
+    // A caution worth leaving here: **these numbers are only as good as the policy they were measured
+    // against.** An earlier pass priced Scrap at 0.13 using a policy that scrapped a mine or an opposing
+    // vote and nothing else, and it measured a slight edge. Re-measured against a policy that plays the
+    // real priorities — fix the count, then survive, then protect the payers — the *same* 0.13 measured
+    // **+48**. A perk is worth what good play extracts from it, so a weak policy under-prices it.
+    armShares: { scrap: 0.21, swap: 0.05 },
+    // **Never free, whatever the rounding says.** Still the point of this, but it is a tenth now rather
+    // than a whole mult — see `armPriceOf`. At 1 it was the binding term in the arms' price rather than a
+    // safety net: the cheapest possible option cost 52% of an opening standing, on a purchase made blind
+    // before the throw, which is why Scrap, Swap and Split all measured as dead picks. A floor exists to
+    // stop a price rounding away to free, and 0.1 does that without setting the price itself.
+    armFloor: 0.1,
     // **An arm is for one rung and expires unspent, and that is load-bearing rather than tidy.**
     //
     // Letting it carry until used is the same exploit wearing a different hat: one payment then covers
@@ -1551,6 +1895,30 @@ exports.cube = {
     // opening standing and 3.7% of an overtime one, which self-selects the look toward the deep rungs
     // where the walk-away is worth having. Free and played well it measured a small faucet (L2 1.04
     // against 0.84 for not owning it), so it does want a price; every level measures a sink at 1.
+    // **`lookShare` supersedes this, and the story is worth keeping because the mistake was mine to
+    // make twice.**
+    //
+    // Premonition measured as a dead pick at every price I tried — negative even when free — and the
+    // reason was the model, not the dial. `exports.premonition` calls `pushRun({ call: null })`: the look
+    // parks the roll **before a side is named**, so what it buys is *which side to call*. It had been
+    // modelled as buying bank-or-push only, which at `blastReach 2` is worth almost nothing because runs
+    // rarely end. Modelled correctly, one free look is worth **+96** (dg x1e-4) on the best rack.
+    //
+    // So the pick was never weak, it was priced flat: `lookCost 1` is 52% of an opening standing and 3.6%
+    // of a Level 5 one. As a share it charges the same fraction everywhere. One look, swept:
+    //
+    //     lookShare   best   shield  mineless  mine-heavy
+    //     0.14       +15.01   -1.79    +0.30     +0.20
+    //     0.16        +9.84   +0.41    +0.67     -0.11
+    //     0.17        +4.36   -0.35    +1.18     -0.33     <- shipped
+    //     0.20        -4.54   -2.80    -4.10     +0.06
+    //
+    // **A second look is never worth buying** and that was measured rather than assumed: at every
+    // per-look price, k=1 beat k=2 and k=3 (at 0.07 a look: +54.96 against +21.52 and +19.67). Information
+    // has diminishing returns and a flat marginal price does not, so the first look is always the best
+    // buy. A single charge for several reveals does work — 3 reveals at 0.25 measured +5.77/+5.17 — but it
+    // is a second pricing shape for no gain over one look priced properly.
+    lookShare: 0.17,
     lookCost: 1,
     // **The side bet's missing half.** `scripts/cubeSideBet.js` derives every price in `SIDE_BETS` as
     // `1/p - 1` — the fair return on a **one-unit wager** — and nothing ever staked the unit, so each
@@ -1562,7 +1930,83 @@ exports.cube = {
     // named, and `price + betAnte` back if the proposition happens. `betPaid` pays the gross for exactly
     // this reason; taking the ante and then paying only `price` charges the stake twice and costs the
     // player a further `p` a card on top of the ~15% the prices already shave. See `betPaid`.
+    //
+    // ---------------------------------------------------------------------
+    // **The two halves do not touch the multiple at the same time, and every price above was
+    // derived as though they did.**
+    // ---------------------------------------------------------------------
+    //
+    // The ante comes off `live.mult` in `nameBet`, which happens *before* the rung resolves — so
+    // `rungMultiple`'s `carried * levelStep` multiplies the reduced figure and the ante really costs
+    // `betAnte * levelStep`. The payout arrives in `added`, which `rungMultiple` applies *after* the
+    // multiplication, so it is worth exactly `price + betAnte`. A level rung therefore charges
+    // `levelStep` for every unit it pays flat, and the true break-even is
+    //
+    //     p = betAnte * levelStep / (price + betAnte)
+    //
+    // — at `levelStep 1.94`, nearly **twice** the rate `1/p - 1` asks for. Verified against the engine
+    // rather than argued: betting one prop at a fixed rung and differencing the resulting multiple
+    // reproduces this to three decimals across four props and two levels, where the naive formula is
+    // out by `betAnte * (levelStep - 1)` every single time.
+    //
+    // Every `price` in `SIDE_BETS` has been re-derived from it. The correction went in both directions,
+    // which is why it was worth doing rather than shaving everything: `saved` and `broken` were **faucets**
+    // (+0.54 and +0.47 an ante at their peak farmable rates) and seven cards were **over-shaved**, `tie`
+    // and `grow` worst at -0.93 and -0.89 — a house edge nobody chose either.
+    //
+    // (An **Again** adds rather than multiplying, so the naive formula is right there. The collapsed road
+    // is all levels, which is the case a price has to survive.)
     betAnte: 1,
+    // **Prices are tenths now, and it is what made the book priceable at all.** See `armPriceOf` in
+    // `engine.js` for the change. Two props were previously *impossible* to price: fair value came out
+    // at 0.6 and 1 was the floor a card could pay, so `grow` and `broken` were left either a faucet or
+    // a heavy shave with nothing in between. A tenth removes that whole class of problem.
+    //
+    // Re-derived against the median rate across racks actually *dealt* the card, targeting a slight
+    // player edge per the design goal that these are endgame picks and should never read as dead:
+    //
+    //     prop      median   peak    spread   price   EV@median   EV@peak
+    //     tie        24.6%   25.1%    1.02x    7.1      +0.05      +0.09   <- priced
+    //     burn       28.5%   31.2%    1.09x    6.0      +0.05      +0.24   <- priced
+    //     clone      23.1%   26.0%    1.13x    7.7      +0.07      +0.32   <- priced
+    //     grow       19.1%   20.7%    1.08x    9.5      +0.07      +0.24   <- priced
+    //     raze        9.6%   10.4%    1.08x   19.9      +0.06      +0.24   <- priced
+    //     invert     28.5%   42.3%    1.48x    6.0      +0.05      +1.02   held
+    //     mirror     23.8%   36.1%    1.52x    7.4      +0.06      +1.09   held
+    //     broken     10.7%   53.2%    4.97x   17.6      +0.05      +7.96   held
+    //
+    // **Granularity was only half the problem.** The five priced above have a median-to-peak spread inside
+    // 13%, so one number serves every rack that sees the card. The three held do not: `needs` gates whether
+    // a card is *offered* and never what it costs, so a player who builds for `broken` sees five times the
+    // rate a random eight does and pricing it to the target hands them +7.96 an ante. Those want their
+    // predicates tightened until the spread closes — the same treatment `grow` had — and they are left at
+    // a house edge until then, knowingly.
+    betPriceTenths: true,
+    // **The design target for the book changed after this was written: a card should be a slight edge to
+    // the player, not a shave.** These are endgame picks and a pick nobody takes is a dead node.
+    //
+    // That is deliverable only where a proposition's rate does not swing on rack choice, because `price`
+    // is one flat number and `needs` gates whether a card is *offered*, never what it costs. Measured as
+    // the best-rung rate across racks that are actually dealt the card — median against peak:
+    //
+    //     prop      median   peak   spread   slight-edge price   EV@median   EV@peak
+    //     burn       29.0%   29.9%   1.03x          6              +0.09      +0.15   <- shipped
+    //     clone      25.3%   25.8%   1.02x          7              +0.08      +0.13   <- shipped
+    //     tie        20.7%   25.3%   1.22x          9              +0.13      +0.59
+    //     grow       18.4%   25.7%   1.40x         10              +0.08      +0.89
+    //     mirror     24.0%   34.5%   1.44x          8              +0.22      +1.17
+    //     invert     27.5%   43.5%   1.58x          7              +0.26      +1.54
+    //     raze        9.5%   13.6%   1.43x         21              +0.14      +1.05
+    //     broken     10.2%   61.2%   6.00x         19              +0.11     +10.30
+    //
+    // `burn` and `clone` have spreads inside 3% and are priced to the target. **Everything below them
+    // buys a slight edge for a typical rack at the cost of a faucet for a built one**, and `broken` is
+    // the reductio: a rack assembled from wipeout-carriers sees six times the rate a random eight does,
+    // so no single number is both live and safe. Those want their predicates tightened until the spread
+    // closes — `broken` narrowed to *two or more shatter* measures 24.7% peak against 10% before — and
+    // pricing them to the target before that is shipping the exploit back.
+    //
+    // Left at a house edge in the meantime, which is a knowing interim state and not the target.
     // What an Again is worth **past Level 5**, where there are no levels left to double it.
     //
     // At the ordinary `againBonus` an overtime push buys +1 against a base of 32 or more — marginal
@@ -1605,13 +2049,37 @@ exports.cube = {
     // over a Multiplier face, which is the right neighbourhood for a face that has to be *earned* by a
     // table the other cubes grew. Raising it rewards the growth racks specifically, which is the only
     // thing in the mode this dial touches.
-    boostBonus: 0.25,
+    // **0.10, down from 0.25.** The Boost pays for every cube *on the table*, so the bonus grows with
+    // the line — which made it the largest single term in the late game: zeroing it took a
+    // best-of-breed seven from 1.234 to 1.055 at Level 4, more than any other dial in the file.
+    //
+    // It is `pureBonus`'s mirror image and was mistuned in the same direction for the same reason. That
+    // one paid per cube on a *short* line, where sweeping everything is cheap; this one pays per cube on
+    // a *long* one, where there are the most cubes to be paid for. Both were priced as though the
+    // per-cube count were a cost rather than the thing that scales.
+    //
+    // Measured at `pureBonus 0.25 / heatBonus 0.25`, and note the early column does not move — this is a
+    // late-game dial the way `pureBonus` is an early-game one:
+    //
+    //     boostBonus   empty   4 cubes   best-of-breed 7   full 8
+    //     0.25         0.991   0.972         1.104          1.129
+    //     0.15         0.985   0.968         1.059          1.087
+    //     0.10         0.989   0.974         1.044          1.071      ← shipped
+    boostBonus: 0.10,
     // What the Turbine's first heat pays. The *n*th pays `heatBonus × n`, so the step and the floor are
     // the same dial and the cube's whole run totals `heatBonus × n(n+1)/2`. Half, so a Turbine that
     // blows on its first landing has paid exactly a Greed and everything above that is what the cube
     // is arguing for. Raising it steepens the tail rather than lifting the floor, because the top of
     // the curve is where the multiplier is doing the most work.
-    heatBonus: 0.5,
+    // **0.25, down from 0.50.** The Turbine pays more every time and burns its own faces off, so the
+    // bonus is escalating *and* the cube is priced by how long it survives — two multipliers on one
+    // face. Zeroing it took a best-of-breed seven from 1.234 to 1.088 at Level 4, second only to
+    // `boostBonus`, which makes it one of the two dials that were carrying the late game.
+    //
+    // Matched to `boostBonus` deliberately: both are per-something bonuses that grow with the table, so
+    // pricing them at one number means a rack fielding both is not paying two different rates for the
+    // same shape of effect.
+    heatBonus: 0.25,
     // What the Guide pays, **per cube in the unbroken run of the called side touching it**. Half of
     // `pureBonus`, deliberately and not by coincidence: a pure pays 1 per cube for a whole clean line,
     // and this is the same reward at a coarser resolution for a rack that can never draw one. The two
@@ -1683,7 +2151,36 @@ exports.cube = {
     // See the note at the top of this file for why it is a multiple and not a jar: a multiple rides the
     // standing, so it scales with the stake, which is the exact property the pot lacked and the exact
     // reason the pot had to go.
-    pureBonus: 1,
+    // **0.25 per cube, down from 1, and the argument above is the reason it had to move.**
+    //
+    // The note says a pure is self-limiting because "the payout doubles per extra cube while the odds of
+    // collecting it halve". That is true *within* a level and it is not the mechanism that mattered:
+    // `mult += bonus` lands on the **running** multiple, and every level above doubles it again. So a
+    // pure on a three-cube line is a **1-in-4** event paying **+3** that then rides four more doublings
+    // to the top of the road. It was cheapest to collect exactly where it had the most ladder left.
+    //
+    // Measured, and the number is not subtle: **a bare ladder — no cubes, no picks, nothing equipped —
+    // paid the player 12.8%**, and zeroing this one dial turned the same ladder into a sink. Every other
+    // bonus dial zeroed on an empty rack changed nothing, because none of them have a cube to fire on.
+    // On a bare ladder `pureBonus` *was* every bonus.
+    //
+    // It also produced an inversion worth naming, because it is the whole reason this dial is the first
+    // thing that moved. A pure needs **every** position on the line to be a counting cube, and effect
+    // faces count for neither side — so the pure rate collapses **70x** from an empty rack (0.071 a run)
+    // to a fully kitted one (0.001). The mode's entire player edge sat on an event that owning cubes
+    // deletes, which is why 15 of 18 cubes measured *worse than an empty rack* when fielded alone.
+    // Prestige was handing out rewards that made a player weaker.
+    //
+    //     pureBonus      empty     1 cube    4 cubes    best-of-breed 7
+    //     1.00           1.139     1.044     0.966      1.221
+    //     0.50           1.027     0.967     0.968      1.191
+    //     0.25           0.969     0.967     0.968      1.214      <- shipped
+    //
+    // **The late-game column does not move**, at any value, because a kitted rack never pures. That is
+    // what makes this the right dial for the early end specifically: it is the only one in the file that
+    // acts on the bare ladder and leaves a built rack alone. The late end is `boostBonus` and
+    // `heatBonus`, and it is tuned there.
+    pureBonus: 0.25,
     // ---------------------------------------------------------------------
     // The weld
     // ---------------------------------------------------------------------

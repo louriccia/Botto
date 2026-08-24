@@ -398,9 +398,9 @@ are both `side` and that split is exactly what's worth seeing. `end` is runs the
 their own — and they are the two named in words, since "ended 3 runs" is the number people open this
 screen for.
 
-**Each cube is titled with all six of its faces**, not its single icon — `🟥 🟥 🟥 🟥 🟦 <:wipeout:>
+**Each cube is titled with all six of its faces**, not its single icon — `🟥 🟥 🟥 🟥 🟦 <:ratts:>
 **Shmi Cube**`. The *shape* of a cube is what you are choosing between on this screen, and four reds
-against one blue and a wipeout says more about Shmi than her name does. The title says how a cube is
+against one blue and a mine says more about Shmi than her name does. The title says how a cube is
 built; the counts underneath say how it has actually landed.
 
 That page has no fixed size — it grows with every cube owned — and in the Activity that costs
@@ -1021,15 +1021,15 @@ of which **five count**, and you can see that by looking at it.
 |---|---|---|
 | **Wild** | 5 × wild, **1 × Ratts** | The position lands on whatever side you called. |
 | **Greed** | 5 × 💰, **1 × Ratts** | **+0.5** on the run's multiple, which every level above it then doubles. |
-| **Shmi** | 4 red, 1 blue, 1 × wipeout | Forces red — red was his mother. |
-| **Anakin** | 4 blue, 1 red, 1 × wipeout | Forces blue — blue was the boy. |
+| **Shmi** | 4 red, 1 blue, **1 × Ratts** | Forces red — red was his mother. |
+| **Anakin** | 4 blue, 1 red, **1 × Ratts** | Forces blue — blue was the boy. |
 | **Mirror** | 3 × 🪞, 3 × 🔄 | Reflects everything to its left onto its right — **special cubes included** — or inverts the whole line. |
 | **Symbiont** | Tusken, Ben, 2 × Fode, 2 × Padme | Takes one cube at random, razes both neighbours into **one wide Ben**, or **slips two new cubes in** either side of itself — a red and a blue for Fode, matching twins for Padmé. |
 | **Shortcut** | 5 × shortcut, **1 × Ratts** | A free clear, if the level is won. |
 | **Reroll** | 3 × reroll, **1 × Ratts**, 2 × wipeout | Banks **+1 reroll** if the level is won, and stays on the table. Only a wipeout shatters it. |
 | **Binder** | 3 burn, 3 clone | Burns the cube on its right, or makes it a **copy of the cube on its left**. A clone at the head of the line destroys instead; at the tail it adds. |
 | **Multiplier** | 2 red, 2 blue, 2 × wipeout | **+1** on the run's multiple, but only if that face's side is the one that wins. |
-| **Gungan Shield** | 6 × shield | Stops a mine's blast on its own side of the line, and is destroyed doing it. Also holds a neighbouring cube together through a wipeout, which costs it nothing. No downside face. |
+| **Gungan Shield** | 5 × shield, 1 × wipeout | Stops a mine's blast on its own side of the line, and is destroyed doing it. Also holds a neighbouring cube together through a wipeout, which costs it nothing. |
 | **Pit Droid** | 5 × draw, 1 × purge | Pulls another cube out of the **back of the bag** and slips it in on its right, thrown and live. On a rack of eight or fewer that front-loads the climb; on a bigger one it is the **only** way to reach the cubes the levels never get to. The purge scraps every special on the line, itself included. |
 | **Boost** | 4 × boost, 2 × wipeout | **+0.25** per position on the resolved line — it pays for a table that got away from you rather than for anything it did itself. |
 | **Sebulba** | 2 × engine left, 2 × engine right, 2 × wipeout | Points an engine one way and burns that cube over to your call, but only if it landed against you. The direction is rolled, which nothing else in the game does. |
@@ -1038,8 +1038,9 @@ Two faces are the price of all that, and they are on the cubes that pay best:
 
 - **Ratts is a mine, and he takes himself with him.** He detonates in his turn during the second pass:
   the blast starts on his own position and spreads out from it in both directions, stopped only by a
-  Gungan Shield. Everything it reaches leaves the line, himself included. He is 1 face on Wild, Greed,
-  Shortcut and Reroll.
+  Gungan Shield. Everything it reaches leaves the line, himself included. He is 1 face on Greed,
+  Shmi, Anakin, Shortcut, Reroll and Guide, and **2** on the Wild — see the Wild's note in `tuning.js`
+  for why it is the one measured exception to the one-face rule.
 
   Something can still get to him first — a cull, a raze, a clone or a mirror writing over his position
   takes him off the table before his turn comes and **the run survives**. The cubes can save you from
@@ -1075,7 +1076,8 @@ Two faces are the price of all that, and they are on the cubes that pay best:
   every other effect, so the throw shows the wipeout face landing and its own step shows the row
   closing over the gap. The table is a cube shorter for every level above it, and the special is
   `spent` and can't be drawn again. On a rack of one that turns the rest of the climb plain *and*
-  short. It sits on Shmi, Anakin, the Multiplier and the Reroll Cube.
+  short. It sits on the Multiplier, the Reroll Cube, the Boost, the Sebulba, the Turbine, the Scavenger
+  and the Gungan Shield.
 
   Resolving it in the second pass rather than the first is what buys the frame — and it means the
   set shrinks with no extra bookkeeping, because the position is genuinely gone rather than merely
@@ -1085,8 +1087,8 @@ Two faces are the price of all that, and they are on the cubes that pay best:
 **A shatter is the wipeout's job and nothing else's.** The Reroll Cube briefly shattered *itself* on
 every payout, as a brake on how often it could bank — which worked, and cost the cube its own
 identity: it reported a shatter every single time it did its job, and never once showed the face
-that actually breaks it. The brake is a wipeout face now — **two** in six, as on the Multiplier;
-Shmi and Anakin carry one apiece. Anything the shatter line names has genuinely been destroyed, and
+that actually breaks it. The brake is a wipeout face now — **two** in six, as on the Multiplier.
+Anything the shatter line names has genuinely been destroyed, and
 it draws as the wipeout, because that is what happened to it.
 
 **The variant table further down predates this brake and has not been re-measured against it.** Its
@@ -1779,6 +1781,14 @@ Five more things fall out of that table worth keeping:
 - **Shmi and Anakin are side-locked mirrors.** 1.20 at Level 5 when you call the side they force,
   0.85 when you don't. They are the only cubes whose value depends on a decision you make after
   equipping them, which is the most interesting thing in the set.
+
+  **Both figures predate their sixth face becoming a mine**, and that change was made precisely
+  because the spread between them was free. A 4:1 vote is majority-of-N amplification with the
+  player holding the dial, and it was fenced by a wipeout — the one downside face a climb can
+  shrug off. On a rack of otherwise safe cubes, calling the forced side measured **1.266 EV and
+  +0.29% growth a roll** against **0.959** for calling the other one: a 32% swing decided by
+  nothing but which colour you say. With the mine in place that gap is 10% and the growth is flat.
+  See Shmi's note in `tuning.js` for the sweep.
 - **Shortcut is the worst cube in the game and that is fine** — 0.70 at Level 5, because a third
   of its faces are Ratts and a clear is worth progress rather than truguts. It is the one cube you
   equip to get *through* the ladder rather than to get paid by it.

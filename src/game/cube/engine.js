@@ -264,9 +264,12 @@ const distinctHalves = function (parent, take, goodOnly) {
 };
 
 // The size of a pairing's outcome space at the commonest split — what `rememberWeld` floors the
-// reroll memory against so a pairing can never be excluded to nothing. The Gungan Shield is six
-// shield faces and therefore has exactly **one** half, so a pairing containing it is small enough
-// for that floor to do real work.
+// reroll memory against so a pairing can never be excluded to nothing.
+//
+// **The floor earns its keep on any parent with few distinct faces**, and the Gungan Shield used to be
+// the extreme case: at six shield faces it had exactly *one* half, so a pairing containing it had an
+// outcome space of one. It carries a wipeout now and has two, which doubles every space it appears in —
+// the reason the counts in `scripts/cubeWeld.js` moved without this arithmetic changing.
 //
 const spaceCache = new Map();
 const spaceOf = function (ids, routine) {
@@ -298,10 +301,18 @@ exports.weldSpace = ids => spaceOf(ids, false);
 // of presses to welds carrying a downside face, so the clean ones have to come off the total before the
 // reroll memory is floored against it — this is the number `rememberWeld` needs and `weldSpace` is not.
 //
-// Gungan+Wild is the pairing that proves the difference. It has two distinct welds and exactly one of
-// them keeps Wild's mine, so flooring the memory against 2 let it exclude the only weld the press could
-// hand back, and the roll then repeated inside its own memory. Against 1 the memory floors to 0 — no
-// exclusion at all, which is the honest answer for a pairing with one routine outcome.
+// Gungan+Wild is the pairing that proved the difference, and it is worth keeping the case even though
+// the cubes have since moved out from under it. When the Shield was six shield faces the pairing had
+// **two** distinct welds and exactly one of them kept Wild's mine, so flooring the memory against 2 let
+// it exclude the only weld the press could hand back and the roll repeated inside its own memory.
+// Against the routine space the floor was 1, which is the honest answer for a pairing with one routine
+// outcome.
+//
+// Both cubes have changed since — the Wild gained a second mine, the Shield traded its mine for a
+// wipeout — so the pairing now measures 6 total against 5 routine and no longer demonstrates anything.
+// The distinction it was built to prove is unaffected: `weldPurity` still confines all but ~1% of
+// presses to welds carrying a downside face, so the clean ones still have to come off the total, and
+// mineless pairings like Mirror+Binder still have all 16 of their space routine.
 exports.weldDrawSpace = ids => spaceOf(ids, true);
 
 // **Roll a weld of two cubes.** `seen` is the ids this pairing has already produced and must not
@@ -550,28 +561,64 @@ exports.bankPayout = (stake, multiple) => Math.floor(stake * (Number(multiple) |
 // rather than the multiple being *stood on* dropped usage from 22% of rungs to 6% and made the pick
 // worse than never buying it. A share cannot be mis-keyed.
 //
-// Rounded rather than floored, and floored at `armFloor` rather than at zero, so the price is always
-// a whole number the board can print and never rounds away to free. At the nominal rungs that is:
+// ---------------------------------------------------------------------------
+// **Prices are rounded to a tenth of a mult, not to a whole one.**
+// ---------------------------------------------------------------------------
+//
+// This used to round to whole mults, and the note here defended it: "a rate that reads evenly on paper
+// would need fractional mults on the board, and the wobble is bounded". The wobble was **not** bounded
+// in the way that mattered. `armShare 0.35` produced these:
 //
 //     standing   1.94   3.76   7.30   14.16   27.48
-//     price         1      1      3       5      10
+//     whole         1      1      3       5      10      = 52%  27%  41%  35%  36%
+//     tenths      0.7    1.3    2.6     5.0     9.6      = 35%  35%  35%  35%  35%
 //
-// Which reads in the unit the ladder already has: `againBonus` is 1, so the price is *how many Agains'
-// worth of climb this costs you*.
+// The 52% at the opening rung is the whole problem. `armFloor` could not go below 1, so the cheapest
+// possible option cost more than half of a shallow standing — and an arm is bought **blind**, before the
+// throw, so that is paid on every rung the perk turns out to be useless on. Scrap, Swap and Split all
+// measured as dead picks and the floor was the binding term, not the share.
 //
-// **The effective rate wobbles and that is the cost of whole numbers.** Those prices are 52%, 27%, 41%,
-// 35% and 36% of what they are charged against, because rounding a small share of a small standing can
-// only land on 1. It is worth naming rather than smoothing: a rate that reads evenly on paper would
-// need fractional mults on the board, and the wobble is bounded, self-correcting and always upward at
-// the shallow end — which is the end a run passes through most often.
-const armPriceOf = function (multiple) {
+// The board already prints fractional multiples — `levelStep 1.94` gives 1.94, 3.76, 7.30 — so a price
+// of 0.7 is no stranger on screen than the number it is subtracted from. Whole mults were never a
+// display constraint, only an assumed one.
+//
+// A tenth is the granularity, not a free-for-all: it keeps prices readable, it keeps `againBonus` 1 as a
+// meaningful unit to compare against, and it is fine enough that a share means what it says at every
+// rung on the road.
+const TENTH = 10;
+const toTenth = n => Math.round((Number(n) || 0) * TENTH) / TENTH;
+exports.toTenth = toTenth;
+
+// **Priced per arm, because they are not the same size.** Scrap *removes* a problem from the line; Swap
+// can only move one. Measured with each played to the same priorities — fix the count, then survive, then
+// maximise — the gap is about four-fold (dg x1e-4, best / shield / symbiont racks):
+//
+//     share    scrap                  swap
+//     0.21     +8.0  +2.2  +0.2      -5.7  -1.5  +0.0
+//     0.12    +62.3 +45.8  +9.6      -5.1  -2.3  -0.0
+//     0.05   +106.7 +87.4 +36.1      +4.7 +12.4  -0.5
+//
+// One share cannot serve both: priced for Scrap, Swap is dead; priced for Swap, Scrap prints. So
+// `armShares` names each and `armShare` is the fallback for anything unlisted.
+const armPriceOf = function (multiple, pick) {
     const m = Number(multiple) || 0;
-    return Math.max(config.armFloor, Math.round(config.armShare * m));
+    const share = (config.armShares || {})[pick];
+    const rate = Number.isFinite(share) ? share : config.armShare;
+    return Math.max(config.armFloor, toTenth(rate * m));
 };
 exports.armPriceOf = armPriceOf;
 
-// The flat prices, beside the scaling one so all four are read in the same place.
-exports.lookPriceOf = () => config.lookCost;
+// **The look is a share too, and the flat price is what made Premonition look like a dead pick.**
+//
+// At `lookCost 1` the look cost 52% of an opening standing and 3.6% of a Level 5 one — the same
+// flat-price-against-a-compounding-multiple problem as `pureBonus` and the arms. Priced as a share it
+// charges the same fraction at every rung. `lookShare` supersedes `lookCost`; the flat value is kept as
+// a fallback so a profile or a test that sets it still behaves.
+exports.lookPriceOf = function (multiple) {
+    if (!Number.isFinite(config.lookShare)) return config.lookCost;
+    const m = Number(multiple) || 0;
+    return Math.max(config.armFloor, toTenth(config.lookShare * m));
+};
 exports.betPriceOf = () => config.betAnte;
 
 // **Taking a price out of a live run.** The multiple is the run's currency, so a purchase is a
@@ -1008,17 +1055,55 @@ exports.relineFrom = function (set, faces, state = {}) {
 //
 // One likely, one middle, one long shot. A band with nothing eligible in it simply contributes
 // nothing, so a thin rack is offered a shorter book rather than a padded one.
-exports.drawBook = function (equipped) {
+//
+// **`spoiled` is what a look has already answered.** Every price here is derived blind — see
+// `scripts/cubeSideBet.js`, which measures each proposition against the rung's own distribution — so a
+// card offered to somebody who has seen a face that settles it is not mispriced by a little. A
+// premonition showing Sebulba turns `engine` from a 4.8% long shot into a near-certain +20.
+//
+// The fix is to re-chalk rather than to refuse, which is the whole reason this takes a kind: a look
+// hands its face's kind in, every card that kind could settle comes off the pool, and the three drawn
+// against what is left are blind again. So the book stays three cards deep and the ante stays honest,
+// and the two abilities can be played in either order — which is the point.
+//
+// **Off `spoils` and not off `needs`**, which are the same list for twelve of the thirteen cards and
+// deliberately not for `saved` — see its note. `needs` answers what a rack must own to produce the
+// event; `spoils` answers what a player who has seen one face already knows about it, and a card that
+// waits on two things has its second one in the second list only.
+//
+// Two notes on the edges. A plain side spoils nothing and arrives here as null, so an unlucky look
+// re-chalks a book drawn from the same pool it was drawn from. And `tie` names no faces and is left
+// standing: one face out of three to nine is thin evidence about a majority, and closing it on any
+// look at all would cost the thinnest racks their only card in the band.
+//
+// **Measured card-by-card against every face that can land**, and two racks come out with no +EV
+// conditional left anywhere in the book. Two things it does not correct, both worth knowing.
+//
+// The first is the rack gap, which has nothing to do with looking: `grow` measures 46% on a rack built
+// for it against a price shaved for 20%, and `broken` 29% against 22%, *blind*. That is the mechanic's
+// own skill and it is priced deliberately — see `scripts/cubeSideBet.js`, which measures three racks for
+// exactly this reason. Most of what a post-look sweep flags on such a rack is that baseline showing
+// through, and the conditional is usually *below* it.
+//
+// The second is real and small and left standing: a growth face — `pair`, `twins`, `draw` — means a
+// longer line, and a longer line raises every per-cube effect at once. On a growth rack a look showing
+// `draw` takes `broken` from 28.7% to 32.9%, which is about +15% relative. The blunt fix is to have the
+// growth kinds spoil the whole book, and that is worse than the leak: it hands back an empty book on the
+// one rack that plays for line length. Priced out card by card it would want its own pass through
+// `cubeSideBet.js`, against a distribution conditioned on line length rather than on level.
+exports.drawBook = function (equipped, spoiled) {
     const kinds = new Set();
     for (const id of equipped || []) {
         const sp = specialById(id);
         for (const f of (sp && sp.faces) || []) kinds.add(f.kind);
     }
+    const off = (Array.isArray(spoiled) ? spoiled : [spoiled]).filter(Boolean);
     // A plain cube is always in the bag and only ever rolls a side, so nothing is added for it — which
     // is also what makes the fallback right. A proposition naming no faces still needs *something*
     // special on the table: every level is an odd number of cubes, so a line of plain ones always has
     // a majority in it and can never tie. Measured at 0.0% on an empty rack, like everything else.
-    const can = bet => (bet.needs ? bet.needs.some(k => kinds.has(k)) : kinds.size > 0);
+    const can = bet => (bet.needs ? bet.needs.some(k => kinds.has(k)) : kinds.size > 0)
+        && !(bet.spoils || bet.needs || []).some(k => off.includes(k));
     const out = [];
     for (const band of ['likely', 'middle', 'long']) {
         const pool = SIDE_BETS.filter(b => b.band === band && can(b));
@@ -1581,6 +1666,8 @@ const resolveLine = function (line, call, bag, opts = {}) {
         };
         // A live shield on the line: not itself destroyed, and not one that has already been spent
         // stopping something.
+        // A live shield on the line. It needs no "already spent" flag: a shield that blocks a mine goes
+        // with it, so it is off the line and cannot be found twice.
         const shielding = x => !!x && !x.gone && x.face && x.face.kind === 'shield';
 
         // **The ice takes one hit.** Anything that would destroy, overwrite or switch a frozen cube
@@ -1699,10 +1786,6 @@ const resolveLine = function (line, call, bag, opts = {}) {
                 //
                 // Two shields contain it between them, one stops it on its own flank, and none lets it
                 // take the row. All three fall out of the same two lookups rather than needing cases.
-                let left = -1;
-                for (let k = i - 1; k >= 0; k--) if (shielding(final[k])) { left = k; break; }
-                let right = final.length;
-                for (let k = i + 1; k < final.length; k++) if (shielding(final[k])) { right = k; break; }
 
                 // **He goes with it.** A mine that survives its own detonation is not a mine, and leaving
                 // him standing in the crater made his own position the one place on the line the blast
@@ -1721,14 +1804,64 @@ const resolveLine = function (line, call, bag, opts = {}) {
                 // Which also means a shielded blast can empty the line, if there was nothing behind it
                 // to save. That is the right answer: the shield stopped the blast from reaching further,
                 // and there was no further.
-                const stopped = [left, right].filter(k => k >= 0 && k < final.length);
-                for (const k of stopped) {
-                    if (final[k].special) broken.push(final[k].special.id);
-                }
-                const first = left >= 0 ? left : 0;
-                const last = right < final.length ? right : final.length - 1;
+                // ---------------------------------------------------------------------
+                // **The blast has a reach, and that is what makes a mine affordable.**
+                // ---------------------------------------------------------------------
+                //
+                // Everything above describes an unbounded blast, and an unbounded blast cannot be carried.
+                // The set persists, so a cube drawn at Level 2 is thrown four more times and one mine face
+                // has a **51.8%** chance of ending the run before the top; for the cube to pay for that it
+                // must multiply the run by `(6/5)^throws` — **2.07x** — and the only cube in the game in
+                // that class is the Wild. Every other carrier measured *below an empty seat*, which is why
+                // the strongest rack a greedy build finds contains no mine at all, and why every mine-facing
+                // tool in the mode — this shield, Scrap, Swap, Premonition — had nothing to point at.
+                //
+                // `blastReach` bounds it, so a mine costs **cubes** instead of the run. Its price stops
+                // being a share of everything and starts being a thing the pay table can be measured
+                // against, which is the whole of the fix.
+                //
+                // **The shield's job changes with it, and it had to.** A bounded blast never reaches past
+                // a neighbour, so "stops it further along" is inert at reach 1 — the old rule would have
+                // left the Gungan doing nothing at all against the face it exists for. So a shield inside
+                // the blast now **absorbs** it: the shield and the mine go, and every other position in
+                // the reach walks away. That is a clearer promise than the old one ("stops it *here*"
+                // rather than "stops it *somewhere*") and it is worth more the wider the reach.
+                // ---------------------------------------------------------------------
+                // **The blast travels out from Ratts, and a shield stops it.**
+                // ---------------------------------------------------------------------
+                //
+                // This is the original rule with one thing added: a **reach**. It spreads from the mine in
+                // both directions, a shield stops it on that side and dies holding, and everything behind
+                // the shield lives. `blastReach` caps how far it can travel when nothing stops it.
+                //
+                // The reach is what makes a mine affordable at all, and it is the whole of the fix. The
+                // set persists, so a cube drawn at Level 2 is thrown four more times and one mine face had
+                // a **51.8%** chance of ending the run; paying for that needed a cube that doubled the run,
+                // only the Wild was in that class, and every other carrier measured *below an empty seat*.
+                // That is why the strongest rack contained no mine and why every mine-facing pick — this
+                // shield, Scrap, Swap, Premonition — had nothing to act on.
+                //
+                // **A detour is recorded here because it wasted effort.** At `blastReach 1` this rule is
+                // inert — a three-position blast has nothing "beyond a neighbour" to save — so it was
+                // replaced with a shield that covered the whole line, survived, and *deflected*: the blast
+                // turned and took the other side's cubes inside the window. That worked, but it was a
+                // more complicated way to reach the same place, because a directional blast stopped on one
+                // side **already** eats the far side and leaves your flank standing. Once the reach went to
+                // 2 the original rule had room again and the deflection logic was pure overhead: an extra
+                // dial, a side-comparison per position, and a rule a player had to be taught.
+                //
+                // So: no `shieldDeflects`, no colour test, no per-throw spent flag. The shield dies holding
+                // the line, which is also the one thing it costs.
+                const reach = Math.max(0, Number(config.blastReach) || 0);
+                const stopped = [];
+                let first = Math.max(0, i - reach);
+                let last = Math.min(final.length - 1, i + reach);
+                // Nearest shield on each flank, inside the reach. It stops the blast at its own position.
+                for (let k = i - 1; k >= first; k--) if (shielding(final[k])) { first = k; stopped.push(k); break; }
+                for (let k = i + 1; k <= last; k++) if (shielding(final[k])) { last = k; stopped.push(k); break; }
                 const blast = [];
                 for (let k = first; k <= last; k++) blast.push(k);
+                for (const k of stopped) if (final[k].special) broken.push(final[k].special.id);
                 for (const k of [...blast].reverse()) final.splice(k, 1);
 
                 detonated = c.special ? c.special.name : 'the cube';
@@ -1738,12 +1871,14 @@ const resolveLine = function (line, call, bag, opts = {}) {
                     // Positions in the line the step was **handed**, all three of them, because the client
                     // cannot work any of it out for itself. `step.at` is the acting cube's index *after*
                     // the effect and this one took itself off the line, so the frame has no cube left to
-                    // point at; the range is not derivable from `destroyed`, since a shield on one flank
-                    // moves it without changing its length; and the shields are gone by the end of the
-                    // frame, so the only way to label the ones that stopped it is to be told where they
-                    // stood. `at` is what the blast spreads out from on screen.
+                    // point at; the range is not derivable from `destroyed`, since the reach is clipped at
+                    // the ends of the line; and `stopped` names the shield that ate it so the frame can
+                    // point at the cube that did the work. `at` is what the blast spreads out from on
+                    // screen. **The shields in `stopped` are gone by the end of the frame** — they die
+                    // holding the line — so the only way for the client to label the ones that stopped it
+                    // is to be told where they stood.
                     at: i,
-                    from: first,
+                    from: blast[0],
                     stopped,
                 });
                 break;

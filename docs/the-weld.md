@@ -220,18 +220,32 @@ mine. **Two outcomes, and that is the entire space.** Counted across the seven p
 Spaces that small make the exclusion rule load-bearing, and they make one version of it **broken**.
 
 **The rule applies to the weld as a whole, never to the halves.** Per-half anti-repeat — "each side
-must change" — fails two ways on real cubes. The Gungan Shield is six shield faces, so it has exactly
-**one** possible half and the rule has no legal move at all. And a `greed+wild` weld has 2 × 2 = 4
+must change" — fails two ways on real cubes. A cube with one distinct face has exactly **one** possible
+half and the rule has no legal move at all — the Gungan Shield used to be that cube, at six shield
+faces, and no cube in the set is currently uniform, so this half of the argument is now a guard against
+a cube nobody has built rather than a live case. And a `greed+wild` weld has 2 × 2 = 4
 states, so forcing both halves to change makes it oscillate `(A,P) → (B,Q) → (A,P)` forever, with half
 the outcome space permanently unreachable. Whole-weld exclusion keeps all three alternatives live.
 
 ### 6.2 Two, not one, and where it lives
 
 [Stardew tracks the previous **two**](https://wiki.stardewvalley.net/Forge) enchantments on a tool so
-neither is reselected, and that is the right depth here too: on a space of 8–21 it meaningfully
-accelerates coverage, and on the smallest space (6) it still leaves four to draw from. It needs a
-floor — `exclude = min(2, space − 1)` — so a pair with only two possible welds can never be excluded
-to nothing.
+neither is reselected, and that is the right depth here too. It needs a floor —
+`exclude = min(2, space − 1)` — so a pair with only two possible welds can never be excluded to
+nothing.
+
+**The spread this is chosen against**, enumerated over all 136 weldable pairings and verified against a
+brute-force count of distinct canonical ids: the space runs **4 to 70 with a median of 12**. The
+smallest are the Greed pairings — `greed+shortcut`, `greed+gungan`, `greed+turbine`, `greed+guide` and
+`greed+pitdroid` all sit at 4 — and the largest are the Symbiont's, at 70. A memory of two leaves two
+to draw from at the floor and 68 at the ceiling, which is why the floor is the load-bearing half of the
+rule rather than the depth.
+
+*(This paragraph read "a space of 8–21 … on the smallest space (6) it still leaves four to draw from",
+which was true of an older set of face lists. The Wild's second mine and the Gungan Shield's mine coming
+off both multiplied through — a pairing's space is the product of its parents' distinct halves — and the
+Symbiont's six distinct faces put the ceiling far above 21. The rule survives the correction; only the
+numbers it was justified against moved.)*
 
 **The memory lives on the weld and unwelding discards it.** That is safe precisely because the memory
 is a *benefit* to the player: throwing it away is a mild self-inflicted cost, so nobody games it, and

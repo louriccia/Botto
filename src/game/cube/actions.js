@@ -909,7 +909,7 @@ exports.premonition = function (ctx) {
     // rung ahead. `lookCost` is flat rather than a share because the look is worth about the same
     // whatever is standing: one face, and the right to leave. See the dial for what that does to *when*
     // a player spends it.
-    const charged = chargeLadder(live, engine.lookPriceOf());
+    const charged = chargeLadder(live, engine.lookPriceOf(live.mult));
     if (!charged.ok) return charged;
     persist.saveLadder(ctx.database, db, discordId, charged.live);
 
@@ -935,6 +935,36 @@ exports.premonition = function (ctx) {
 
     const line = engine.throwSet(drawn.set);
     const at = crypto.randomInt(0, line.length);
+
+    // **The look re-chalks the book**, so the two can be played in either order.
+    //
+    // `placeBet` used to refuse outright once a throw was parked, which made this pair a sequencing
+    // puzzle: bet-then-look worked, look-then-bet did not, and the only way to find that out was to
+    // lose the option for a rung. The refusal was right about *why* — every price in `SIDE_BETS` is
+    // derived blind, so a card whose face you have already seen is not mispriced by a little — but
+    // wrong about the remedy, because there is a cheaper one. Hand the seen face's kind to `drawBook`,
+    // and the three cards it draws are three the look could not have answered. Blind again, three deep
+    // again, in whichever order the player likes.
+    //
+    // **Only where nothing is named.** A card placed before the look is a blind bet already made and
+    // it rides the line — see `takeThrow`, which carries it across the park. Re-chalking under a
+    // standing bet would swap the proposition out from beneath a paid ante.
+    //
+    // A plain side spoils nothing, so most looks re-chalk against the same pool and simply hand back a
+    // fresh three. That makes a look a paid re-roll of a book the player did not fancy, which is a
+    // real new use for it: it costs `lookPriceOf`, the pool it draws from never grows, and reading the
+    // rung ahead in order to change what is on offer for it is the ability doing its job.
+    // **Above `parkThrow` and not below it**, which is the one ordering constraint here: parking spreads
+    // the *stored* node to write the throw onto it, so a book chalked afterwards would be overwritten by
+    // a save carrying the one it replaced. `saveLadder` writes the cache synchronously, so this is the
+    // node parking then reads.
+    if (s.sidebet && !charged.live.bet) {
+        persist.saveLadder(ctx.database, db, discordId, {
+            ...charged.live,
+            book: engine.drawBook(s.equipped, line[at].face?.kind),
+        });
+    }
+
     const shown = parkThrow(ctx, { ...run, saw: true }, {
         line, bag: drawn.bag, kind, seen: at,
     });
@@ -1161,7 +1191,7 @@ exports.arm = function (ctx, { pick } = {}) {
     if (shown && shown.called) return refuse('roll_live', 'The cubes are down and called.');
     if (isArmed(live.armed, pick)) return refuse('already_armed', 'That is already armed for this rung.');
 
-    const charged = chargeLadder(live, engine.armPriceOf(live.mult));
+    const charged = chargeLadder(live, engine.armPriceOf(live.mult, pick));
     if (!charged.ok) return charged;
     const armed = { ...armsOf(live.armed), [pick]: true };
     persist.saveLadder(database, db, discordId, { ...charged.live, armed });
@@ -1175,7 +1205,7 @@ exports.arm = function (ctx, { pick } = {}) {
         mult: charged.live.mult,
         // What the *next* one would cost, so a board offering three buttons can price all three off one
         // answer instead of asking again between each.
-        price: engine.armPriceOf(charged.live.mult),
+        price: engine.armPriceOf(charged.live.mult, pick),
     };
 };
 
@@ -1266,21 +1296,46 @@ exports.placeBet = function (ctx, { id }) {
     if (persist.tieOf(db, discordId)) return refuse('tie_pending', 'Answer the tie first.');
     const live = persist.ladderOf(db, discordId);
     if (!live || !live.standing) return refuse('no_run', 'There is no rung to bet on.');
-    // Once the cubes are down the line is known, and a bet placed against a line you can see is not a
-    // bet. The same rule that stops `bank` taking a called rung back — and the reason a look cannot be
-    // used to shop the book: a premonition parks a `shown`, so this is closed from the moment it lands.
-    if (persist.shownOf(db, discordId)) return refuse('already_shown', 'The cubes are already down.');
+    // **A called line is the answer, not a reading of it.** A held roll parks its throw with the side
+    // already named, so every face on it is known and settled and there is nothing left to bet on —
+    // the same rule that stops `bank` taking a called rung back. A *premonition's* park is deliberately
+    // not caught here: it names no side, shows one face, and re-chalks the book against it.
+    const parked = persist.shownOf(db, discordId);
+    if (parked && parked.called) return refuse('already_shown', 'The cubes are already down.');
 
     const standing = live.bet || null;
     const want = id || null;
     if (want === standing) return { ok: true, bet: standing, paid: 0, standing: live.standing };
 
+    // **Once the cubes are down the book may be named but not un-named.**
+    //
+    // This was one refusal on `shownOf` above and it has split in two, because the two halves are not
+    // the same question. *Naming* a card after a look is honest now: `premonition` re-chalks the book
+    // against the face it showed, so the three on the board are three the look did not answer, and
+    // they are priced as blind as they ever were. That is what lets the look and the bet be played in
+    // either order.
+    //
+    // *Clearing* one is not, and that is what stays shut. Taking the name back returns the ante, so a
+    // player who looks and dislikes what they see would be walking away from a wager for nothing — the
+    // free option on the rung that `betAnte` was added to close in the first place. Swapping one card
+    // for another is a clear and a name in one press, and goes with it: it would let a look pick the
+    // card the look has already read.
+    if (standing && parked) {
+        return refuse('already_shown', 'The cubes are down — this card rides on the line.');
+    }
+
     // **One cube is the whole line, so there is nothing on it to bet on.** No majority to read, no
     // line to grow, no second cube for anything to happen to — the same reason Premonition is refused
     // on one, and the same note applies: written against the rung ahead rather than named as a level,
     // and `LEVELS` being 1, 3, 5, 7, 9 means it excludes Level 1 and its Agains and nothing else.
-    const ahead = pstate.nextRung(s, live.level);
-    if (want && !((LEVELS[ahead.level] || {}).cubes > 1)) {
+    //
+    // **Off the parked line where there is one**, which is now reachable: a look throws the rung before
+    // the bet is named, and a rung the bag ran dry on is shorter than its level says. Reading `LEVELS`
+    // through a park would refuse a bet the table can carry, or offer one it cannot.
+    const wide = parked
+        ? Object.values(parked.faces || {}).length
+        : (LEVELS[pstate.nextRung(s, live.level).level] || {}).cubes;
+    if (want && !(wide > 1)) {
         return refuse('too_few', 'There is nothing to bet on a single cube.');
     }
     const book = Object.values(live.book || {});

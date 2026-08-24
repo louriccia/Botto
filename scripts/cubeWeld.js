@@ -56,14 +56,20 @@ const near = function (name, got, want, tol, detail = '') {
 // ---------------------------------------------------------------------------
 
 {
-    const w = engine.specialById('greed:012+wild:015');
+    // **`wild:014`, not `wild:015`.** Wild is four wilds and two mines, so its faces sort to
+    // indices 0-3 wild / 4-5 end and the canonical spelling of "two wilds and a mine" takes the
+    // *first* mine position. `wild:015` is the same cube spelled differently and canonicalises to
+    // this id — asserted below, because that collapsing is the whole point of `canonIdx`.
+    const w = engine.specialById('greed:012+wild:014');
     check('a weld is six faces', w.faces.length, 6);
     check('and they are its parents\'', w.faces.map(f => f.id),
         ['greed', 'greed', 'greed', 'wild', 'wild', 'end']);
     check('every face remembers its parent',
         [...new Set(w.faces.map(f => f.from))].sort(), ['greed', 'wild']);
     check('it knows what went into it', w.welded, ['greed', 'wild']);
-    check('the id is canonical', w.id, 'greed:012+wild:015');
+    check('the id is canonical', w.id, 'greed:012+wild:014');
+    check('a non-canonical spelling collapses onto it',
+        engine.specialById('greed:012+wild:015').id, 'greed:012+wild:014');
 
     // **The id names the cube, not the draw.** Wild's faces 0-4 are identical, so any three of them
     // are the same half and must collapse onto one spelling — otherwise "never hand back the same
@@ -95,14 +101,29 @@ const near = function (name, got, want, tol, detail = '') {
 
     check('an ordinary cube is untouched', engine.specialById('greed').faces.length, 6);
     check('the die is untouched', engine.specialById('octahedron').faces.length, 8);
+    // Wild is 4 (two mines, per its re-cut) and the Gungan is 5 (one wipeout, since its mine came
+    // off — see its note in `tuning.js`). Both of these read 5 and 6 before those two changes.
     check('good faces are counted right',
         ['wild', 'multiplier', 'reroll', 'gungan'].map(id => engine.goodFaces(engine.specialById(id))),
-        [5, 4, 3, 6]);
+        [4, 4, 3, 5]);
 
     // The outcome spaces the press memory has to survive.
-    check('greed+wild has four distinct welds', engine.weldSpace(['greed', 'wild']), 4);
-    check('gungan+wild has two', engine.weldSpace(['gungan', 'wild']), 2);
-    check('gungan+reroll has six', engine.weldSpace(['gungan', 'reroll']), 6);
+    //
+    // **All three of these grew, and none of it is a change to `spaceOf`.** A pairing's space is the
+    // product of its parents' distinct halves, so every face-list change upstream multiplies through:
+    // the Wild's second mine gave it two distinct halves where it had one, and the Gungan Shield's
+    // mine coming off took it from one half to two. The old numbers were 4 / 2 / 6.
+    //
+    // Verified against a brute-force enumeration — 400k presses a pairing, collecting distinct
+    // canonical ids — which agrees with `weldSpace` exactly on all six pairings tried. The counts
+    // moved because the cubes did; the arithmetic was never wrong.
+    check('greed+wild has six distinct welds', engine.weldSpace(['greed', 'wild']), 6);
+    check('gungan+wild has six too', engine.weldSpace(['gungan', 'wild']), 6);
+    check('gungan+reroll has twelve', engine.weldSpace(['gungan', 'reroll']), 12);
+    // The routine space is what `rememberWeld` actually floors against, so it is worth pinning too.
+    check('and their routine spaces trail by the clean ones',
+        [['greed', 'wild'], ['gungan', 'wild'], ['gungan', 'reroll']].map(p => engine.weldDrawSpace(p)),
+        [5, 5, 11]);
 
     // The state layer has to carry a weld through, or nothing below can be measured at all.
     const s = pstate.cubeState({
@@ -586,8 +607,14 @@ const makeWorld = function (cube = {}) {
     // A pairing where neither parent carries a downside face has nothing to inherit, so the rule cannot
     // touch it and every weld of it is clean. That is not a leak — it is two cubes that were already
     // permanent being welded into one permanent cube.
+    //
+    // **This used to be `mirror+gungan` and the Gungan Shield no longer qualifies**, because it traded
+    // its mine for a wipeout and a wipeout is a downside face — see its note in `tuning.js`. The cubes
+    // that still carry nothing to inherit are Mirror, Symbiont, Binder, the Pit Droid and the Octahedron,
+    // so the invariant holds on a pair drawn from those; naming a live pair rather than a permanently
+    // clean *cube* is what stopped this reading as a regression when the Gungan changed shape.
     check('a pairing with no downside to inherit is always clean',
-        engine.specialById(engine.rollWeld(['mirror', 'gungan'], { tier: 1 })).faces.some(isDown), false);
+        engine.specialById(engine.rollWeld(['mirror', 'binder'], { tier: 1 })).faces.some(isDown), false);
     console.log('');
 
     // -----------------------------------------------------------------------

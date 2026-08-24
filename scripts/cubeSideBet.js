@@ -21,7 +21,7 @@
 // Read-only. It touches no database and stakes nothing.
 
 const engine = require('../src/game/cube/engine.js');
-const { LEVELS } = require('../src/game/cube/tuning.js');
+const { LEVELS, cube: config } = require('../src/game/cube/tuning.js');
 
 const CLIMBS = Number(process.argv[2]) || 40000;
 
@@ -32,7 +32,8 @@ const PROPS = [
     { id: 'clone', say: 'A cube gets copied', hit: r => has(r.notes, 'clone') },
     { id: 'burn', say: 'A cube gets burned', hit: r => has(r.notes, 'burn') },
     { id: 'raze', say: 'Ben razes a neighbour', hit: r => has(r.notes, 'raze') },
-    { id: 'grow', say: 'The line gets longer', hit: r => ['pair', 'twins', 'draw'].some(k => has(r.notes, k)) },
+    // Narrowed to Padme's twins in `SIDE_BETS`; kept in step so this script prices the shipped card.
+    { id: 'grow', say: 'Padme slips in matching twins', hit: r => has(r.notes, 'twins') },
     { id: 'saved', say: 'A cube holds together', hit: r => has(r.notes, 'broken.saved') },
     { id: 'engine', say: 'Sebulba turns a cube', hit: r => has(r.notes, 'engine') },
     { id: 'invert', say: 'The line flips', hit: r => has(r.notes, 'invert') },
@@ -72,9 +73,30 @@ const climb = function (rack, call, tally) {
 };
 
 const pct = n => (n * 100).toFixed(1).padStart(5);
-// What a fair bonus would be, in stake-units, for a bet that hits this often. `1/p` is the fair
-// multiple on a stake of one; the bonus is what is *added*, so it is one less than that.
-const fair = p => (p <= 0 ? null : 1 / p - 1);
+// What a fair bonus would be, in stake-units, for a bet that hits this often.
+//
+// **`1/p - 1` is wrong and every price in `SIDE_BETS` was derived from it.** The naive reading is that
+// a card stakes one unit to win `price`, so it is fair at `p = 1/(price+1)`. That ignores *when* each
+// half of the bet touches the multiple, and the two halves do not touch it at the same time:
+//
+//   - the **ante** comes off `live.mult` when the card is named, which is *before* the rung resolves,
+//     so `rungMultiple`'s `carried * levelStep` multiplies the reduced figure — the ante really costs
+//     `betAnte * levelStep`.
+//   - the **payout** arrives in `added`, which `rungMultiple` applies *after* the multiplication, so it
+//     is worth exactly `price + betAnte` and no more.
+//
+// So a level rung charges `levelStep` for every unit it pays flat, and the true break-even is
+//
+//     p = betAnte * levelStep / (price + betAnte)
+//
+// which at `levelStep 1.94` is nearly **twice** the rate the old formula asked for. Verified against the
+// engine rather than argued: betting one prop at a fixed rung and differencing the resulting multiple
+// reproduces this expression to three decimals across four props and two levels, where `1/p - 1` is out
+// by `betAnte * (levelStep - 1)` every time.
+//
+// (An **Again** adds instead of multiplying, so there the naive formula is right. The collapsed road is
+// all levels, which is the case the prices have to survive.)
+const fair = p => (p <= 0 ? null : (config.levelStep * config.betAnte) / p - config.betAnte);
 
 for (const [label, rack] of Object.entries(RACKS)) {
     const tally = LEVELS.map(() => ({ n: 0, hit: Object.fromEntries(PROPS.map(p => [p.id, 0])) }));

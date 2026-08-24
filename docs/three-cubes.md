@@ -187,8 +187,8 @@ rack has failed** — dead on a clean climb, priceless on a gutted one. Eight se
 to buy a hedge, because there has never been anything in the game negatively correlated with
 everything else in it.
 
-It pairs with every wipeout-carrier that ships — the Turbine, the Multiplier, Shmi, Anakin, the Reroll
-Cube, Sebulba, Boost — and with Ratts himself: a blast a Gungan Shield stopped leaves a hold with
+It pairs with every wipeout-carrier that ships — the Turbine, the Multiplier, the Reroll Cube, Sebulba,
+Boost, the Scavenger and the Gungan Shield — and with Ratts himself: a blast a Gungan Shield stopped leaves a hold with
 something in it.
 
 **It clears `spent`.** A Scavenger that returned a special as an ordinary cube would be a plain cube
