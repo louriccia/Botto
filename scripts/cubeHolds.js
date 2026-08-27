@@ -354,7 +354,9 @@ const climb = function (rack, conserve) {
             // run: everything that came in is standing, held by something standing, or wreckage in
             // the junkyard. A shattered cube is in the third pile, not gone — which is exactly what
             // makes the arithmetic close, and what a lost hold would break.
-            const after = total(res.set) + res.hold.length;
+            // The junkyard is counted the same way the table is — a wrecked captor with anyone still
+            // inside it would otherwise hide behind a length.
+            const after = total(res.set) + total(res.hold);
             assert.strictEqual(after, before,
                 `cubes appeared or vanished: ${before} in, ${after} out`);
         }

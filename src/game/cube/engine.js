@@ -1317,6 +1317,11 @@ const resolveLine = function (line, call, bag, opts = {}) {
         // prisoners. A mirror that writes over a copy it made earlier in the same reflection would
         // otherwise take that copy's hold down with it, unseen by either end of the check.
         const made = [];
+        // Cubes this turn has put **back** on the line — a parole, or a hold cracked open. The cube
+        // taking the turn cannot take them again in the same breath: a sentence handed straight back
+        // down would make the parole a lie, and it is the one interaction the two halves of Oovo IV's
+        // turn have with each other.
+        const freshlyFreed = new Set();
         let was = final.map(faceIdOf);
         let noteAt = notes.length;
 
@@ -1489,6 +1494,7 @@ const resolveLine = function (line, call, bag, opts = {}) {
             const out = [];
             while (slot.held.length) out.push(liftOne(slot.held, 'shift'));
             final.splice(releasePoint(), 0, ...out);
+            out.forEach(x => freshlyFreed.add(x));
             return out;
         };
 
@@ -1537,6 +1543,7 @@ const resolveLine = function (line, call, bag, opts = {}) {
         if (c.slot && c.slot.held.length && c.special && JAILERS.has(c.special.id)) {
             const out = liftOne(c.slot.held, 'shift');
             final.splice(releasePoint(), 0, out);
+            freshlyFreed.add(out);
             note(c, 'parole', { faceId: faceIdOf(out), left: c.slot.held.length });
             const after = final.map(faceIdOf);
             steps.push({
@@ -1952,7 +1959,7 @@ const resolveLine = function (line, call, bag, opts = {}) {
                 // it takes whatever is standing there, up to and including a hot Turbine; and a run that
                 // ends before a `scavenge` comes up never sees the cube again.
                 const target = final[i + 1];
-                if (!target || target.gone) {
+                if (!target || target.gone || freshlyFreed.has(target)) {
                     note(c, 'haul.nothing');
                     break;
                 }
@@ -2170,7 +2177,8 @@ const resolveLine = function (line, call, bag, opts = {}) {
                 const room = Math.max(0, config.jailSize - (c.slot ? c.slot.held.length : 0));
                 const pool = final
                     .map((_, j) => j)
-                    .filter(j => j !== i && final[j] && !final[j].gone && final[j].slot);
+                    .filter(j => j !== i && final[j] && !final[j].gone && final[j].slot
+                        && !freshlyFreed.has(final[j]));
                 if (!pool.length || !room) {
                     note(c, 'jail.nothing');
                     break;
@@ -2514,9 +2522,16 @@ const resolveLine = function (line, call, bag, opts = {}) {
         standing.add(c.slot);
         stow(c.slot.held);
     }
+    //
+    // **Once each.** A slot can now appear twice in what is swept — thrown, carried off into a hold,
+    // let back out mid-roll and destroyed — so the set of what has already been picked up grows as
+    // the sweep runs rather than being taken once at the top of it. Two entries for one cube is a
+    // cube the junkyard would hand back twice.
     const carried = new Set(hold);
     for (const c of [...line, ...joined]) {
-        if (c.slot && !standing.has(c.slot) && !carried.has(c.slot)) hold.push({ ...c.slot });
+        if (!c.slot || standing.has(c.slot) || carried.has(c.slot)) continue;
+        carried.add(c.slot);
+        hold.push({ ...c.slot });
     }
 
     // The slot a surviving position carries into the next level. Read off the cube rather than trusted
