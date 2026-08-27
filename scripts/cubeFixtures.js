@@ -94,6 +94,10 @@ const responseOf = (thrown, settled) => ({
     frozen: thrown.res.frozen,
     burned: thrown.res.burned,
     cubeIds: thrown.res.cubeIds,
+    // `charred` and `holds` complete the set against `rollResponse`: which positions landed on a face
+    // the fire had already taken, and how many cubes each one is carrying off the line.
+    charred: thrown.res.charred,
+    holds: thrown.res.holds,
     steps: thrown.res.steps,
     notes: thrown.res.notes,
     pays: engine.multSteps(thrown.opening, thrown.res.pays, settled ? settled.majority : null),
@@ -109,6 +113,7 @@ const responseOf = (thrown, settled) => ({
     rerolls: thrown.res.rerolls,
     shortcuts: thrown.res.shortcuts,
     ended: thrown.res.ended,
+    held: thrown.res.held,
     overflow: thrown.res.overflow,
     ...(settled ? { settled } : {}),
 });
@@ -222,9 +227,12 @@ const WANTED = {
     // pointed two ways, and a step whose line does not change length.
     octaIced: r => r.steps.some(s => s.note?.kind?.endsWith('.iced'))
         || r.notes.some(n => n.kind?.endsWith('.iced')),
-    // The prison emptying because the cube holding it was destroyed. The one note in the game with no
-    // face behind it besides the pure bonus, so it exercises the `who: null` path in `describe`.
-    octaJailbreak: r => r.notes.some(n => n.kind === 'jail.break'),
+    // A hold emptying because the cube carrying it was destroyed — the prison or the sandcrawler,
+    // which are one mechanic now. It gets a frame of its own with `at: -1`, so it exercises both the
+    // arrival animation and the path where a note names a cube that is no longer on the line.
+    octaJailbreak: r => r.notes.some(n => n.kind === 'hold.break'),
+    // The other half of the same rule: a jailer letting one out on its own turn, whatever it rolled.
+    octaParole: r => r.notes.some(n => n.kind === 'parole'),
     // **The two that show what the last rung did rather than what this one is doing**, and the only
     // fixtures in the file that exist for a *cube's* state instead of a roll's.
     //

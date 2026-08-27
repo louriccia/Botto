@@ -112,10 +112,22 @@ const SAY = {
     // has already come and that number is settled the moment it lands.
     seam: n => `**+${n.bonus}×** for ${plural(n.rungs, 'rung')} walked.`,
     'jail.nothing': () => 'nobody left to take.',
-    jail: n => `took ${plural(n.taken, 'cube')} off the table — one out per rung you win.`,
-    // The one note here with no face behind it: the door came off because the cube holding it was
-    // destroyed, so there is nothing standing to say it. `renderNote` prints it unintroduced.
-    'jail.break': n => `**The prison broke open** — ${plural(n.freed, 'cube')} back on the table.`,
+    jail: n => `took ${plural(n.taken, 'cube')} into the cell — **${n.held}** inside, `
+        + 'one out every turn it takes.',
+    // The two halves of the Scavenger. Both say *hold* rather than destroyed or conjured, because
+    // the difference is the whole mechanic and the line cannot show it: a cube in a hold isn't drawn.
+    'haul.nothing': () => 'nothing on its right to carry off.',
+    haul: n => `carried ${faceGlyph(n.faceId)} off the line — **${n.held}** in the hold.`,
+    'scavenge.empty': () => 'nothing to salvage.',
+    'scavenge.noroom': () => 'no room on the table.',
+    scavenge: n => `salvaged ${faceGlyph(n.faceId)}`
+        + (n.own ? ' out of its own hold.' : ' out of the wreckage.'),
+    // The turn a captor takes whatever it is showing: one prisoner back on the line, on its right.
+    parole: n => `let ${faceGlyph(n.faceId)} out`
+        + (n.left ? ` — **${n.left}** still inside.` : ' — the cell is empty.'),
+    // Said by the cube that was holding them, at the moment something broke it open — so the face
+    // here is the one *it* was showing rather than the one that did it.
+    'hold.break': n => `**broke open** — ${plural(n.freed, 'cube')} back on the table.`,
     'plunge.nothing': () => 'nothing standing at the ends.',
     plunge: n => 'the ends of the line fell away'
         + (n.self ? ' — **the die went with them**.' : '.'),

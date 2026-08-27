@@ -66,7 +66,7 @@ See §7 — it is one change, not three, and it is the thing to scope before any
 | **Baroonda** | `scorch` | Burns the face each neighbour is showing **off that cube**, for the rest of the climb. | 3 |
 | **Malastare** | `blessing` | One cube at random cannot be destroyed this rung — a mine included. | 2 |
 | **Mon Gazza** | `seam` | **+0.5** on the run's multiple for every rung already cleared this run. | 1 |
-| **Oovo IV** | `jail` | Imprisons up to four cubes. One out per rung won; all out if the die is destroyed. | 3 |
+| **Oovo IV** | `jail` | Imprisons up to four cubes in its own cell. One out at the start of every turn it takes; all out if the die is destroyed. | 3 |
 | **Ord Ibanna** | `plunge` | The cubes at the **head and the tail** of the line fall into the chasm. | 3 |
 | **Tatooine** | `crowd` | Paints one face on each neighbour over in the colour leading the line, for the rest of the climb. | 3 |
 
@@ -326,17 +326,32 @@ then compounds up whatever ladder is left above it.
 
 ### Oovo IV — `jail`
 
-> Imprisons up to four cubes at random. One walks out for every rung you win. If the die itself is
-> destroyed, they all walk out at once.
+> Imprisons up to four cubes at random, in **this die's own cell**. One walks out at the start of
+> every turn the die takes. If the die itself is destroyed, they all walk out at once.
 
 An imprisoned cube is off the line entirely — not thrown, does not count, takes no turn — but it is
 **not destroyed**. The die never imprisons itself.
 
-The drip is the main valve and it is thematically right: you race your way out. Without it, "released
-when the die is destroyed" can mean *never*, because a rack with nothing destructive in it has no way
-to break a die that carries no wipeout and no mine — and four cubes gone permanently from a
-five-cube table is the deadlock the design already measured at **9.6% of full-rack runs** and
-engineered around.
+**The cell belongs to the die, not to the run**, which is the general rule the Scavenger's hold
+follows too — see *Capture* in `tuning.js`. Three things fall out of it that the shared prison could
+not do: a reflected Oovo IV brings a **second cell**, four more arrests and a parole of its own; a
+prisoner keeps its ice, its scorch marks and its own prisoners while it is inside; and "destroyed"
+means the cube that took them, not the last jailer standing — so with two dice on the table, breaking
+one frees exactly the cubes it was holding.
+
+The drip is the main valve and it is thematically right: you serve your way out, a rung at a time.
+Without it, "released when the die is destroyed" can mean *never*, because a rack with nothing
+destructive in it has no way to break a die that carries no wipeout and no mine — and four cubes gone
+permanently from a five-cube table is the deadlock the design already measured at **9.6% of
+full-rack runs** and engineered around.
+
+**It drips per turn the die takes rather than per rung won**, and the difference is who has to pay
+for the door. Per rung won made the release something the player bought with a survived roll, which
+compounds the wrong way: the rolls a gutted table is least likely to win are exactly the ones it
+needs to win to get its cubes back. Per turn ties the valve to the thing doing the holding — the die
+is on the table either way, it throws every rung, and it hands one back whatever face it comes up on.
+Parole runs **before** the face, so a die that rolls `jail` again pays one out before it takes four
+more in, and it cannot re-arrest the cube it just released on the same turn.
 
 The existing rule that a **won tie puts a plain cube on the table** is a second, slower valve that
 costs nothing to inherit: a gutted table ties, and a survived tie feeds it.
@@ -352,7 +367,8 @@ that is already sideless everywhere.
 itself*. That single fact makes it:
 
 - the die's **only** self-destruct path, in the absence of a wipeout face;
-- the **jailbreak** — every prisoner Oovo IV was holding spills back onto the table.
+- the **jailbreak** — every prisoner Oovo IV was holding spills back onto the table, at once, on the
+  spot, beside the cube taking the turn rather than where the die stood.
 
 Two cruelties and one key, and the key is a cube you cannot aim. It was three before the amendment
 spent the bank lock; the key got simpler rather than weaker, and it still opens the one lock the
@@ -426,6 +442,13 @@ set: final.filter(c => !c.gone).map(c => (c.special ? c.special.id : null)),  //
 or a prisoner roster. So the set becomes **a list of cubes with state rather than a list of ids**, and
 `encodeSet`/`decodeSet` learn a shape. That is one change serving three faces, and it is worth doing
 once and deliberately rather than three times by accident.
+
+**And the roster went on the slot in the end**, which is what this section did not foresee: a `held`
+list of slots exactly like the one carrying it, so a prisoner keeps everything a cube can carry and a
+captor can hold a captor to any depth. The prison was a run-level list first — a `jail` key on the
+ladder node beside the set — and the shape it wanted was a slot all along, because the thing doing
+the holding is a cube and everything else a cube carries already lives there. The same list is the
+Scavenger's hold, which is why *Capture* is one set of rules in `tuning.js` rather than two.
 
 **It must read back.** Live runs are persisted at `challenge/cube/live/ladders/<discordId>`, and a
 profile written under the old shape has to decode as a valid set — the precedent is the road, which
@@ -586,8 +609,10 @@ create. That is a thing to watch on a real table rather than a thing to sweep fo
 ```
 
 Everything else held. Faces fire at 8.2–9.0% apiece, a scorch never takes a cube below its last face,
-ice lasts exactly one throw, a plunge takes exactly two positions, the prison never exceeds four and
-never holds anyone with no jailer standing.
+ice lasts exactly one throw, a plunge takes exactly two positions, no cell exceeds four and nobody is
+held by a cube that isn't standing. The capture rules themselves — nesting, copies, immediate release,
+the parole — are proved in `scripts/cubeHolds.js`, which owns them because they are shared with the
+Scavenger rather than being this die's.
 
 ---
 

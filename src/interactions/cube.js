@@ -458,7 +458,7 @@ module.exports = {
         // `mult` is passed in rather than read, because a Multiplier Cube only pays if its own side
         // is the side that wins: frames drawn while that is still open show the payout *without*
         // it, and only a frame that has an answer shows the payout with it.
-        function frameFactory(run, mult, cubes, cubeRecord = false, multRecord = false) {
+        function frameFactory(run, mult, cubes, cubeRecord = false, multRecord = false, held = 0) {
             // Reaching a level is known the moment you push into it, so the deepest-level
             // badge is safe to wear from the first frame — unlike anything the roll decides.
             const deepest = run.level > s.bestLevel;
@@ -477,6 +477,9 @@ module.exports = {
                 // why it is fixed per factory alongside the multiplier.
                 cubes,
                 cubeRecord,
+                // Cubes a captor is holding at this point in the roll. They aren't on the row — a
+                // held cube isn't drawn — so the header is the only place they exist on screen.
+                held,
                 // The multiple this frame is playing for, so the header shows what the roll pays
                 // rather than what the level nominally does. Its record badges on the paying frame
                 // only, like the cube count — the frames before it are still building the number.
@@ -518,8 +521,13 @@ module.exports = {
             // nowhere to start but *below* the multiple the previous frame had shown.
             // Two factories, because the table changes size mid-roll: the throw shows every cube in
             // the set, the frames after the effects show only what survived them.
-            const drawing = frameFactory(run, opening, rolled.length);
-            const settledDrawing = frameFactory(run, opening, res.faceIds.length);
+            // What was already in a hold when the cubes left the cup: the throw is drawn before any
+            // of this roll's effects, so it shows the hold as the last rung left it.
+            const heldBefore = (thrown.rolledState.holds || []).reduce((n, h) => n + h, 0);
+            const drawing = frameFactory(run, opening, rolled.length, false, false, heldBefore);
+            const settledDrawing = frameFactory(
+                run, opening, res.faceIds.length, false, false, res.held,
+            );
             // One frame per effect, built **here** rather than inside the reveal, because the reveal
             // runs after settlement and `frameFactory` reads the ceiling and the deepest level off
             // `s` — both of which settlement moves.
@@ -534,7 +542,10 @@ module.exports = {
             const effectFrames = (res.steps || []).filter(s => !s.quiet)
                 .slice(0, config.maxEffectFrames).map((step) => {
                 const row = step.faceIds.map(faceGlyph);
-                const draw = frameFactory(run, opening, row.length);
+                // The hold as that step left it, so a cube being carried off shows the row shorten
+                // and the hold fill in the same frame.
+                const stepHeld = (step.holds || []).reduce((n, h) => n + h, 0);
+                const draw = frameFactory(run, opening, row.length, false, false, stepHeld);
                 return () => draw(
                     // Pointed at the cube that just acted, so the frame says *which* one did it
                     // rather than leaving the player to diff two rows.
@@ -562,7 +573,9 @@ module.exports = {
             const payFrames = multSteps(opening, walkable, asking ? null : (res.majority || breaker))
                 .slice(-config.maxPayFrames)
                 .map((step) => {
-                    const draw = frameFactory(run, step.multiple, resolvedRow.length);
+                    const draw = frameFactory(
+                        run, step.multiple, resolvedRow.length, false, false, res.held,
+                    );
                     const row = facesMarked(resolvedRow, step.at);
                     // His cube stays face-up for the rest of the reveal once it has landed — these
                     // frames come after it, and the multipliers on them are being counted precisely
@@ -692,7 +705,7 @@ module.exports = {
             // multiple records are read here for exactly the same reason.
             const paying = frameFactory(
                 run, mult, res.faceIds.length,
-                res.faceIds.length > s.bestCubes, mult > s.bestMultiple,
+                res.faceIds.length > s.bestCubes, mult > s.bestMultiple, res.held,
             );
 
             // Everything that moves — the ledger, the clears, the ladder, the truguts —
@@ -891,7 +904,7 @@ module.exports = {
             // The answer is in, so the buttons come off — and this press is also what acknowledges
             // the interaction, which every frame after it edits. Bribing pockets the cube on the
             // spot; rolling leaves it face-down for one more beat.
-            await render(payload(frameFactory(run, base, row.length)(
+            await render(payload(frameFactory(run, base, row.length, false, false, res.held)(
                 buying ? resolved : withBreaker(resolved, null),
                 buying ? `${Whatto} ${watto('bribe')}` : pending.flavor || null,
                 buying ? [] : [tieOddsLine(s)], null, snapshot.s, null,
@@ -910,7 +923,9 @@ module.exports = {
             const payFrames = multSteps(base, res.pays, breaker || (bribed ? run.call : null))
                 .slice(-config.maxPayFrames)
                 .map((step) => {
-                    const draw = frameFactory(run, step.multiple, row.length);
+                    const draw = frameFactory(
+                        run, step.multiple, row.length, false, false, res.held,
+                    );
                     const marked = facesMarked(row, step.at);
                     return () => draw(
                         breaker ? withBreaker(marked, breaker) : marked,

@@ -145,11 +145,14 @@ const resolveThrown = function (ctx, run, { line, set, bag: drawnBag, kind, wrec
     // The bag goes **in** as well as out, because a Pit Droid draws from it mid-roll. What comes back
     // is what the run carries on with; taking `drawn.bag` here instead would hand the same cube out
     // again next level.
-    // The two things a roll needs that aren't on the table. `jail` is Oovo IV's prisoners, held by the
-    // run rather than by the line; `rungs` is how many this run has walked including this one, which is
-    // the only thing Mon Gazza's seam pays off.
+    // The two things a roll needs that aren't on the table. `hold` is the run's wreckage, which the
+    // Scavenger reaches into; `rungs` is how many this run has walked including this one, which is the
+    // only thing Mon Gazza's seam pays off.
+    //
+    // The prison used to be a third and no longer is. Oovo IV's prisoners belong to the die that took
+    // them and ride the set inside its slot — see "Capture" in the tuning data — so they arrive here
+    // in `run.set` like every other thing done to a cube that outlives the throw that did it.
     const res = engine.resolveLine(line, run.call, drawnBag, {
-        jail: run.jail || [],
         hold: run.hold || [],
         // What the player scrapped off this line while it was held. Swept into the hold with the rest
         // of the roll's wreckage, so a scrapped cube is something the Jawa can fetch back on a later
@@ -300,7 +303,6 @@ const takeThrow = function (live, shown, call) {
         call,
         mult: Number(live.mult) || 0,
         spent: Object.values(live.spent || {}),
-        jail: engine.decodeSet(live.jail),
         hold: engine.decodeSet(live.hold),
         rungs: Number(shown.rungs) || 0,
         sealed: live.sealed || null,
@@ -496,7 +498,6 @@ const settleLoss = function (ctx, { run, res, thrown, patch }) {
             // The run's own state, stored as it was **entering** the rung — a reroll buys the roll
             // back, so the prison, the seal, the lock and the rung count all have to come back with
             // it. `thrown.set` is already the table as it was thrown for the same reason.
-            jail: engine.encodeSet(run.jail || []),
             // **Plus whatever the player scrapped off the rung being bought back.** The hold is stored
             // as it was entering the rung for the same reason the table is — a reroll buys the roll
             // back, not the run — but a scrap is not bought back with it: `thrown.set` is the table
@@ -617,24 +618,18 @@ const settleWin = function (ctx, { run, majority, pure, cubes, standing, mult, p
     // cubes and the pure rate 0.16% → 0.21%. One rule, no special case, and the same guarantee.
     const rescued = !!breaker && !bribed;
 
-    // **Oovo IV's prisoners come back two ways, and both of them settle here.**
+    // **Nothing about a hold settles here any more.** Prisoners used to come back two ways and both
+    // of them were this function's business: a jailbreak the engine worked out, and a drip of one per
+    // rung *won*, which lived here because this is the one place that knew the rung was won.
     //
-    // `freed` is a jailbreak — the die was destroyed and the whole prison emptied at once, which the
-    // engine works out for itself. The drip is this function's business, because it is the one place
-    // that knows the rung was *won*: one prisoner walks out for every rung the run survives, which is
-    // what stops "released when the cube is destroyed" meaning never on a rack with nothing
-    // destructive in it.
-    const jail = [...(res.jail || [])];
-    const released = [...(res.freed || [])];
-    if (jail.length) released.push(jail.shift());
-
-    // The Scavenger's hold has one valve and the engine works it out on its own: hauled cubes walk the
-    // moment no Scavenger is standing. There is no drip to add here — a rung won is not what fetches
-    // scrap back, a `scavenge` face is, which is the whole difference between a hold and a prison.
+    // Both are the line's now. A captor hands one back at the start of every turn it takes and spills
+    // the lot the moment it is destroyed, so a released cube walks back on **during the roll**, in
+    // front of the walk, where it takes its turn and the player watches it happen — rather than
+    // appearing in the set between rungs with a line of prose to explain it. See "Capture" in the
+    // tuning data. What is still held is in `res.set`, inside the slot of the cube holding it.
     const hold = [...(res.hold || [])];
-    released.push(...(res.sprung || []));
 
-    const survivors = [...res.set, ...released];
+    const survivors = [...res.set];
     if (rescued) survivors.push(engine.plainSlot());
 
     // Still standing, which is now the only thing a win can be.
@@ -646,12 +641,15 @@ const settleWin = function (ctx, { run, majority, pure, cubes, standing, mult, p
         // Everything this roll destroyed, broke or wrote over is already baked into the set.
         set: engine.encodeSet(survivors), bag: engine.encodeBag(bag),
         // What the Planet Octahedron is holding over the run. `sealed` is a side that can't be called
-        // next rung and lasts exactly one because this node is rewritten on every one; `jail` is
-        // whoever is still inside; `rungs` is what Mon Gazza's seam is paid off. The bank lock was
-        // here too and is gone — see `docs/planet-octahedron.md`, "Cut on purpose".
+        // next rung and lasts exactly one because this node is rewritten on every one; `rungs` is what
+        // Mon Gazza's seam is paid off. Two things used to be keyed here and neither is: the bank lock
+        // was cut — see `docs/planet-octahedron.md`, "Cut on purpose" — and the prison needs no key,
+        // because prisoners ride the set inside the slot of the die holding them.
         sealed: res.sealed || null,
-        jail: engine.encodeSet(jail),
         hold: engine.encodeSet(hold),
+        // How many cubes the table is carrying, for a client that wants to say so without walking the
+        // set. The cubes themselves are in `set`, inside the slots of whatever is holding them.
+        held: res.held || 0,
         rungs: (Number(run.rungs) || 0) + 1,
         // **The rung's purse, emptied.** Arms expire with the rung they were bought for and the look
         // goes with them — see `armExpires` in `tuning.js` for why carrying either is the same exploit
@@ -691,11 +689,10 @@ const settleWin = function (ctx, { run, majority, pure, cubes, standing, mult, p
         // appearing from nowhere reads as a bug, and because it is the reward for having rolled his
         // cube rather than bought it.
         seeded: rescued,
-        // Cubes back out of Oovo IV, and whether the door came off or one of them served their time.
-        // Same argument as `seeded`: a cube arriving unannounced reads as a bug.
-        released: released.length,
-        jailbreak: (res.freed || []).length > 0,
-        jailed: jail.length,
+        // Cubes a captor is still holding when the rung settles. Nothing is *released* here any more
+        // — that happens on the line, in the roll, where the notes and the frames say so — but the
+        // count is what a client puts on the board so a short table has a reason on screen.
+        held: res.held || 0,
         // The side the next rung cannot be called on.
         sealed: res.sealed || null,
         atTop: run.level >= MAX_LEVEL,
@@ -744,7 +741,7 @@ exports.startRun = function (ctx, { call }) {
             bag: engine.fillBag(s.equipped),
             // A fresh run owes the Planet Octahedron nothing: nobody is in the prison, no side is
             // sealed, and no rungs have been walked.
-            jail: [], hold: [], rungs: 0, sealed: null,
+            hold: [], rungs: 0, sealed: null,
             // **Run-scoped, not rung-scoped.** Premonition and Swap are each once a run, and
             // the ladder node is rewritten on every rung — so these travel on the run descriptor and
             // are written back by every one of the four things that save a ladder. A flag that lived
@@ -806,7 +803,6 @@ exports.pushRun = function (ctx, { call }) {
             set: engine.decodeSet(ladder.set), bag: engine.decodeBag(ladder.bag),
             // Whatever the Planet Octahedron is holding over the run. All four default to nothing, so
             // a ladder written before the die existed reads back as a run it was never on.
-            jail: engine.decodeSet(ladder.jail),
             hold: engine.decodeSet(ladder.hold),
             rungs: Number(ladder.rungs) || 0,
             sealed: ladder.sealed || null,
@@ -846,7 +842,6 @@ exports.spendReroll = function (ctx) {
             set: engine.decodeSet(dead.set), bag: engine.decodeBag(dead.bag),
             // The run as it entered the rung that killed it — prison, seal, lock and rung count all
             // come back, because buying the roll back has to buy back the state it was rolled under.
-            jail: engine.decodeSet(dead.jail),
             hold: engine.decodeSet(dead.hold),
             rungs: Number(dead.rungs) || 0,
             sealed: dead.sealed || null,
@@ -1816,12 +1811,9 @@ exports.parkTie = function (ctx, thrown, { reverse = 0 } = {}) {
         // into the rung. Settling the tie needs both — the first to apply, the second to step from —
         // and a reroll of a tie that busts needs the second on its own.
         sealed: res.sealed || null,
-        jail: engine.encodeSet(res.jail || []),
-        freed: engine.encodeSet(res.freed || []),
         hold: engine.encodeSet(res.hold || []),
-        sprung: engine.encodeSet(res.sprung || []),
         recovered: res.recovered || [],
-        carryJail: engine.encodeSet(run.jail || []),
+        held: res.held || 0,
         carryHold: engine.encodeSet(run.hold || []),
         // Already swept into `hold` above, and stored a second time on its own because a *bust* settled
         // off this node is filed against `carryHold` — the hold as the rung began — and the corpse a
@@ -1869,8 +1861,8 @@ const resumeTie = function (parked) {
         set: engine.decodeSet(parked.thrown),
         bag: engine.decodeBag(parked.bag),
         // What the run *entered* the rung with, which is what the settlement steps from — the same
-        // rule `carry` follows for the multiple.
-        jail: engine.decodeSet(parked.carryJail),
+        // rule `carry` follows for the multiple. Prisoners are not here and need not be: they ride
+        // the set, inside the slot of the cube holding them, so `thrown` already carries them.
         hold: engine.decodeSet(parked.carryHold),
         rungs: Number(parked.carryRungs) || 0,
         sealed: parked.carrySealed || null,
@@ -1904,11 +1896,9 @@ const resumeTie = function (parked) {
         set: engine.decodeSet(parked.set),
         // What the die did on the roll being resumed.
         sealed: parked.sealed || null,
-        jail: engine.decodeSet(parked.jail),
-        freed: engine.decodeSet(parked.freed),
         hold: engine.decodeSet(parked.hold),
-        sprung: engine.decodeSet(parked.sprung),
         recovered: Object.values(parked.recovered || {}),
+        held: Number(parked.held) || 0,
     };
     // Taken as-is rather than recomputed: it was stepped up the ladder when the tie was parked and
     // would be stepped a second time here.

@@ -156,9 +156,44 @@ exports.LEVELS = [
 //   vault       seals the side just called; the next rung has to be called the other way
 //   blessing    one cube at random cannot be destroyed this rung, a mine included
 //   seam        payout multiplier + seamBonus for every rung this run has walked
-//   jail        holds up to `jailSize` other cubes off the table until the run wins them back out
+//   jail        takes up to `jailSize` other cubes into this die's own cell — see Capture below
 //   plunge      the head and the tail of the line fall away — the die included, if it is on an end
 //   crowd       paints a face on each neighbour in the colour leading the line, for the climb
+//
+// ---------------------------------------------------------------------------
+// Capture: cubes that hold other cubes
+// ---------------------------------------------------------------------------
+//
+// Three faces take a cube off the line **without destroying it** — `haul` on the Scavenger and
+// `jail` on the Planet Octahedron take them, `scavenge` puts one back. A captured cube draws
+// nothing, counts toward neither side and cannot end the run; and it is still in the run, sitting
+// in the **hold of the cube that took it**, on that cube's slot, where it keeps its ice, its scorch
+// marks, its heat and whatever it was holding itself.
+//
+// That the inventory belongs to the cube rather than to the run is the whole of the design, and
+// four rules fall out of it. They are stated here because they are rules rather than tuning;
+// `resolveLine` is where they are enforced:
+//
+//   1. **A captor can be captured, to any depth.** A hold holds whole cubes, holds and all. It
+//      cannot loop: a cube goes into exactly one hold and leaves the line when it does, so it can
+//      never end up inside itself.
+//   2. **A copy of a captor copies the hold**, deep, so the two are two cubes and cracking one open
+//      has nothing to do with the other. A Mirror reflecting Oovo IV puts a second *cell* on the
+//      line rather than a second door onto the first — four more arrests, and a second parole to
+//      serve. It is the one place the game makes cubes out of nothing and it is deliberate.
+//   3. **Destroying a captor frees its prisoners immediately** — burned, culled, razed, plunged,
+//      purged, blasted, cloned or reflected over, all the same — onto the line **to the right of the
+//      cube taking the turn**, not of the cube that was holding them. The line resolves strictly
+//      left to right, so a cube put back where its captor stood would be behind the walk and would
+//      sit out the roll it was freed into. They come back thrown and live, holding what they held.
+//   4. **A jailer hands one prisoner back at the start of every turn it takes**, whatever face it is
+//      showing that rung. The promise belongs to the cube and not to any face on it — the sentence
+//      outlives the throw that handed it down. `JAILERS` in the engine is what carries it, read off
+//      the face data so a weld or a second jailer is covered the day it exists.
+//
+// The Scavenger has no parole: a `scavenge` face is what fetches its hold back, and that is the
+// whole difference between a hold and a prison. What it reaches into when its own hold is empty is
+// the run's **wreckage** — every cube the climb has destroyed, which belongs to nobody.
 
 // ---------------------------------------------------------------------------
 // Face points
@@ -785,17 +820,26 @@ exports.SPECIALS = [
         // there, which can be a Wild or a hot Turbine; and if the run ends first the cube never comes
         // back at all.
         //
+        // **What it hauls goes into its own hold**, not into a pile the run keeps — see Capture at the
+        // top of this file. So the two halves of the cube are a loop on one object: haul, then
+        // salvage. And the price of that is real, because a hold with an owner is a hold that can be
+        // taken away: break the Scavenger and everything in it walks back onto the line at once,
+        // which is a windfall for the player and the end of the cube's own scrap supply.
+        //
+        // **`scavenge` reaches into its own hold first and the wreckage second**, which is what keeps
+        // the correlation the cube is for. The wreckage is every cube the run has destroyed and
+        // belongs to nobody, so a Scavenger that shatters lands in it and a reflected copy can pull
+        // the original back out — the loop the old shared hold had, kept deliberately.
+        //
         // **One wipeout stays** for the reason the Sebulba note gives: a cube with no wipeout and no
-        // mine never leaves the table, and `haul` is frequently a cost the player is glad to pay. There
-        // is a loop in it — a Scavenger that shatters goes into the hold it reads, so a reflected copy
-        // can pull the original back out.
+        // mine never leaves the table, and `haul` is frequently a cost the player is glad to pay.
         //
         // What earns it a seat is the correlation rather than the recovery. Every other cube is worth
         // more when the run is going well; this one is worth exactly as much as the rest of the rack
         // has failed.
         id: 'scavenger', name: 'Scavenger Cube',
-        blurb: 'Three faces pull the last cube out of the hold. Two haul one off the line into it. '
-            + 'One shatters the cube.',
+        blurb: 'Three faces salvage a cube — out of its own hold first, the wreckage second. '
+            + 'Two haul one off the line into it. One shatters the cube.',
         faces: [
             ...rep(3, { kind: 'scavenge', id: 'scavenge' }),
             ...rep(2, { kind: 'haul', id: 'haul' }),
@@ -888,8 +932,8 @@ exports.SPECIALS = [
         // The mechanical reason is `plunge`. It is this cube's only self-destruct, the jailbreak that
         // frees everything `jail` is holding — two cruelties and one
         // key. A weld halves the rate of every face on it, so the key thins out at exactly the same
-        // rate as the prison does; but `jail` also drips one prisoner out per rung won, so the two do not
-        // cancel and the prison fills faster than it empties. Diluting this cube reintroduces the
+        // rate as the prison does; but `jail` also drips one prisoner out per turn the die takes, so
+        // the two do not cancel and the prison fills faster than it empties. Diluting this cube reintroduces the
         // deadlock the road had to engineer the tie rule around, measured at 9.6% of full-rack runs.
         //
         // Read off the cube rather than a list of ids, so a second unweldable cube is covered the day
@@ -2107,14 +2151,22 @@ exports.cube = {
     // argument for itself. This is the first dial to trim if the die measures hot: it is the only face
     // on it that adds money, so it is the only one that can be cut without taking away a decision.
     seamBonus: 0.5,
-    // How many cubes Oovo IV takes. Four, against a Level 3 line of five, is a table gutted rather
-    // than trimmed — which is the point, and why the release valves are not optional: **one prisoner
-    // walks out per rung won**, and if the die is destroyed they all walk at once.
+    // How many cubes Oovo IV takes, and the size of **one die's cell** rather than of the run's
+    // prison — a die already holding three can only take one more, and a reflected copy brings a
+    // cell of its own. Four, against a Level 3 line of five, is a table gutted rather than trimmed —
+    // which is the point, and why the release valves are not optional: **one prisoner walks out at
+    // the start of every turn the die takes**, and if the die is destroyed they all walk at once.
     //
     // Without the drip, "released when the die is destroyed" can mean *never*, because this cube
     // carries no wipeout and no mine and a rack with nothing destructive in it has no way to break it.
     // Four cubes gone permanently off a five-cube table is the deadlock measured at 9.6% of full-rack
     // runs and engineered around; a prison with no door would put it straight back.
+    //
+    // The drip used to be per rung *won*, which made the door something the player had to buy with a
+    // survived roll. Per turn is the same valve tied to the thing actually doing the holding: the die
+    // is on the table either way, and a prison that empties whether or not the rung goes your way is
+    // one the run can dig itself out of. It also empties faster than it used to — four arrests take
+    // four turns to undo, and the die throws every rung.
     jailSize: 4,
     // The floor a scorch can never burn a cube past. **One**, so a plain cube fused to a colour is a
     // real endpoint rather than an impossible one — it just costs five separate burns to reach, which

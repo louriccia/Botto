@@ -417,21 +417,19 @@ exports.rollWeld = function (ids, {
     return last;
 };
 
-// Which cubes can hold prisoners. Read off the face data rather than named, so a second jailer would
-// be covered the day somebody adds one — and so the jailbreak test below is about *a* jailer standing
-// on the line rather than about one hardcoded id.
+// **Which cubes hand a prisoner back on their own.** Read off the face data rather than named, so a
+// second jailer — or a weld carrying Oovo IV's face — is covered the day it exists rather than the
+// day somebody remembers to add it here.
+//
+// This is the one asymmetry between the two cubes that capture. Both hold; only a jailer *owes*. A
+// sentence is served a rung at a time whatever the die is showing, and the parole is a turn the cube
+// takes rather than a face it rolls — so it belongs to the cube, and the cube is identified here.
+// The Scavenger's hold has no drip at all: a `scavenge` face is what fetches its scrap back, which
+// is the whole difference between a hold and a prison.
 const JAILERS = new Set(
     SPECIALS.filter(sp => (sp.faces || []).some(f => f && f.kind === 'jail')).map(sp => sp.id),
 );
 exports.JAILERS = JAILERS;
-
-// The same test for the Scavenger, and it buys the same thing: a hauled cube walks out of the hold
-// the moment no cube that could have taken it is standing. Wrecked cubes do not — nothing is holding
-// them — which is what stops a run with no Scavenger in it spilling its own wreckage every rung.
-const HOLDERS = new Set(
-    SPECIALS.filter(sp => (sp.faces || []).some(f => f && f.kind === 'haul')).map(sp => sp.id),
-);
-exports.HOLDERS = HOLDERS;
 
 exports.MAX_LEVEL = LEVELS.length - 1;
 
@@ -752,6 +750,12 @@ exports.fillBag = fillBag;
 // the position it threw, every effect that copies a cube copies its slot, and `resolveLine` reads the
 // next set straight off the positions that survived. Anything destroyed loses its state by virtue of
 // not being there, which is exactly the behaviour that used to be free.
+//
+// **A slot also carries what its cube has captured.** `held` is a list of slots exactly like this
+// one, so a captor holds whole cubes — scorch marks, heat and their own prisoners included — and a
+// captor can hold a captor to any depth. See "Capture" in the tuning data for the four rules; what
+// matters here is only that the inventory belongs to the *cube* rather than to the run, which is
+// why it lives on the slot and travels with it through the line, through a copy, and into the set.
 const slotOf = function (v) {
     if (v && typeof v === 'object' && !Array.isArray(v)) {
         return {
@@ -765,25 +769,42 @@ const slotOf = function (v) {
             painted: Object.values(v.painted || {}).map(String),
             frozen: v.frozen ? String(v.frozen) : null,
             heat: Number(v.heat) || 0,
-            hauled: !!v.hauled,
             // **Nugtosh's blessing rides the cube until something spends it.** On the slot rather than
             // on the position, which is the difference between a blessing and a rung: a position is
             // gone when the throw is, and this has to still be there next rung and the one after.
             blessed: !!v.blessed,
+            // **And what this cube has captured**, which is the same reason again and the strongest
+            // case of it: a prisoner is a whole cube, so it is a whole slot, and a captor that is
+            // itself captured nests. `hauled` used to mark a cube in the run's hold as carried rather
+            // than wrecked; the hold that carried it owns it now, so the flag has nothing left to say.
+            held: Object.values(v.held || {}).map(slotOf),
         };
     }
     return {
         id: v ? String(v) : null,
-        burned: [], painted: [], frozen: null, heat: 0, hauled: false, blessed: false,
+        burned: [], painted: [], frozen: null, heat: 0, blessed: false, held: [],
     };
 };
 exports.slotOf = slotOf;
 
 // An ordinary cube with nothing done to it — the thing most of a set is.
 const plainSlot = () => ({
-    id: null, burned: [], painted: [], frozen: null, heat: 0, hauled: false, blessed: false,
+    id: null, burned: [], painted: [], frozen: null, heat: 0, blessed: false, held: [],
 });
 exports.plainSlot = plainSlot;
+
+// Every cube inside a slot's inventory, nested holds included. What the header counts and what the
+// harness's conservation law is written against.
+const countHeld = function (slots) {
+    return (slots || []).reduce((n, s) => n + 1 + countHeld(s && s.held), 0);
+};
+exports.countHeld = countHeld;
+
+// A hold, copied deeply, all the way down. Rule 2 of capture: a cloned or reflected captor comes
+// with the same prisoners and they are a **copy** of them — sharing the array would make one hold
+// that two cubes are looking at, so cracking either open would empty both.
+const cloneHeld = slots => (slots || []).map(s => ({ ...s, held: cloneHeld(s.held) }));
+exports.cloneHeld = cloneHeld;
 
 // The faces a cube can actually still land on. **A scorch takes one face of the six, not a kind** —
 // burning a wild off a Wild Cube leaves four wilds and a Ratts, so every remaining face gets more
@@ -956,10 +977,10 @@ exports.drawCubes = function (set, bag, levelIdx) {
 // set of untouched slots, and every set a run without the Planet Octahedron produces is byte-for-byte
 // what the old encoder wrote.
 exports.encodeSet = function (set) {
-    return (set || []).map((c) => {
+    const one = function (c) {
         const slot = slotOf(c);
-        if (!slot.burned.length && !slot.painted.length && !slot.frozen && !slot.heat && !slot.hauled
-            && !slot.blessed) {
+        if (!slot.burned.length && !slot.painted.length && !slot.frozen && !slot.heat
+            && !slot.blessed && !slot.held.length) {
             return slot.id || 0;
         }
         const out = { id: slot.id || 0 };
@@ -968,9 +989,12 @@ exports.encodeSet = function (set) {
         if (slot.blessed) out.blessed = true;
         if (slot.frozen) out.frozen = slot.frozen;
         if (slot.heat) out.heat = slot.heat;
-        if (slot.hauled) out.hauled = true;
+        // The inventory, encoded exactly like the set it is part of — so a nest of any depth is one
+        // slot on the table and a prisoner keeps its own ice and scorch marks while it is inside.
+        if (slot.held.length) out.held = slot.held.map(one);
         return out;
-    });
+    };
+    return (set || []).map(one);
 };
 exports.decodeSet = raw => Object.values(raw || {}).map(slotOf);
 
@@ -1355,6 +1379,11 @@ const lineState = line => ({
     // Off `special` rather than off `slot.id`, which is the cube the position *arrived* with: a clone
     // or a reflection rewrites the cube standing here and only the first of the two follows it.
     cubeIds: (line || []).map(c => ((c && c.special) ? c.special.id : null)),
+    // **How many cubes the cube standing here is carrying**, nested holds included. The one thing on
+    // this list that isn't visible on the position at all: a captured cube is off the line, so a
+    // sandcrawler with four in it and one with none draw exactly alike. Zero everywhere on a table
+    // with nothing captured, which is nearly every table.
+    holds: (line || []).map(c => ((c && c.slot) ? countHeld(c.slot.held) : 0)),
 });
 exports.lineState = lineState;
 
@@ -1389,18 +1418,23 @@ const resolveLine = function (line, call, bag, opts = {}) {
         .filter(c => c.special && c.face)
         .map(c => ({ id: c.face.from || c.special.id, key: faceKey(c.face) }));
 
+    // **Every slot on the line has a hold, even if it arrived without one.** `throwSet` builds slots
+    // through `slotOf` and those always do, but `resolveLine` is a public entry point and a line
+    // built by hand — a harness, a client replaying a stored roll — can hand over a slot from before
+    // holds existed. Normalised once here so nothing downstream has to ask.
+    for (const c of line) if (c.slot && !Array.isArray(c.slot.held)) c.slot.held = [];
+
     // The bag, as this roll leaves it. Only the Pit Droid touches it.
     const rest = [...(bag || [])];
 
-    // Oovo IV's prisoners, carried by the run rather than by the table — they are not destroyed, they
-    // are held, so they cannot live in a set that only describes what is standing on the line. Copied
-    // in and handed back like the bag, and for the same reason: a caller that ignores it gets a prison
-    // that never fills.
-    const held = [...(opts.jail || [])];
-    // The Scavenger's hold, carried by the run for the same reason the prison is: these cubes are off
-    // the table without being gone. Everything that leaves the line ends up in it — wreckage swept up
-    // at the end of the roll, hauled cubes carried off during it — and `scavenge` takes the last one
-    // in. Order is the whole of the structure.
+    // **The wreckage.** Everything the run has destroyed, swept up at the end of each roll and kept
+    // in the order it was lost — a junkyard, carried by the run because nothing owns it. `scavenge`
+    // reaches into it when the cube doing the scavenging has nothing of its own to fetch.
+    //
+    // Cubes a captor is **holding** are not in here and never were. They are not destroyed, they are
+    // somewhere — inside the cube that took them, on that cube's slot — which is what lets them come
+    // back out with the ice and the scorch marks they went in with, and what makes a captor worth
+    // breaking open. See `slotOf`.
     const hold = [...(opts.hold || [])];
     // **What this roll has already put in the hold**, so the sweep at the end does not put it there a
     // second time. A Jawa taking its turn sweeps the wreckage in early — see the `scavenge` case — and
@@ -1416,6 +1450,14 @@ const resolveLine = function (line, call, bag, opts = {}) {
     // Specials this roll pulled back out of the hold, so the caller can take them off `spent`. A cube
     // standing on the table and listed as shattered is a lie the rack screen would eventually tell.
     const recovered = [];
+    // Cubes that **joined the table mid-roll** and were part of the run before they did: one drawn
+    // off the bag, one salvaged out of the wreckage, one that walked out of a hold. The sweep at the
+    // end has to see these as well as the thrown line, or a cube that came back and was then
+    // destroyed in the same roll leaves the run entirely — it is in neither pile.
+    //
+    // Cubes *conjured* — a reflection, a Fode, a Padmé — are deliberately not in here. They never
+    // joined the set, so a runaway throw cannot fill the junkyard with cubes nobody ever owned.
+    const joined = [];
     // How many rungs this run has walked, **including the one being thrown.** Mon Gazza is the only
     // face that needs it and it is the only number in a roll that is about the run rather than the
     // line, which is why it comes in rather than being derivable from anything here.
@@ -1683,10 +1725,26 @@ const resolveLine = function (line, call, bag, opts = {}) {
         // going to act is not an effect that found nothing to do.
         if (c.frozen) continue;
         const i = at(c);
-        // Destroyed before its turn came round.
+        // Destroyed before its turn came round. A **captured** cube lands here too: it is off the
+        // line and inside somebody, so its turn passes with it.
         if (i < 0) continue;
-        const was = final.map(faceIdOf);
-        const noteAt = notes.length;
+        // The slots standing when this turn began, each with the face it was showing. Slots are
+        // objects and the line holds references to them, so the check after the turn can tell by
+        // identity what this turn took off the line — the same trick the wreckage sweep uses at the
+        // end of the roll, and the reason neither needs the destruction sites to know it exists.
+        const stood = final.filter(x => !x.gone && x.slot).map(x => ({ slot: x.slot, faceId: faceIdOf(x) }));
+        // And the slots this turn **makes**, which is the one way a hold can appear on the line
+        // after `stood` was taken: a clone or a reflection of a captor comes with a copy of the
+        // prisoners. A mirror that writes over a copy it made earlier in the same reflection would
+        // otherwise take that copy's hold down with it, unseen by either end of the check.
+        const made = [];
+        // Cubes this turn has put **back** on the line — a parole, or a hold cracked open. The cube
+        // taking the turn cannot take them again in the same breath: a sentence handed straight back
+        // down would make the parole a lie, and it is the one interaction the two halves of Oovo IV's
+        // turn have with each other.
+        const freshlyFreed = new Set();
+        let was = final.map(faceIdOf);
+        let noteAt = notes.length;
 
         // **A copy needs no payout-side turn of its own.** It used to get one here, because the
         // originals were scored in the first pass and a copy was never in it — every paying kind but
@@ -1735,11 +1793,19 @@ const resolveLine = function (line, call, bag, opts = {}) {
             // property of the cube, so a burnt Wild reflects as a burnt Wild; ice is a property of the
             // *original*, which is the thing Ando Prime froze. The slot is copied rather than shared,
             // or the two would end up as one entry in the set wearing two positions.
+            //
+            // **And it inherits the prisoners.** Rule 2 of capture: a cloned or reflected captor comes
+            // with what it was holding, deep-copied all the way down, so the two cubes are two cubes —
+            // cracking one open has nothing to do with the other. It is the one place in the game that
+            // makes cubes out of nothing and it is deliberate: the copy is a real second cube, and a
+            // real second cube full of real cubes.
             x.slot = {
                 ...(src.slot || plainSlot()),
                 burned: [...(src.slot ? src.slot.burned : [])],
+                held: cloneHeld(src.slot ? src.slot.held : []),
                 frozen: null,
             };
+            if (x.slot.held.length) made.push({ slot: x.slot, faceId: faceIdOf(x) });
             x.frozen = false;
             const f = x.face;
             if (f && f.mirrored) {
@@ -1775,6 +1841,7 @@ const resolveLine = function (line, call, bag, opts = {}) {
             // It was genuinely thrown, so it belongs in the lifetime face tallies like any other throw
             // — against the parent cube if this is a weld, exactly as the thrown line above does it.
             if (special && x.face) faceLog.push({ id: x.face.from || special.id, key: faceKey(x.face) });
+            joined.push(x);
             // **Always live, whoever drew it.** A cube handed over that never acted put a Ratts on the
             // resolved line as a mine that never went off, which is the one face that must never be able
             // to do that. It goes in next, like every other turn handed out mid-pass: slipped in on the
@@ -1788,10 +1855,20 @@ const resolveLine = function (line, call, bag, opts = {}) {
         // The hold's answer to `drawOne`, and the difference between them is the whole of the two
         // cubes: the droid takes a cube the climb had not reached yet, this takes one the climb has
         // already lost. It arrives with the state it left with — a Turbine comes back as hot as it was,
-        // a scorched cube as burnt — because the slot is the cube and it was never destroyed, only put
-        // somewhere. `hauled` is cleared: it is back on the table and nobody is holding it.
-        const liftOne = function () {
-            const slot = { ...slotOf(hold.pop()), hauled: false };
+        // a scorched cube as burnt, its own prisoners still inside it — because the slot **is** the
+        // cube and it was never destroyed, only put somewhere.
+        //
+        // `from` is the list it comes out of and `pick` which end: a cube's own inventory and the
+        // run's wreckage are both piles of slots, and this is what puts one back on the table
+        // whichever pile it was in.
+        const liftOne = function (from, pick = 'pop') {
+            const raw = pick === 'shift' ? from.shift() : from.pop();
+            // **The slot itself where there is one, not a copy of it.** A cube coming out of a hold
+            // is the same cube that went into it, and the sweep at the end of the roll works out
+            // what left the table by slot *identity* — so a fresh object here would leave the
+            // original looking destroyed while the copy stands, and one cube would be in two places:
+            // on the table and in the junkyard, ready to be scavenged back out a second time.
+            const slot = (raw && typeof raw === 'object' && Array.isArray(raw.held)) ? raw : slotOf(raw);
             const special = slot.id ? specialById(slot.id) : null;
             const faces = rollFaces(special, slot);
             const x = settle({
@@ -1802,9 +1879,46 @@ const resolveLine = function (line, call, bag, opts = {}) {
             });
             if (special && x.face) faceLog.push({ id: x.face.from || special.id, key: faceKey(x.face) });
             if (special) recovered.push(special.id);
+            joined.push(x);
+            // A cube that walks out of a hold can be holding cubes of its own, and it can be
+            // destroyed in the same turn that freed it — a plunge taking the end of the line a
+            // parole just put a cube on. `stood` was taken before it existed, so the check needs
+            // telling about it or that second hold goes down with it, unseen.
+            if (x.slot.held.length) made.push({ slot: x.slot, faceId: faceIdOf(x) });
             x.copy = true;
             return giveTurn(x);
         };
+        // **Where a cube coming back onto the table goes.** Immediately to the right of the cube
+        // *taking the turn*, not of the cube that was holding it — the line resolves strictly left to
+        // right, so anything put back behind the walk would sit out the roll it was freed into, and
+        // being freed into a roll you then take no part in is barely being freed at all.
+        //
+        // Anything the actor destroyed **in place** is stepped over, so a released cube cannot land in
+        // the middle of Ben. `i` is the fallback for the one case with no actor left to stand beside:
+        // a captor that destroyed itself, which is where it was standing when it did.
+        const releasePoint = function () {
+            let k = at(c);
+            if (k < 0) return Math.min(Math.max(i, 0), final.length);
+            k += 1;
+            while (k < final.length && final[k].gone) k++;
+            return k;
+        };
+
+        // **Cracks a hold open.** Every prisoner walks, in the order they were taken, thrown and live
+        // — they were never destroyed, so they come back with the ice, the scorch marks, the heat and
+        // the prisoners of their own that they went in with.
+        //
+        // Built before anything is spliced, so the block lands in order rather than each one landing
+        // in front of the last.
+        const spring = function (slot) {
+            if (!slot.held.length) return [];
+            const out = [];
+            while (slot.held.length) out.push(liftOne(slot.held, 'shift'));
+            final.splice(releasePoint(), 0, ...out);
+            out.forEach(x => freshlyFreed.add(x));
+            return out;
+        };
+
         // A live shield on the line: not itself destroyed, and not one that has already been spent
         // stopping something.
         // A live shield on the line. It needs no "already spent" flag: a shield that blocks a mine goes
@@ -1878,6 +1992,28 @@ const resolveLine = function (line, call, bag, opts = {}) {
             const pool = c.special ? c.special.faces.filter(f => f && !OFF_TABLE.has(f.kind)) : [];
             return pool.length ? { ...pool[crypto.randomInt(0, pool.length)] } : null;
         };
+
+        // **Parole, before the face is even looked at.** Rule 4 of capture: a jailer hands one
+        // prisoner back at the start of every turn it takes, whatever it is showing that rung. The
+        // promise belongs to the **cube** and not to any face on it — the sentence outlives the throw
+        // that handed it down — so a die that came up Baroonda this rung still opens the door, and a
+        // die that came up Oovo IV again pays one out before it takes four more in.
+        //
+        // Its own frame, because a cube walking back onto the line is a thing that happened rather
+        // than a footnote to whatever the die did next. That is what `was` and `noteAt` are re-taken
+        // for: the face that follows gets a clean frame of its own.
+        if (c.slot && c.slot.held.length && c.special && JAILERS.has(c.special.id)) {
+            const out = liftOne(c.slot.held, 'shift');
+            final.splice(releasePoint(), 0, out);
+            freshlyFreed.add(out);
+            note(c, 'parole', { faceId: faceIdOf(out), left: c.slot.held.length });
+            const after = final.map(faceIdOf);
+            steps.push({
+                faceIds: after, note: notes[noteAt] || null, at: at(c), ...lineState(final),
+            });
+            was = after;
+            noteAt = notes.length;
+        }
 
         switch (c.face.kind) {
             case 'mirror': {
@@ -2362,19 +2498,37 @@ const resolveLine = function (line, call, bag, opts = {}) {
                 // The scrapped cube is swept separately because it is **not on the thrown line** — it
                 // was taken off before the line was re-parked, which is exactly why the end sweep has
                 // always handled it apart from the rest.
-                const up = new Set(final.filter(x => x && !x.gone).map(x => x.slot));
+                //
+                // **A captured cube is not wreckage**, at any depth, so what a captor is carrying counts
+                // as standing here exactly as it does in the end sweep — otherwise this would fetch a
+                // prisoner out of the junkyard while its captor is still holding it, and the same cube
+                // would be in two places.
+                const up = new Set();
+                const stow = (slots) => { for (const sl of slots) { up.add(sl); stow(sl.held); } };
+                for (const x of final) {
+                    if (!x || x.gone || !x.slot) continue;
+                    up.add(x.slot);
+                    stow(x.slot.held);
+                }
                 const already = new Set(hold);
                 for (const w of wrecked) {
                     if (!w || takenIn.has(w)) continue;
-                    hold.push({ ...w, hauled: false });
+                    hold.push({ ...w });
                     takenIn.add(w);
                 }
                 for (const x of line) {
                     if (!x.slot || up.has(x.slot) || already.has(x.slot) || takenIn.has(x.slot)) continue;
-                    hold.push({ ...x.slot, hauled: false });
+                    hold.push({ ...x.slot });
                     takenIn.add(x.slot);
                 }
-                if (!hold.length) {
+                // **Its own hold first, the junkyard second.** A cube it hauled off the line is
+                // this cube's to fetch back; the wreckage belongs to nobody and is what it reaches
+                // into once its own hold is empty. Both are piles of slots and `liftOne` does not
+                // care which — the order is the whole of the rule, and it is what keeps the two
+                // halves of this cube a loop rather than two unrelated faces sharing a die.
+                const own = (c.slot && c.slot.held.length) ? c.slot.held : null;
+                const from = own || hold;
+                if (!from.length) {
                     note(c, 'scavenge.empty');
                     break;
                 }
@@ -2386,10 +2540,10 @@ const resolveLine = function (line, call, bag, opts = {}) {
                 // frame is labelled with the salvage rather than with whatever the cube happened to roll
                 // on the way back. Same trick and same reason as `draw`.
                 const before = notes.length;
-                const got = liftOne();
+                const got = liftOne(from);
                 const its = notes.splice(before);
                 final.splice(i + 1, 0, got);
-                note(c, 'scavenge', { faceId: faceIdOf(got), special: !!got.special });
+                note(c, 'scavenge', { faceId: faceIdOf(got), special: !!got.special, own: !!own });
                 notes.push(...its);
                 break;
             }
@@ -2403,19 +2557,23 @@ const resolveLine = function (line, call, bag, opts = {}) {
                 // it takes whatever is standing there, up to and including a hot Turbine; and a run that
                 // ends before a `scavenge` comes up never sees the cube again.
                 const target = final[i + 1];
-                if (!target || target.gone) {
+                if (!target || target.gone || freshlyFreed.has(target)) {
                     note(c, 'haul.nothing');
                     break;
                 }
-                // The slot itself rather than a copy of it, so the sweep below can tell a cube that was
-                // carried off from one that was destroyed — they leave the line the same way and only
-                // identity separates them.
-                const slot = target.slot || plainSlot();
-                slot.hauled = true;
-                hold.push(slot);
+                // **Into this cube's own hold**, not into a pile the run keeps: the sandcrawler is
+                // carrying it, which is what makes breaking the sandcrawler open worth doing and what
+                // gives a reflected copy a hold of its own rather than a second door onto the same one.
+                //
+                // The slot itself rather than a copy of it, so the sweep at the end of the roll can
+                // tell a cube that was carried off from one that was destroyed — they leave the line
+                // the same way and only identity separates them.
+                const mine = c.slot || (c.slot = plainSlot());
+                mine.held.push(target.slot || plainSlot());
                 final.splice(i + 1, 1);
                 note(c, 'haul', {
                     faceId: faceIdOf(target), special: !!target.special, at: i + 1,
+                    held: mine.held.length,
                 });
                 break;
             }
@@ -2616,21 +2774,25 @@ const resolveLine = function (line, call, bag, opts = {}) {
                 break;
             case 'jail': {
                 // **Oovo IV.** Up to `jailSize` cubes are taken off the table and held — not
-                // destroyed. One walks out for every rung the run wins, and if this cube is destroyed
-                // they all walk at once. Both valves live in the caller, because both are about the run
-                // rather than the line; all that happens here is the door closing.
+                // destroyed — in **this die's own cell**, which is the whole of what has changed about
+                // the face: the prisoners belong to the cube that took them rather than to the run.
+                // One walks out at the start of every turn the die takes (see the parole above), and
+                // if the die is destroyed they all walk at once (see the crack-open below). Both
+                // valves are the line's now, and both are the same two lines every other hold uses.
                 //
                 // It never takes itself, and it never takes a corpse — a razed wing is already off the
                 // table and imprisoning it would be arresting a body.
-                // **`jailSize` is the size of the prison, not of one arrest.** A Binder cloning the die
-                // or a Mirror reflecting it puts a second `jail` face on the same line, and taking a
-                // fresh four apiece would let one throw empty a table of nine into a cell built for
-                // four. So the room left is what a firing can take, which makes the second one mostly a
-                // no-op — the right answer, and self-limiting without a rule of its own.
-                const room = Math.max(0, config.jailSize - held.length);
+                //
+                // **`jailSize` is the size of the cell, not of one arrest**, so a die that already has
+                // three inside can only take one more. A Binder cloning the die or a Mirror reflecting
+                // it now puts a second *cell* on the line rather than a second door onto one — four
+                // apiece, and each with its own parole to serve — which is rule 2 of capture doing
+                // exactly what it says and is a good deal more dangerous than the shared prison was.
+                const room = Math.max(0, config.jailSize - (c.slot ? c.slot.held.length : 0));
                 const pool = final
                     .map((_, j) => j)
-                    .filter(j => j !== i && final[j] && !final[j].gone && final[j].slot);
+                    .filter(j => j !== i && final[j] && !final[j].gone && final[j].slot
+                        && !freshlyFreed.has(final[j]));
                 if (!pool.length || !room) {
                     note(c, 'jail.nothing');
                     break;
@@ -2641,9 +2803,10 @@ const resolveLine = function (line, call, bag, opts = {}) {
                     taking.push(...rest2.splice(crypto.randomInt(0, rest2.length), 1));
                 }
                 taking.sort((a, b) => a - b);
-                for (const j of taking) held.push(final[j].slot);
+                const cell = c.slot || (c.slot = plainSlot());
+                for (const j of taking) cell.held.push(final[j].slot);
                 for (const j of [...taking].reverse()) final.splice(j, 1);
-                note(c, 'jail', { taken: taking.length, at: i });
+                note(c, 'jail', { taken: taking.length, at: i, held: cell.held.length });
                 break;
             }
             case 'plunge': {
@@ -2803,6 +2966,49 @@ const resolveLine = function (line, call, bag, opts = {}) {
             };
             if (!changed) step.quiet = true;
             steps.push(step);
+        }
+
+        // **Cracking open whatever this turn took off the line.** Rule 3 of capture: destroying a
+        // captor frees its prisoners immediately, and they come back beside the cube taking the turn.
+        //
+        // Checked here rather than at each destruction site, for the same reason the wreckage is swept
+        // in one place: there are a dozen ways off the line — the blast, the wipeout, the burn, the
+        // cull, the raze, the purge, the plunge, a clone or a reflection writing over the position —
+        // and none of them should have to know a hold exists, nor should a path added later be able to
+        // forget. What left the line is what was standing when the turn began and isn't now.
+        //
+        // A cube that was **captured** rather than destroyed is not a cube that left: it is off the
+        // line and inside somebody, which is exactly where it is meant to be. So anything now sitting
+        // in a hold is skipped, at whatever depth it is sitting.
+        //
+        // **After the frame the destruction was drawn on, and with a frame of its own**, because they
+        // are two things: the cube that was carrying them goes, and then they walk back out. Drawn on
+        // one frame it reads as a line that grew for no reason in the middle of something eating it.
+        if (stood.some(x => x.slot.held.length) || made.length) {
+            const standing = new Set();
+            const put = (slots) => { for (const sl of slots) { standing.add(sl); put(sl.held); } };
+            for (const x of final) if (!x.gone && x.slot) { standing.add(x.slot); put(x.slot.held); }
+            for (const { slot, faceId } of [...stood, ...made]) {
+                if (!slot.held.length || standing.has(slot)) continue;
+                const sp = slot.id ? specialById(slot.id) : null;
+                const from = notes.length;
+                const freed = spring(slot);
+                notes.push({
+                    kind: 'hold.break',
+                    faceId,
+                    specialId: sp ? sp.id : null,
+                    specialName: sp ? sp.name : null,
+                    freed: freed.length,
+                });
+                steps.push({
+                    faceIds: final.map(faceIdOf),
+                    note: notes[from],
+                    // The cube that was holding them is gone, so the frame points at nothing rather
+                    // than at whichever cube happens to be standing where it was.
+                    at: -1,
+                    ...lineState(final),
+                });
+            }
         }
 
         // **The table ran away with itself.** Broken *after* the frame, so the last thing that fired
@@ -2999,58 +3205,38 @@ const resolveLine = function (line, call, bag, opts = {}) {
     // knowing the hold exists, and cannot be missed by a path added later.
     //
     // Swept *after* resolution and not during it, which is what stops a cube shattering and being
-    // scavenged back on the same throw. A haul is different and goes in at once: it is a cube being
-    // put somewhere rather than destroyed, and the loop it makes with `scavenge` is meant to close
-    // inside one roll.
-    // The line **as thrown**, so the hold grows with the table rather than with the roll: a cube a
+    // scavenged back on the same throw. A haul is different and happens in its turn: it is a cube
+    // being put somewhere rather than destroyed, and the loop it makes with `scavenge` is meant to
+    // close inside one roll.
+    // The line **as thrown**, so the wreckage grows with the table rather than with the roll: a cube a
     // Mirror conjured and a Tusken then ate never really joined the set, and sweeping it up would let
-    // one runaway throw fill the hold with cubes nobody ever owned.
-    const standing = new Set(final.filter(c => !c.gone).map(c => c.slot));
-    const carried = new Set(hold);
-    // **The scrapped cube goes in ahead of what the roll broke**, which is the order it left the table
-    // in: it was taken while the line was held, before a single effect fired. It is swept here with the
-    // rest and not when the player scrapped it for the reason the rest are swept here — so a Jawa
-    // standing on the same line cannot hand back the cube the player has just thrown away.
-    // `takenIn` is what a Jawa already took in during the roll — see the `scavenge` case. Without it a
-    // cube that broke, was salvaged and is standing on the line again would also be sitting in the
-    // hold, which is one cube in two places.
-    for (const slot of wrecked) if (slot && !takenIn.has(slot)) hold.push({ ...slot, hauled: false });
-    for (const c of line) {
-        if (c.slot && !standing.has(c.slot) && !carried.has(c.slot) && !takenIn.has(c.slot)) {
-            hold.push({ ...c.slot, hauled: false });
-        }
-    }
-
-    // **The rescue.** A hauled cube is held by the cube that took it, so the moment no Scavenger is
-    // standing the sandcrawler is open and every one of them walks out — R2 coming back down the ramp.
-    // Wrecked entries stay put: nothing was holding them, and a hold that spilled its scrap as well
-    // would fire on the first destroyed cube of every climb in the game, Scavenger or no Scavenger.
-    let sprung = [];
-    if (hold.some(h => h.hauled)
-        && !final.some(c => !c.gone && c.special && HOLDERS.has(c.special.id))) {
-        sprung = hold.filter(h => h.hauled).map(h => ({ ...h, hauled: false }));
-        for (let k = hold.length - 1; k >= 0; k--) if (hold[k].hauled) hold.splice(k, 1);
-        notes.push({
-            kind: 'haul.break', faceId: null, specialId: null, specialName: null, freed: sprung.length,
-        });
-    }
-
-    // **The jailbreak.** Oovo IV's prisoners are held by the cube that took them, so the moment that
-    // cube is no longer standing on the line — plunged off an end, culled, razed, cloned over, caught
-    // in a blast — the door comes off and every one of them walks at once. Nothing needs to know *how*
-    // it went; the test is whether a jailer is still there.
+    // one runaway throw fill the junkyard with cubes nobody ever owned.
     //
-    // On this die the answer is almost always `plunge`, which is the loop the cube is built around: the
-    // one face that can destroy the die is the one face that empties its prison.
-    let freed = [];
-    if (held.length && !final.some(c => !c.gone && c.special && JAILERS.has(c.special.id))) {
-        freed = held.splice(0);
-        // No cube did this, so it hangs off no face. Reported all the same — cubes reappearing on the
-        // table with nothing said about them reads as a bug, which is the same argument the rescued
-        // plain cube is announced under.
-        notes.push({
-            kind: 'jail.break', faceId: null, specialId: null, specialName: null, freed: freed.length,
-        });
+    // **A captured cube is not wreckage.** It left the line without being destroyed and it is sitting
+    // in somebody's hold, at whatever depth — so `standing` counts what a captor is carrying as
+    // standing, or the same cube would be in two places at once: inside its captor and in the
+    // junkyard, to be scavenged back out while it is still a prisoner.
+    const standing = new Set();
+    const stow = (slots) => { for (const sl of slots) { standing.add(sl); stow(sl.held); } };
+    for (const c of final) {
+        if (c.gone || !c.slot) continue;
+        standing.add(c.slot);
+        stow(c.slot.held);
+    }
+    //
+    // **Once each.** A slot can now appear twice in what is swept — thrown, carried off into a hold,
+    // let back out mid-roll and destroyed — so the set of what has already been picked up grows as
+    // the sweep runs rather than being taken once at the top of it. Two entries for one cube is a
+    // cube the junkyard would hand back twice.
+    // `takenIn` is the other half of that: a Jawa taking its turn sweeps this roll's wreckage in early
+    // — see the `scavenge` case — and what goes into the hold is a copy, so identity is the only thing
+    // the two sweeps can compare. Without it a cube that broke, was salvaged and is standing again
+    // would also be sitting in the junkyard, which is one cube in two places.
+    const carried = new Set(hold);
+    for (const c of [...line, ...joined]) {
+        if (!c.slot || standing.has(c.slot) || carried.has(c.slot) || takenIn.has(c.slot)) continue;
+        carried.add(c.slot);
+        hold.push({ ...c.slot });
     }
 
     // The slot a surviving position carries into the next level. Read off the cube rather than trusted
@@ -3100,19 +3286,24 @@ const resolveLine = function (line, call, bag, opts = {}) {
         majority,
         pure,
         swept,
-        // What the Planet Octahedron did that isn't to the line. All four are the *run's* business
+        // What the Planet Octahedron did that isn't to the line. All three are the *run's* business
         // rather than the table's, so they are reported and applied by the caller: `sealed` is the side
-        // the next rung can't be called on, and `painted` is what the crowd wrote onto the cubes
-        // is won rather than rolled for, and `jail`/`freed` are the prisoners still held and the ones
-        // a jailbreak just let out.
+        // the next rung can't be called on, and it is the only one left: `lockout` and `boonta` were
+        // retired for the blessing and the crowd, both of which do their work on the cubes and need
+        // nothing from the caller.
+        //
+        // The prison used to be here too. It isn't any more — prisoners belong to the die that took
+        // them and ride the set inside its slot, so they need no valve in the caller and no key on the
+        // ladder node: they come back out on the line, in the roll, where the player can watch it.
         sealed,
-        jail: held,
-        freed,
-        // The Scavenger's hold as this roll leaves it, `sprung` being the hauled cubes a destroyed
-        // Scavenger just let out, and `recovered` the specials a `scavenge` put back on the table so
-        // the caller can take them off `spent`. Carried by the run exactly as the prison is.
+        // **Cubes the line is holding when the dust settles**, nested holds included. Not in
+        // `faceIds`, not in `cubes`, not counted toward anything — they are off the table — but very
+        // much in the run, and impossible to read off the line, because a held cube isn't drawn. A
+        // client that doesn't say this is one where cubes go missing.
+        held: final.reduce((n, c) => n + (c.gone || !c.slot ? 0 : countHeld(c.slot.held)), 0),
+        // The run's wreckage as this roll leaves it, and `recovered` the specials a `scavenge` put
+        // back on the table so the caller can take them off `spent`.
         hold,
-        sprung,
         recovered,
         // `mult` is everything already earned outright — the Greed Cube, and the pure bonus, which
         // needs no winner because a swept line *is* one. `mults` is the sides the Multiplier Cubes

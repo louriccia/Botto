@@ -116,6 +116,7 @@ exports.resolveLine = function (line, call) {
             faces: s.faceIds.map(faceGlyph),
             note: renderNote(s.note),
             at: s.at,
+            holds: s.holds,
         })),
     };
 };
@@ -393,11 +394,17 @@ const badge = record => (record ? ` ${newrecord}` : '');
 // it shrinks, and `7 of 5 cubes` reads as an arithmetic error rather than as a windfall. There is
 // no framing that works in both directions, and the count on the table is the only one the roll is
 // actually played with.
+//
+// `held` is cubes another cube has **captured** — see Capture in the tuning. They are the one thing
+// the row genuinely cannot show, because a cube in a hold isn't drawn at all: the count on the table
+// goes down and nothing on screen says where they went. Appended only when something is actually
+// being held, so a run with no captor on the table draws exactly the header it always drew.
 const levelHeader = function (levelIdx, frame) {
-    const { record, cubes, cubeRecord, multiple, multRecord, again } = frame || {};
+    const { record, cubes, cubeRecord, multiple, multRecord, again, held } = frame || {};
     const level = LEVELS[levelIdx];
     const n = Number.isFinite(cubes) ? cubes : level.cubes;
-    const count = `${n} cube${n === 1 ? '' : 's'}`;
+    const inHold = Math.max(0, Math.floor(Number(held) || 0));
+    const count = `${n} cube${n === 1 ? '' : 's'}${inHold ? ` · ${inHold} held` : ''}`;
     // The cube-count record is badged on the count itself, the way every other record is badged on
     // the value that broke it. Only ever passed on a paying frame: the count is known the moment the
     // line resolves, but the *player* doesn't know it until the effects have played out, and a badge
@@ -779,6 +786,12 @@ exports.storedFaces = storedFaces;
 
 // How many cubes a stored run left on the table, for the header. Read off the rendered faces rather
 // than the set, because the faces are what the frame is drawing and the two are the same length.
+// How many cubes the stored run's captors are holding. Written by the settlement beside the faces,
+// and zero for every run stored before capture existed — correct rather than merely safe, since
+// none of them can be holding anything.
+const storedHeld = ladder => Math.max(0, Math.floor(Number(ladder.held) || 0));
+exports.storedHeld = storedHeld;
+
 const storedCount = function (ladder) {
     return (ladder.faces ? Object.values(ladder.faces) : (ladder.roll || [])).length;
 };
@@ -794,6 +807,7 @@ exports.liveFrame = function (ladder, s) {
         again: Number(ladder.again) || 0,
         bar: s,
         cubes: storedCount(ladder),
+        held: storedHeld(ladder),
         multiple: mult,
         // A standing run is a call that came good, so the line it's resting on wears the tick.
         context: contextLine(ladder.call, ladder.stake, mult, 'win'),
@@ -813,6 +827,7 @@ exports.deadFrame = function (dead, s) {
         again: Number(dead.again) || 0,
         bar: dead.again ? s : null,
         cubes: storedCount(dead),
+        held: storedHeld(dead),
         multiple: Number(dead.mult) || LEVELS[dead.level].payout,
         context: contextLine(dead.call, dead.stake, Number(dead.mult) || 0, 'bust'),
         faces: storedFaces(dead),
@@ -847,6 +862,7 @@ exports.tieFrame = function (pending, s) {
         bar: s,
         record: pending.level > s.bestLevel,
         cubes: storedCount(pending),
+        held: storedHeld(pending),
         multiple: Number(pending.mult) || LEVELS[pending.level].payout,
         // No tick and no cross: the whole question is still open, which is the point of the screen.
         context: contextLine(pending.call, pending.stake, Number(pending.mult) || 0),

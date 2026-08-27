@@ -1972,8 +1972,16 @@ down two cubes a level by `drawCubes`. It uses the same `0`-for-plain encoding a
 same Firebase reason.
 
 `set` is the run's memory: one slot per cube on the table, holding a special's id or `null` for an
-ordinary cube. It is what makes damage permanent — a destroyed cube is simply absent from it, and a
-special written over comes back as `null`. `growSet` adds the level's two new cubes to it and
+ordinary cube — plus everything done to that cube that outlives the throw that did it: the faces
+Baroonda has scorched off it, the ice holding it, the heat on a Turbine, and the cubes it has
+**captured**. It is what makes damage permanent — a destroyed cube is simply absent from it, and a
+special written over comes back as `null`.
+
+A slot with nothing done to it still encodes as a bare id, so most of a set is unchanged and every
+set written before slots existed reads back as a set of untouched ones. A slot carrying a **hold**
+encodes as `{ id, held: [...] }`, and `held` is a list of slots exactly like it — so a captor holding
+a captor is one slot on the table however deep the nest goes. See *Capture* in `tuning.js` for the
+four rules, and `scripts/cubeHolds.js` for the proof that nothing is lost or conjured by them. `growSet` adds the level's two new cubes to it and
 `throwSet` throws the result; `resolveLine` returns the survivors as the next level's set. `setBefore`
 is the same thing one level earlier, kept only on a [parked tie](#210-ties) so a reroll can replay
 the level from the table as it stood before its new cubes went on.

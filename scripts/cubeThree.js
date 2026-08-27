@@ -95,18 +95,22 @@ check('a plain clean slot still encodes as 0', engine.encodeSet([engine.plainSlo
 check('heat encodes as an object',
     engine.encodeSet([{ id: 'turbine', burned: [], frozen: null, heat: 3, hauled: false }]),
     [{ id: 'turbine', heat: 3 }]);
-check('hauled encodes as an object',
-    engine.encodeSet([{ id: 'wild', burned: [], frozen: null, heat: 0, hauled: true }]),
-    [{ id: 'wild', hauled: true }]);
+// A hold encodes as an object and nests all the way down, which is the one shape a slot has that
+// isn't a scalar. `hauled` used to live here as a flag: a cube being carried is a cube sitting in
+// somebody's `held` now, so membership says it and there is no flag to keep in step.
+check('a hold encodes as an object',
+    engine.encodeSet([engine.slotOf({ id: 'scavenger', held: [{ id: 'wild' }] })]),
+    [{ id: 'scavenger', held: ['wild'] }]);
 check('heat round-trips', engine.decodeSet(engine.encodeSet([
-    { id: 'turbine', burned: [], frozen: null, heat: 4, hauled: false },
+    { ...engine.plainSlot(), id: 'turbine', heat: 4 },
 ]))[0].heat, 4);
-check('hauled round-trips', engine.decodeSet(engine.encodeSet([
-    { id: 'wild', burned: [], frozen: null, heat: 0, hauled: true },
-]))[0].hauled, true);
-check('a set written before either existed reads back clean',
+check('a hold round-trips, nested',
+    engine.decodeSet(engine.encodeSet([
+        engine.slotOf({ id: 'scavenger', held: [{ id: 'scavenger', held: [{ id: 'wild' }] }] }),
+    ]))[0].held[0].held[0].id, 'wild');
+check('a set written before any of it existed reads back clean',
     engine.decodeSet(['wild', 0])[0], {
-        id: 'wild', burned: [], painted: [], frozen: null, heat: 0, hauled: false, blessed: false,
+        id: 'wild', burned: [], painted: [], frozen: null, heat: 0, blessed: false, held: [],
     });
 
 // ---------------------------------------------------------------------------
@@ -171,7 +175,7 @@ const specialOf = function (id, kind) {
         side: null,
         special: sp,
         face: faceOf(sp, kind),
-        slot: { id, burned: [], painted: [], frozen: null, heat: 0, hauled: false },
+        slot: { ...engine.plainSlot(), id },
     };
 };
 const guideOn = function (spec, call) {
@@ -211,57 +215,58 @@ const scav = (spec, call, opts) => engine.resolveLine(
     opts,
 );
 
+// **What it hauls goes into its own hold, not into the junkyard.** The distinction is the whole of
+// the capture rules — see `scripts/cubeHolds.js`, which owns them — and it is asserted here too
+// because this is the cube's own harness and the two halves of it have to agree.
 const hauled = scav(['red', 'scavenger.haul', 'blue', 'red'], 'red');
 check('a haul takes the cube on its right off the line', hauled.faceIds.length, 3);
-check('a haul puts it in the hold', hauled.hold.length, 1);
-check('a hauled cube is flagged as held', hauled.hold.filter(h => h.hauled).length, 1);
+check('a haul puts it in the crawler', hauled.held, 1);
+check('and not in the wreckage — it was never destroyed', hauled.hold.length, 0);
+check('the hold rides the slot', hauled.set.find(sl => sl.id === 'scavenger').held.length, 1);
 
 const nothing = scav(['red', 'red', 'scavenger.haul'], 'red');
 check('a haul at the tail takes nothing', nothing.faceIds.length, 3);
 ok('and says so', nothing.notes.some(n => n.kind === 'haul.nothing'));
 
-// **The recovery is re-drawn until the cube that comes back is not a mine, and that is the fix for a
-// flake this test carried for a long time.** `liftOne` rolls a face for whatever it lifts, and the Wild
-// is four wilds and two Ratts — so one recovery in three detonated and took these three assertions with
-// it. Measured at 33.3% under an unbounded blast and 34.2% at `blastReach 1`, i.e. exactly the Wild's own
-// mine rate and nothing to do with the blast.
-//
-// Substituting an inert cube was tried and there isn't one: a Mirror reflects and changes the line
-// length, a Multiplier and a Boost carry wipeouts, a Greed and a Guide carry mines. So the scenario is
-// re-rolled instead, which keeps the assertions exactly as written and tests the Scavenger rather than
-// the dice of whatever is in the hold. What a *detonating* recovery does is the mine's business and is
-// covered where the mine is.
-let back = null;
-for (let i = 0; i < 200; i += 1) {
-    back = scav(['red', 'scavenger.scavenge', 'red'], 'red', {
-        hold: [{ id: 'wild', burned: [], painted: [], frozen: null, heat: 0, hauled: false }],
-    });
-    if (!back.notes.some(n => n.kind === 'end' || n.kind === 'end.shielded')) break;
-}
+// A Gungan rather than a Wild, deliberately: a salvaged cube is **live** and takes its own turn, so
+// what comes back has to be a cube that cannot change the answer. The shield is the only one in the
+// rack with no mine and no wipeout on it — six faces, all of them inert unless something explodes.
+const back = scav(['red', 'scavenger.scavenge', 'red'], 'red', {
+    hold: [engine.slotOf('gungan')],
+});
 check('a scavenge puts the cube back on the line', back.faceIds.length, 4);
-check('and empties the hold by one', back.hold.length, 0);
-check('and reports what it recovered', back.recovered, ['wild']);
+check('and empties the wreckage by one', back.hold.length, 0);
+check('and reports what it recovered', back.recovered, ['gungan']);
+
+// Given both a hold of its own and a junkyard, it reaches into its own first — which is what makes
+// haul-then-salvage a loop on one cube rather than two faces sharing a die.
+const crawler = specialOf('scavenger', 'scavenge');
+crawler.slot.held = [engine.slotOf('gungan')];
+const mine = engine.resolveLine(
+    [plainOf('red'), crawler, plainOf('red')], 'red', [], { hold: [engine.slotOf('anakin')] },
+);
+check('a scavenge takes its own hold before the junkyard', mine.recovered, ['gungan']);
+check('and leaves the junkyard alone', mine.hold.map(sl => sl.id), ['anakin']);
 
 const empty = scav(['red', 'scavenger.scavenge', 'red'], 'red');
 check('an empty hold is a quiet frame', empty.faceIds.length, 3);
 ok('and says so', empty.notes.some(n => n.kind === 'scavenge.empty'));
 
-// The rescue: hauled cubes walk the moment no Scavenger is standing, and wreckage does not.
+// The rescue: a hauled cube walks the moment the cube carrying it leaves the line, and it walks
+// **in the roll**, beside whatever destroyed it — not between rungs.
 const springs = scav(['red', 'scavenger.haul', 'blue', 'red'], 'red');
-ok('a haul with the scavenger still standing holds', !springs.sprung.length,
-    'the sandcrawler is on the line, so nothing walks');
+check('a haul with the crawler still standing holds', springs.held, 1);
+ok('and nothing broke open', !springs.notes.some(n => n.kind === 'hold.break'));
 
 const gone = scav(['red', 'scavenger.haul', 'blue', 'symbiont.raze'], 'red', {});
-ok('a scavenger razed off the line springs its hold',
-    !gone.set.some(s => s.id === 'scavenger') ? gone.sprung.length > 0 : true,
-    `sprung ${gone.sprung.length} with set ${JSON.stringify(gone.set.map(s => s.id))}`);
+ok('a crawler razed off the line spills its hold',
+    gone.set.some(sl => sl.id === 'scavenger') || gone.held === 0,
+    `held ${gone.held} with set ${JSON.stringify(gone.set.map(sl => sl.id))}`);
 
 const wreck = scav(['red', 'symbiont.cull', 'blue', 'red'], 'red');
-ok('wreckage lands in the hold', wreck.hold.length > 0, JSON.stringify(wreck.hold));
-ok('and none of it is flagged as held', !wreck.hold.some(h => h.hauled),
+ok('wreckage lands in the junkyard', wreck.hold.length > 0, JSON.stringify(wreck.hold));
+ok('and nobody is holding it', wreck.held === 0,
     'nothing is holding scrap, so nothing can break it out');
-ok('so wreckage alone never springs', !wreck.sprung.length,
-    'a hold that spilled its scrap would fire on every climb in the game');
 
 // Conservation, over real climbs: a cube in the hold is a cube that is not on the table, and it is
 // never both and never neither.
@@ -269,16 +274,19 @@ let holdMax = 0;
 let leaks = 0;
 for (let r = 0; r < Math.min(CLIMBS, 20000); r++) {
     let set = [
-        { id: 'scavenger', burned: [], painted: [], frozen: null, heat: 0, hauled: false },
+        engine.slotOf('scavenger'),
         engine.plainSlot(), engine.plainSlot(), engine.plainSlot(), engine.plainSlot(),
     ];
     let hold = [];
     for (let rung = 0; rung < 6 && (set.length || hold.length); rung++) {
         const res = engine.resolveLine(engine.throwSet(set), 'blue', [], { hold });
+        // Both piles round-trip through storage every rung, which is where a hold on a slot would
+        // quietly stop surviving.
         hold = engine.decodeSet(engine.encodeSet(res.hold));
-        set = [...res.set, ...(res.sprung || [])];
+        set = engine.decodeSet(engine.encodeSet(res.set));
         if (hold.some(h => h.id === undefined)) leaks += 1;
-        holdMax = Math.max(holdMax, hold.length);
+        if (set.some(sl => !Array.isArray(sl.held))) leaks += 1;
+        holdMax = Math.max(holdMax, hold.length + res.held);
     }
 }
 check('nothing in the hold is malformed', leaks, 0);
