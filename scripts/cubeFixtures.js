@@ -212,14 +212,15 @@ const WANTED = {
     octaScorch: r => r.steps.some(s => s.note?.kind === 'scorch'),
     octaJail: r => r.steps.some(s => s.note?.kind === 'jail'),
     octaPlunge: r => r.steps.some(s => s.note?.kind === 'plunge'),
-    // The two that change what a *button* does rather than what the line does. They are the only
-    // fixtures in the file whose whole point is the frame after the roll, so the client has something
-    // to build the struck-through call and the struck-through bank against.
+    // The one that changes what a *button* does rather than what the line does: the only fixture in
+    // the file whose whole point is the frame after the roll, so the client has something to build the
+    // struck-through call against.
+    //
+    // **There were three.** `octaLocked` wanted a sealed bank and `octaBoonta` a tie won outright, and
+    // both faces are retired — the blessing and the crowd replaced them. A want nothing can satisfy is
+    // not a gap in the sweep, it is a line that reports one forever, so they are gone rather than
+    // left to print `not found` on every run.
     octaSealed: r => !!r.settled?.sealed,
-    octaLocked: r => !!r.settled?.locked,
-    // A tie won outright, which draws with no cube of Watto's on screen at all — the one tie in the
-    // game that resolves without his.
-    octaBoonta: r => r.steps.some(s => s.note?.kind === 'boonta'),
     // The die's only payer, on the count walk, where its number is a function of the rung rather than
     // of the face. Same reason `boost` earns its own entry.
     octaSeam: r => (r.pays || []).some(p => p.note?.kind === 'pay.seam'),
