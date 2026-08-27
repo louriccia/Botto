@@ -2224,36 +2224,6 @@ const resolveLine = function (line, call, bag, opts = {}) {
                 break;
         }
 
-        // **Cracking open whatever this turn took off the line.** Rule 3 of capture: destroying a
-        // captor frees its prisoners immediately, and they come back beside the cube taking the turn.
-        //
-        // Checked here rather than at each destruction site, for the same reason the wreckage is swept
-        // in one place: there are a dozen ways off the line — the blast, the wipeout, the burn, the
-        // cull, the raze, the purge, the plunge, a clone or a reflection writing over the position —
-        // and none of them should have to know a hold exists, nor should a path added later be able to
-        // forget. What left the line is what was standing when the turn began and isn't now.
-        //
-        // A cube that was **captured** rather than destroyed is not a cube that left: it is off the
-        // line and inside somebody, which is exactly where it is meant to be. So anything now sitting
-        // in a hold is skipped, at whatever depth it is sitting.
-        if (stood.some(x => x.slot.held.length) || made.length) {
-            const standing = new Set();
-            const put = (slots) => { for (const sl of slots) { standing.add(sl); put(sl.held); } };
-            for (const x of final) if (!x.gone && x.slot) { standing.add(x.slot); put(x.slot.held); }
-            for (const { slot, faceId } of [...stood, ...made]) {
-                if (!slot.held.length || standing.has(slot)) continue;
-                const sp = slot.id ? specialById(slot.id) : null;
-                const freed = spring(slot);
-                notes.push({
-                    kind: 'hold.break',
-                    faceId,
-                    specialId: sp ? sp.id : null,
-                    specialName: sp ? sp.name : null,
-                    freed: freed.length,
-                });
-            }
-        }
-
         // A frame for every face that took a turn, whether or not the line moved under it. The note that
         // came with it is the label.
         //
@@ -2287,6 +2257,49 @@ const resolveLine = function (line, call, bag, opts = {}) {
             };
             if (!changed) step.quiet = true;
             steps.push(step);
+        }
+
+        // **Cracking open whatever this turn took off the line.** Rule 3 of capture: destroying a
+        // captor frees its prisoners immediately, and they come back beside the cube taking the turn.
+        //
+        // Checked here rather than at each destruction site, for the same reason the wreckage is swept
+        // in one place: there are a dozen ways off the line — the blast, the wipeout, the burn, the
+        // cull, the raze, the purge, the plunge, a clone or a reflection writing over the position —
+        // and none of them should have to know a hold exists, nor should a path added later be able to
+        // forget. What left the line is what was standing when the turn began and isn't now.
+        //
+        // A cube that was **captured** rather than destroyed is not a cube that left: it is off the
+        // line and inside somebody, which is exactly where it is meant to be. So anything now sitting
+        // in a hold is skipped, at whatever depth it is sitting.
+        //
+        // **After the frame the destruction was drawn on, and with a frame of its own**, because they
+        // are two things: the cube that was carrying them goes, and then they walk back out. Drawn on
+        // one frame it reads as a line that grew for no reason in the middle of something eating it.
+        if (stood.some(x => x.slot.held.length) || made.length) {
+            const standing = new Set();
+            const put = (slots) => { for (const sl of slots) { standing.add(sl); put(sl.held); } };
+            for (const x of final) if (!x.gone && x.slot) { standing.add(x.slot); put(x.slot.held); }
+            for (const { slot, faceId } of [...stood, ...made]) {
+                if (!slot.held.length || standing.has(slot)) continue;
+                const sp = slot.id ? specialById(slot.id) : null;
+                const from = notes.length;
+                const freed = spring(slot);
+                notes.push({
+                    kind: 'hold.break',
+                    faceId,
+                    specialId: sp ? sp.id : null,
+                    specialName: sp ? sp.name : null,
+                    freed: freed.length,
+                });
+                steps.push({
+                    faceIds: final.map(faceIdOf),
+                    note: notes[from],
+                    // The cube that was holding them is gone, so the frame points at nothing rather
+                    // than at whichever cube happens to be standing where it was.
+                    at: -1,
+                    ...lineState(final),
+                });
+            }
         }
 
         // **The table ran away with itself.** Broken *after* the frame, so the last thing that fired
