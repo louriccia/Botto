@@ -6,6 +6,13 @@
 table; this documents the eight-sided planet die that now sits beside it — the rules, the reasoning,
 and everything the measurement said that the design did not.
 
+**Amended once, and the amendment is marked throughout.** Two faces were replaced — `boonta` and
+`lockout`, for the **crowd** and the **blessing** — and one of §1's constraints was revised to allow
+them. What drove it was `docs/behaviour-matrix.md`, which plots every face in the game by what it does
+against how far it reaches: the die held four of the game's five `binds` faces, and two of the emptiest
+cells on the whole grid — *nothing guards a cube*, and *nothing ever adds to one* — turned out to be
+this cube's to fill. §9's numbers predate all of it and are marked where they are now stale.
+
 Coverage is `scripts/cubeOctahedron.js`, which `cubeParity.js` deliberately does not cover: the frozen
 reference engine predates this cube, so a climb fielding it is not a divergence in the ported rules.
 
@@ -24,6 +31,18 @@ to draw as a planet *and* as a colour, and the one-glyph-one-position rule exist
 position drawn as two glyphs is a position players count as two. So no planet face can produce a
 side, which means **the die is sideless on all eight faces, on every throw.** It is a permanent tie
 machine. That is the single biggest balance fact about it and §6 is where it gets paid for.
+
+> **Amended — this was two rules wearing one coat.** *One picture per position* is absolute and
+> stands. *A face is either a side or an effect* was a consequence of it, true given the tools of the
+> time, and it is no longer: a position now carries state that is not a glyph. `paintState` already
+> writes `frozen`, `charred` and `burning` onto one, and the char is the proof — a charred face
+> **lands, counts toward no colour, and does nothing**, which is the engine already holding "what a
+> face does" and "which side it counts for" apart and setting both to nothing.
+>
+> So a face may now do a thing *and* count for a side, provided the side rides on the face's colour
+> rather than on a second glyph. The picture says what it does; the tint says who it votes for. See
+> *The third layer* in §3. The die is still sideless on all eight faces as it comes off the shelf —
+> nothing paints itself, and only another die can paint one.
 
 **A cube with no wipeout and no mine never leaves the table.** The Sebulba note in `tuning.js` is the
 record of what that does: an effect that only ever helps is re-applied at every level for the rest of
@@ -45,21 +64,24 @@ See §7 — it is one change, not three, and it is the thing to scope before any
 | **Ando Prime** | `freeze` | Both neighbours keep the face they are showing into the next rung and take no turn. | 2 |
 | **Aquilaris** | `vault` | The side you just called is sealed. Next rung, you must call the other one. | 2 |
 | **Baroonda** | `scorch` | Burns the face each neighbour is showing **off that cube**, for the rest of the climb. | 3 |
-| **Malastare** | `lockout` | Seals the bank. You cannot cash out until you clear the next level rung. | 1 |
+| **Malastare** | `blessing` | One cube at random cannot be destroyed this rung — a mine included. | 2 |
 | **Mon Gazza** | `seam` | **+0.5** on the run's multiple for every rung already cleared this run. | 1 |
 | **Oovo IV** | `jail` | Imprisons up to four cubes. One out per rung won; all out if the die is destroyed. | 3 |
 | **Ord Ibanna** | `plunge` | The cubes at the **head and the tail** of the line fall into the chasm. | 3 |
-| **Tatooine** | `boonta` | If the roll ties, you win it. | 2 |
+| **Tatooine** | `crowd` | Paints one face on each neighbour over in the colour leading the line, for the rest of the climb. | 3 |
 
 Points follow the existing convention in `POINTS`: **3** restructures the shape of the line, **2** is
-positional or otherwise moves one thing, **1** is the floor for turning up, **0** is a corpse. The die
-averages **2.125** against a plain cube's 1, so it is a strong points cube as well as an effect one —
-worth about +1.1% of the stake a throw at `pointValue`, which is a sweetener rather than a second
-scoring axis, exactly as intended.
+positional or otherwise moves one thing, **1** is the floor for turning up, **0** is a corpse. The
+crowd scores 3 because it restructures a *cube* rather than the line, which is the more permanent of
+the two; the blessing scores 2 for protecting one thing, the same as the Gungan Shield.
+
+The die averages **2.375** against a plain cube's 1, up from 2.125 — worth about +1.4% of the stake a
+throw at `pointValue`, still a sweetener rather than a second scoring axis, but a slightly richer one
+than the design signed off on. It is on the list in §6 of things this amendment made stronger.
 
 ---
 
-## 3. Ice and fire
+## 3. Ice, fire and paint
 
 **Ando Prime and Baroonda are one mechanic pointed two ways.** Both take both neighbours — the
 geometry Symbiont's raze already uses, so it is a shape players have seen. Ice locks a face **on**;
@@ -112,6 +134,19 @@ Burning the **landed** face rather than a random one is what makes it readable a
 the thing being destroyed is on screen at the moment it is destroyed. It also flips how a line reads
 — a wipeout or a Ratts landing next to Baroonda is suddenly **good news**.
 
+> **The engine diverged from this section and is being brought back to it.** At some point after
+> shipping, `scorch` stopped removing the face and started leaving it in the pile to land and do
+> nothing — `allFaces` and `isCharred`, added in `7df11e6b` alongside the Turbine. The reason is
+> recorded at `engine.js:2298`: removing a face *concentrates the rest*, so a Wild Cube charred of a
+> wild went from a 1-in-6 mine to a 1-in-5 one, and the fire made the cube more dangerous.
+>
+> This section already answered that — see the counterweight paragraph below — and the removal model
+> is what the amendment restores. Everything in this section is true again as written. What goes with
+> it: `isCharred`, `charredFace` and `lineState.charred` are deleted, and the Turbine keeps its own
+> `slot.heat` rather than going back to piggybacking `burned`. The two are separate mechanics now and
+> should stay that way: **a heat is consumed, a scorch is removed, and only one of them shortens the
+> cube on purpose.**
+
 **One face of the six, and only that one.** A scorch takes the single face the cube landed on out of
 its face list — it does not take the *kind*. A Wild Cube is five wilds and a Ratts; scorching a wild
 leaves **four wilds and a Ratts**, not a cube with no wilds on it.
@@ -157,13 +192,82 @@ scorches total, spread across whatever happened to be adjacent. If it does measu
 target rather than the count: *specials only, plain cubes immune* removes the common case and leaves
 the rack-reshaping half intact.
 
+### Tatooine — `crowd`
+
+> The crowd backs whoever is ahead. One face on each neighbour is painted over in the colour leading
+> the line, for the rest of the climb. On a tie, the crowd has nobody to back and paints the home
+> colours — the side you called.
+
+**It is the third face on the same target**, and that is why it lives here rather than with the
+singles. Ando Prime holds the face a neighbour is showing, Baroonda burns it off, Tatooine paints it
+over. One target, three verbs, and a player who has learned one has most of the other two.
+
+**It paints; it does not flip.** This was the first draft and the difference is the whole face. A flip
+turns the neighbours' shown sides and decides *this* rung; a paint changes the cube and decides every
+rung after it. The flip version was almost free to be hit by — amplifying a lead that is already
+against you costs nothing, because a loss is a loss whatever the margin. **The paint is not free**: a
+cube painted the enemy colour votes against you for the rest of the climb, on a table you keep
+drawing from. That is what makes the face genuinely two-way rather than a bandwagon with no downside.
+
+**A face that isn't already that colour.** Painting the shown face would be a no-op most of the time —
+the leading colour is by definition the majority of what is showing, so a neighbour's shown face
+usually already matches it. It takes the shown face where that face isn't already the leader, and
+another where it is. A cube already painted end to end is a real endpoint and the face passes over
+it, exactly as the scorch floor works.
+
+**Both neighbours**, matching Baroonda. Two faces of permanent change per landing is a lot over a
+climb, which is the point: this is the face that makes a run's table *drift*.
+
+**And the drift is what sharpens Aquilaris.** §4 argues that the vault costs nothing in EV and a great
+deal in position, rack-dependent rather than flat. The crowd makes the rack change under the player:
+a climb that keeps winning on blue ends up with a blue-leaning table, and then the vault seals blue
+and shoves it onto red with a table that no longer votes for it. Two faces on one object, one loading
+over a whole climb and the other pulling the trigger. Nothing about the vault changed; it just got a
+partner.
+
+**It replaces `boonta`, and the measurement is what condemned it** — see §9: 22–26% of rungs tie with
+the die on the table and `boonta` answered one throw in eight, so the design's "boonta closes the
+loop" was closing an eighth of it. The crowd does not close it either, but it does something on the
+other seven eighths, and on the tie it hands over a permanent asset rather than a single rung.
+
+*In the Activity:* a painted face draws its own art tinted to the side it counts for, so one position
+is still one picture. See *The third layer* in §3.
+
+### The third layer — what a face is now
+
+The amendment in §1 is a rules change above the level of any one face, so it is written here rather
+than inside Tatooine's section. **A face now has four properties, and one die face touches each:**
+
+| | what it is | who touches it |
+|---|---|---|
+| the picture | what the face does | — |
+| alive or charred | whether it does it | **Baroonda** removes it |
+| held or free | whether it turns over | **Ando Prime** freezes it |
+| which side it counts for | how the line counts it | **Tatooine** paints it |
+
+**Storage is the scorch's, mirrored.** `burned` is a multiset of face *ids* on the slot, and which of
+four identical wilds got burnt is never recorded — `isCharred` rolls it per landing at *burnt-of-that-id
+over all-of-that-id*, which is the same distribution as tracking a particular one. `painted` is the
+same list with a side attached, stored as `id:side` strings so the Firebase codec stays the flat string
+array it already is. A cube with three Greeds and one painted blue is *each Greed landing has a
+one-in-three chance of being the blue one*, which needs no new machinery and no new round-trip.
+
+**Invert needs no rule.** It changes how the line counts, not what the cubes are — a plain cube's blue
+face is not repainted red by an invert, it counts red for that roll and comes up blue next throw. A
+painted face is a side on the line and gets exactly that treatment.
+
+**A painted planet face does its thing and votes.** That only happens if a Binder or a Mirror has
+duplicated the die and the copy is standing next to the original, so it is rare enough to be a story
+rather than a rule, and no special case is written for it. Nothing paints itself.
+
 ---
 
-## 4. The vault and the arena
+## 4. The vault
 
-**Aquilaris and Malastare are the second pair, and they are about the buttons rather than the cubes.**
-The call and the bank are the only two things a player actually decides in this mode, and no cube has
-ever reached either.
+**Aquilaris is about the buttons rather than the cubes.** The call and the bank are the only two
+things a player actually decides in this mode, and no cube had ever reached either. It was a pair with
+Malastare's bank lock; the amendment spent the lock, so the vault stands alone — and gains a partner
+of a different kind in the crowd, which changes the table the vault then locks you out of half of.
 
 ### Aquilaris — `vault`
 
@@ -181,35 +285,37 @@ cost is rack-dependent rather than flat, which is the good kind.
 One rung to start. Sealing for the **rest of the run** is the harsher dial and can always be turned
 later; taking the only choice the game offers away for a whole climb is much harder to walk back.
 
-### Malastare — `lockout`
-
-> The bank is sealed. You cannot cash out until you clear the next level rung.
-
-Malastare is merciless in the lore and this is the mechanical version of it: not taking your money,
-taking your way out.
-
-**It aims the punishment at exactly the right rungs.** A level push is EV **1.000** — forcing one
-costs nothing but nerve. An **Again** push is `M → M+1`, and the entire house edge in this mode lives
-in the Agains. So *locked until the next level* is precisely a rule that marches the player through
-the only stretch of road the house makes money on. Malastare is not a punishment bolted onto the
-economy; it is the house's own face on the die.
-
-**And the cost scales with how much road is left.** On a collapsed route the next rung *is* a level,
-so it is one fair push and barely a scratch. On a fresh prestige with a full gap of Agains standing
-in it — five, at `maxClears` — it is that many bad bets in a row with no exit. Malastare is at its
-most merciless immediately after a prestige and nearly harmless by the end of a cycle — the opposite
-of how a flat punishment behaves.
-
-Past Level 5 there are no level rungs left to clear, so **in overtime it lasts one rung**. That is
-preferred over an exemption because it keeps the face live everywhere and needs no "does this apply"
-check.
-
-*In the Activity:* the Bank button is struck through and wears Malastare's mark, so the player can see
-*why* it is dead.
-
 ---
 
 ## 5. The four singles
+
+### Malastare — `blessing`
+
+> Nugtosh's blessing. One cube on the line, chosen at random, cannot be destroyed this rung. A mine
+> included. It never blesses the die.
+
+**It is the only thing in the game that guards a cube.** `docs/behaviour-matrix.md` is what turned
+this up: ten faces destroy something, three guard anything at all, and not one of them guards a cube —
+the Gungan Shield guards a boundary, the Reroll guards the run, and `boonta` guarded an outcome. The
+emptiest region on the grid, on the cube that does most of the destroying.
+
+**One rung, and that is the whole of the balance.** The mine question answers itself once the duration
+is fixed. A blessing that lasts *until spent* accumulates — a deep run holds several, mine-immunity
+stops being an event and becomes a state, and the one thing that ends a run stops being real. A
+blessing that lasts **one rung** cannot be hoarded, planned around or stacked, so letting it stop a
+mine costs nothing and buys the best moment on the cube: *while Malastare is showing, the run cannot
+end.* Under the wipe rule in `engine.js:1793` any survivor keeps the run alive, so one blessed cube is
+one saved climb.
+
+**It does not undercut the Gungan Shield.** The shield is aimable, contains a blast across a whole
+flank, persists as a boundary and can be built toward. The blessing saves one cube nobody picked,
+once, and cannot be planned for. Strictly worse in every respect except that it is free.
+
+**Random rather than handed**, which is the more expensive choice and the right one. A handed blessing
+is a rule; a random one is a moment, and this is the one face on the die whose whole value is the
+moment.
+
+**It replaces `lockout`, and that is this amendment's real cost.** §6 accounts for it.
 
 ### Mon Gazza — `seam`
 
@@ -246,46 +352,57 @@ that is already sideless everywhere.
 itself*. That single fact makes it:
 
 - the die's **only** self-destruct path, in the absence of a wipeout face;
-- the **jailbreak** — every prisoner Oovo IV was holding spills back onto the table;
-- the **release** for Malastare's bank lock.
+- the **jailbreak** — every prisoner Oovo IV was holding spills back onto the table.
 
-Three cruelties, one key, and the key is a cube you cannot aim. That is what makes eight rules read as
-one object rather than a list.
-
-### Tatooine — `boonta`
-
-> If the resolved line ties, you win it.
-
-No roll, no lean, no interaction with Qui-Gon's Nudge to reason about. It is dead unless the roll
-ties — but the die is sideless on all eight faces and three of them actively chew the count, so
-Tatooine fires far more often on this die than the same face would anywhere else. **The die creates
-the problem one of its own faces solves**, which is the loop that makes it whole.
+Two cruelties and one key, and the key is a cube you cannot aim. It was three before the amendment
+spent the bank lock; the key got simpler rather than weaker, and it still opens the one lock the
+design had to engineer the tie rule around.
 
 ---
 
 ## 6. What the shape adds up to
 
-Two pairs and four singles:
+One trio and five singles:
 
 ```
-  ice / fire        Ando Prime  ·  Baroonda      both neighbours; lock a face on / burn one off
-  the controls      Aquilaris   ·  Malastare     takes your call / takes your exit
-  the singles       Mon Gazza      pays for depth
+  the shown face    Ando Prime  ·  Baroonda  ·  Tatooine
+                    hold it        burn it off     paint it over
+  the singles       Aquilaris      takes your call
+                    Malastare      saves one cube, once
+                    Mon Gazza      pays for depth
                     Oovo IV        imprisons
-                    Ord Ibanna     destroys — and is the key to all three cruelties
-                    Tatooine       wins the ties the rest of the die causes
+                    Ord Ibanna     destroys — and is the key to the prison
 ```
 
-**The die's cost is paid three times over**, which it has to be, because nothing on it shatters:
-Malastare takes the exit, Ord Ibanna takes cubes, Oovo IV takes cubes and hands them back slowly. Set
-against one payer, one guaranteed tie-win, and two faces that are as likely to hurt as help. If the
-measurement comes back over Wild's ~1.3 the first dial is **Mon Gazza's rate** and the second is
-Baroonda's target — not the downside faces, which are what make it interesting.
+**The die's cost is now paid twice, not three times**, and that is the thing to watch. Ord Ibanna
+takes cubes and Oovo IV takes cubes and hands them back slowly; the exit is no longer taken at all.
+Set against that: one payer, one guard, and a trio on the shown face of which one burns, one holds and
+one paints either way. Nothing on this cube shatters, so the price still has to live inside the
+planets, and the amendment moved the price in the wrong direction on three counts at once —
 
-**The nastiest combination on the die is `jail` + `lockout`.** Four cubes gone and no way to leave the
-gutted line, pushing a short and tie-prone table through a gap. Both faces are on the same object.
-That is the merciless read taken all the way and it is probably correct for a mythical, but it is the
-pairing that will produce the complaints, and it should be chosen deliberately rather than discovered.
+- **a negative left** (`lockout` took the exit, and it was the house's own face: a level push is EV
+  1.000, an Again push is `M → M+1`, and locking the bank until the next level marched the player
+  through the only stretch of road the house makes money on);
+- **a positive arrived** (`blessing` saves a climb outright, one throw in eight);
+- **the points average rose** from 2.125 to 2.375.
+
+Against which the crowd is genuinely two-way and can paint a table against its owner for a whole
+climb, and `boonta`'s guaranteed tie-win is gone.
+
+**Measured, and the die is up about four points.** See §9 — it reads **1.077** against a bare ladder
+where it read 1.038 before. That is small, and it is the one figure in three sweeps that moved in the
+opposite direction to every untouched cube in the same run, which is what makes it a reading rather
+than noise. The mechanism is almost certainly the **tie tax**: the crowd converts a straggler to the
+leading side *on the rung it fires*, which breaks ties before they happen — and §9 already names the
+tie tax as the die's real cost, at 22–26% of rungs lost 60% of the time.
+
+If that wants trimming, the dials in order are **Mon Gazza's rate**, Baroonda's target, and — new —
+whether the crowd paints one neighbour rather than two.
+
+**The nastiest combination on the die was `jail` + `lockout`** — four cubes gone and no way to leave
+the gutted line — and the amendment removed it by removing half of it. What replaces it as the worst
+roll is `jail` followed by `plunge` on a short table, which is two faces doing the same thing rather
+than two faces compounding, and is a milder object.
 
 ---
 
@@ -327,6 +444,11 @@ as they do now.
 **Everything else is small:** eight new kinds need `POINTS` entries and cases in the engine's two
 passes, and Malastare's lock is one flag on the ladder node beside `mult` and `carry`, cleared on a
 level push.
+
+> **Amended.** The lock and its flag come out entirely. What arrives in their place is a fourth slot
+> field, `painted`, which is `burned` with a side attached and rides the same codec — see *The third layer* in §3 — and
+> a per-rung "cannot be destroyed" mark for the blessing, which needs no storage at all because it
+> does not survive the throw.
 
 **One thing turned out not to be small, and it was the thing dismissed as an embed problem.** The rack
 screen sheds weight in tiers because discord.js throws on a description over 4,096 characters, and it
@@ -407,6 +529,62 @@ throw in eight. That is the whole of the gap between the ~1.2 the design predict
 measured. It is a price worth paying at this level, but the design's claim that "boonta closes the
 loop" is *softer* than it reads: boonta closes an eighth of it.
 
+> **This paragraph is what condemned `boonta`**, and the amendment does not claim to fix it. The tie
+> tax is unchanged and the eighth that was being closed is now closed by nothing. What the crowd buys
+> instead is that the same eighth does something on the other seven — and, over a climb, paint reduces
+> ties on its own by giving effect faces a colour to count toward. Whether that is worth more or less
+> than a guaranteed tie-win is the first thing the re-measure should answer.
+
+> **Everything below this line predates the amendment**, and was measured with `boonta` and `lockout`
+> on the cube. The tie figures and the deadlock rate still stand; the EV table is superseded by the
+> sweep immediately below.
+
+### The amendment, swept
+
+`scripts/cubeOctahedron.js 400000` — 200,000 runs a rack, the same process either side, the amendment
+being the only difference between them.
+
+| rack | before | after | Δ |
+|---|---|---|---|
+| bare ladder | 1.000 | 1.000 | — |
+| Wild | 1.149 | 1.138 | −0.011 |
+| Greed | 1.042 | 0.991 | −0.051 |
+| Gungan Shield | 0.994 | 0.964 | −0.030 |
+| Mirror | 0.960 | 0.957 | −0.003 |
+| **the die** | **1.038** | **1.077** | **+0.039** |
+| **the die in a rack** | **1.158** | **1.167** | **+0.009** |
+
+**The four cubes in the middle are the measurement.** Wild, Greed, the Gungan Shield and the Mirror are
+fielded alone, no die on the table, so not one rule touching them changed. They are what the noise looks
+like — and in this run all four moved **down**, between −0.003 and −0.051, while the die moved **up**.
+The magnitude is inside their spread; the direction is not, and that is the whole of the signal.
+
+**Three sweeps, and the third is the one that moved.** The first two — the amendment with the crowd
+resolving after the count, and again with the blessing made persistent — both read the die at 1.025 to
+1.030 and were called flat, correctly. What changed for the third is that the crowd was moved into the
+turn order, which had a consequence nobody costed: a painted position counts for its new colour **on the
+rung it was painted**, so the crowd now converts stragglers to the leading side *before the count*. That
+breaks ties before they happen, and the tie tax is the die's largest single cost.
+
+So the amendment's own three — a negative gone, a positive arrived, the points average up — really do
+cancel. The four points are the crowd's turn order, and they were bought for legibility rather than
+balance: the face was invisible where it was.
+
+What it cannot say is anything about how the paint plays. The harness banks at the top on a fixed call
+policy and every run starts from a fresh set, so it collects the crowd's drift *within* a climb and has
+no way to play around a table painted against it — which is precisely the decision the face exists to
+create. That is a thing to watch on a real table rather than a thing to sweep for.
+
+**What the faces did**, over 709,535 throws:
+
+```
+  blessing   10.28%    the only face that finds something to do on every landing
+  crowd       6.85%    a third of its landings are cancelled by the die dying first
+  the rest     ~8.1%   uniform, as they have always been
+  78,693 faces painted over
+  12,635 cubes a blessing kept on the table
+```
+
 Everything else held. Faces fire at 8.2–9.0% apiece, a scorch never takes a cube below its last face,
 ice lasts exactly one throw, a plunge takes exactly two positions, the prison never exceeds four and
 never holds anyone with no jailer standing.
@@ -426,4 +604,36 @@ never holds anyone with no jailer standing.
 - **Tatooine leaning the tie-breaker 60/40** — winning the tie outright is simpler, needs no
   interaction with Qui-Gon's Nudge, and is a better story.
 - **A planet face that IS a side.** It would need a planet glyph that draws as red or blue, which is
-  exactly the two-glyphs-one-position failure the whole face rule exists to prevent.
+  exactly the two-glyphs-one-position failure the whole face rule exists to prevent. **Amended** — a
+  face may now *count* for a side while drawing as itself, because the side rides on a tint rather
+  than a second glyph. What stays cut is a face that is *only* a side. See §1 and *The third layer* in §3.
+- **`boonta`** — Tatooine winning a tie outright. Cut for the crowd, on the strength of §9: it
+  answered one throw in eight of a problem the die causes on every one, and it duplicated an outcome
+  the player could already buy with a Bribe. It was also the closest legal approximation of a wild
+  under the old §1 constraint — which is exactly why it read as a wild with extra steps.
+- **`lockout`** — Malastare sealing the bank. Cut for the blessing, and it is the one cut in this list
+  that costs more than it saves: it was the house's own face on the die and the die's third price.
+  Rehousing it onto Oovo IV was considered and rejected — §6 already named `jail` + `lockout` as the
+  pairing that would produce the complaints, and merging them would fire it on every prison instead of
+  on one throw in sixty-four.
+
+---
+
+## Parked
+
+Not cut — waiting for somewhere to live.
+
+- **The bounty** — *pays for every cube in the hold.* It fills the one gap on the die's own row in
+  `docs/behaviour-matrix.md` that nothing else does: the bag, the hold and the prison are three
+  stockpiles that grow all run, and **nothing pays for them, protects them or destroys them.** It is
+  also the rare payer that is anti-correlated with the run going well.
+
+  It is not on the die, because a payer that scales with carnage sitting on the cube that causes most
+  of it is a rebate on the price the die has to pay. It is not on the **Scavenger** either, which is
+  the perfect mechanical fit — its own note already says *"every other cube is worth more when the run
+  is going well; this one is worth exactly as much as the rest of the rack has failed"*, which is the
+  bounty's thesis word for word — because "Scavenger" does not read like a bounty, and the rack is at
+  sixteen cubes of six faces each, which is a shape worth protecting.
+
+  So it waits for a **sixth tree**: a bounty wants siblings that share its axis, and *pays for what the
+  run has lost* has more than one cube in it.

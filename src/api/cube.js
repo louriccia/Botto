@@ -348,9 +348,17 @@ module.exports = function mountCube(app, ctx) {
         line: thrown.res.faceIds,
         frozen: thrown.res.frozen,
         burned: thrown.res.burned,
-        // Which positions landed on a face Baroonda had already been at — dead where they stand, and
+        // Which positions are standing on a face the crowd painted, and what colour. The client tints
+        // the art to it — one picture, still saying what the face does, and the tint saying which side
+        // it counts for. See `lineState`.
+        painted: thrown.res.painted,
+        // Which positions are standing on a face Baroonda has just burnt — dead where they stand, and
         // counting toward nothing. See `lineState`.
         charred: thrown.res.charred,
+        // Which cubes are carrying Nugtosh's blessing. Unlike the ice this is not a fact about the
+        // throw — it was given on some earlier rung and it is still there — so the board has to be able
+        // to draw it on every line until something spends it.
+        blessed: thrown.res.blessed,
         cubeIds: thrown.res.cubeIds,
         steps: thrown.res.steps,
         notes: thrown.res.notes,

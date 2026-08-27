@@ -595,6 +595,9 @@ exports.cubeState = function (user_profile) {
             total: Math.max(0, Math.floor(Number(c.ties?.total) || 0)),
             rolled: Math.max(0, Math.floor(Number(c.ties?.rolled) || 0)),
             bribed: Math.max(0, Math.floor(Number(c.ties?.bribed) || 0)),
+            // **Read but never written any more.** Tatooine took a tie outright until `boonta` was
+            // retired; the tally stays so a profile that earned some keeps them, and so the lifetime
+            // total still adds up on a player who was there for it.
             boonta: Math.max(0, Math.floor(Number(c.ties?.boonta) || 0)),
             blue: Math.max(0, Math.floor(Number(c.ties?.blue) || 0)),
             red: Math.max(0, Math.floor(Number(c.ties?.red) || 0)),
@@ -897,11 +900,10 @@ exports.recordRoll = function (s, patch, {
 //
 // Called from `settleThrow`, which runs exactly once per throw — a parked tie does not settle until it
 // is answered, so there is no double count on the resume.
-exports.recordTie = function (s, patch, { bribed, breaker, boonta, call }) {
+exports.recordTie = function (s, patch, { bribed, breaker, call }) {
     const t = { ...s.ties };
     t.total += 1;
-    if (boonta) t.boonta += 1;
-    else if (bribed) t.bribed += 1;
+    if (bribed) t.bribed += 1;
     else if (breaker) {
         t.rolled += 1;
         if (breaker === 'blue') t.blue += 1;

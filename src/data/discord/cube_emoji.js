@@ -82,11 +82,11 @@ const FACE_EMOJI = {
     freeze: planetGlyph(0), // Ando Prime — ice holds a face
     vault: planetGlyph(1), // Aquilaris — the doors seal a side
     scorch: planetGlyph(2), // Baroonda — lava takes a face off a cube
-    lockout: planetGlyph(3), // Malastare — the arena seals the bank
+    blessing: planetGlyph(3), // Malastare — Nugtosh's blessing, and the cube it lands on
     seam: planetGlyph(4), // Mon Gazza — the spice seam pays for depth
     jail: planetGlyph(5), // Oovo IV — the prison
     plunge: planetGlyph(6), // Ord Ibanna — the chasm
-    boonta: planetGlyph(7), // Tatooine — the Boonta, and the tie
+    crowd: planetGlyph(7), // Tatooine — the Boonta crowd, backing whoever is ahead
     // A position the reveal hasn't turned over yet.
     hidden: ChanceCube,
 };

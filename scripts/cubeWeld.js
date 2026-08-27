@@ -621,12 +621,12 @@ const makeWorld = function (cube = {}) {
     // The two picks the press was never told about
     // -----------------------------------------------------------------------
     //
-    // Deep Cuts names the parent the major share lands on and The Keeper names a face the cut has to
-    // carry. Both were implemented in `orderFor` and `pickWith` and neither was ever passed by a caller —
-    // `weldCubes` and `rerollWeld` built every weld in the game blind — so these two rows are here to
-    // stop that being true again quietly. `pressPicks` in the actions is the gate; this measures the
-    // engine below it.
-    console.log('  the named shares · rung 4 names the major half, and it halves the chase');
+    // `major` names the parent the major share of an uneven cut lands on and The Keeper names a face
+    // the cut has to carry. Both were implemented in `orderFor` and `pickWith` and neither was ever
+    // passed by a caller — `weldCubes` and `rerollWeld` built every weld in the game blind — so these
+    // two rows are here to stop that being true again quietly. `pressPicks` in the actions is the
+    // translation above this; this measures the engine below it.
+    console.log('  the named shares · naming the major half halves the chase');
     const shareOf = (id, who) => (id.split('+').map(s => s.split(':')).find(s => s[0] === who) || [])[1].length;
     const majorRate = function (opts) {
         let uneven = 0;

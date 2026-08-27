@@ -1103,12 +1103,12 @@ of which **five count**, and you can see that by looking at it.
 | **Shmi** | 4 red, 1 blue, **1 × Ratts** | Forces red — red was his mother. |
 | **Anakin** | 4 blue, 1 red, **1 × Ratts** | Forces blue — blue was the boy. |
 | **Mirror** | 3 × 🪞, 3 × 🔄 | Reflects everything to its left onto its right — **special cubes included** — or inverts the whole line. |
-| **Symbiont** | Tusken, Ben, 2 × Fode, 2 × Padme | Takes one cube at random, razes both neighbours into **one wide Ben**, or **slips two new cubes in** either side of itself — a red and a blue for Fode, matching twins for Padmé. |
+| **Symbiont** | Tusken, Ben, 2 × Fode, 2 × Padme | Shoots one cube at random out of everything it can **see** — as far as the nearest shield either way, and no further — razes both neighbours into **one wide Ben**, or **slips two new cubes in** either side of itself: a red and a blue for Fode, matching twins for Padmé. |
 | **Shortcut** | 5 × shortcut, **1 × Ratts** | A free clear, if the level is won. |
 | **Reroll** | 3 × reroll, **1 × Ratts**, 2 × wipeout | Banks **+1 reroll** if the level is won, and stays on the table. Only a wipeout shatters it. |
 | **Binder** | 3 burn, 3 clone | Burns the cube on its right, or makes it a **copy of the cube on its left**. A clone at the head of the line destroys instead; at the tail it adds. |
 | **Multiplier** | 2 red, 2 blue, 2 × wipeout | **+1** on the run's multiple, but only if that face's side is the one that wins. |
-| **Gungan Shield** | 5 × shield, 1 × wipeout | Stops a mine's blast on its own side of the line, and is destroyed doing it. Also holds a neighbouring cube together through a wipeout, which costs it nothing. |
+| **Gungan Shield** | 5 × shield, 1 × wipeout | Stops anything that has to **cross** it — a mine's blast, a Tusken's shot — and is destroyed by whatever reaches its own position. Also holds a neighbouring cube together through a wipeout, which costs it nothing. |
 | **Pit Droid** | 5 × draw, 1 × purge | Pulls another cube out of the **back of the bag** and slips it in on its right, thrown and live. On a rack of eight or fewer that front-loads the climb; on a bigger one it is the **only** way to reach the cubes the levels never get to. The purge scraps every special on the line, itself included. |
 | **Boost** | 4 × boost, 2 × wipeout | **+0.25** per position on the resolved line — it pays for a table that got away from you rather than for anything it did itself. |
 | **Sebulba** | 2 × engine left, 2 × engine right, 2 × wipeout | Points an engine one way and burns that cube over to your call, but only if it landed against you. The direction is rolled, which nothing else in the game does. |
@@ -1144,6 +1144,22 @@ Two faces are the price of all that, and they are on the cubes that pay best:
   is a tie for Watto to break and has always been survivable. Having no line *at all* is the different
   thing. An unshielded blast takes every position and gets there; a shielded one never does, because the
   shield it was stopped by is left standing, and a position on the table is a roll still going.
+
+  **The Tusken's shot is stopped by the same lookup.** The cull picks out of everything the Tusken can
+  see — out to the nearest live shield on either flank, that shield included — rather than uniformly
+  from the whole line, which is what it did when it was the one destructive face in the game with
+  unlimited range and no counter. The reach shapes the *choice* rather than being checked after it: a
+  victim rolled first and then blocked would spend nothing, show nothing and read as the face being
+  broken, where culling out of what it can see means the Tusken always hits something and the shield
+  **draws fire** instead of deleting the effect. A shield standing next to one is quite likely to eat
+  the bolt itself, which is the picture.
+
+  That gives the Gungan one sentence instead of a list: **it stops anything that has to cross it, and
+  goes with whatever reaches its own position.** Every other destructive face falls out of that
+  sentence for free — burn, Ben and the Sandcrawler all act on a position they are touching, so
+  nothing can ever stand between them and it, and a purge is not travel at all. Ice keeps its own
+  rule on top: a shot at a *frozen* shield shatters the ice, and the Gungan walks away thawed and
+  still in the way. See `scripts/cubeTusken.js`, which measures the reach on hand-built lines.
 
   He used to end it by *being visible on the final line*, which was the invariant while he stayed put in
   his own crater. That had to go with him: it made his position the one place the blast could not reach,
@@ -1237,8 +1253,8 @@ effect steps in one roll **9**. That last number retires a claim in
 act. Nothing caps the animation now, so all nine play.
 
 **Symbiont's raze is the only destructive face that keeps parity**, because it takes both neighbours
-at once; Tusken's cull takes exactly one — never itself, chosen uniformly from every other position
-on the line — so it flips it.
+at once; Tusken's cull takes exactly one — never itself, chosen uniformly from every position it can
+see — so it flips it.
 
 **The Mirror doubles the half behind it.** This section used to claim the reflection *cancelled*
 what it copied, so that a full one handed the decision to whatever lay beyond it. That was simply

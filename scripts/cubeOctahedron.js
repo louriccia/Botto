@@ -83,17 +83,136 @@ check('the bag stays bare ids', engine.decodeBag(engine.encodeBag(['wild', null]
 // `liveFaces` is where the scorch actually bites, and the floor with it.
 check('an untouched Wild has six faces', engine.liveFaces(die && SPECIALS.find(s => s.id === 'wild'), []).length, 6);
 {
+    // **Counted off the cube rather than typed.** These read `5 wild + 1 Ratts` once, which was the
+    // Wild Cube then and has not been since it was cut to three and three — so they failed for a year
+    // describing an engine that was right. What the scorch does is a ratio, so the ratio is what is
+    // asserted and the face list is where the numbers come from.
     const wild = SPECIALS.find(s => s.id === 'wild');
+    const of = (faces, kind) => faces.filter(f => f.kind === kind).length;
+    const wilds = of(wild.faces, 'wild');
+    const mines = of(wild.faces, 'end');
     const noRatts = engine.liveFaces(wild, ['end']);
-    check('scorching the Ratts leaves five wilds', noRatts.length, 5);
-    ok('and none of them is a mine', !noRatts.some(f => f.kind === 'end'));
+    check('scorching a mine takes exactly one', of(noRatts, 'end'), mines - 1);
+    ok('and leaves the wilds alone', of(noRatts, 'wild') === wilds);
+    ok('and thins the mines', of(noRatts, 'end') / noRatts.length < mines / wild.faces.length,
+        'burning a bad face has to make it rarer — that is the case the fire is played for');
     const oneWild = engine.liveFaces(wild, ['wild']);
-    check('scorching a wild takes exactly one', oneWild.filter(f => f.kind === 'wild').length, 4);
-    ok('and concentrates the mine', oneWild.filter(f => f.kind === 'end').length === 1,
+    check('scorching a wild takes exactly one', of(oneWild, 'wild'), wilds - 1);
+    ok('and concentrates the mine', of(oneWild, 'end') / oneWild.length > mines / wild.faces.length,
         'burning a good face has to make the bad one likelier — that is what pays for the other case');
     check('the floor holds', engine.liveFaces(wild, ['wild', 'wild', 'wild', 'wild', 'wild', 'end', 'end']).length,
         config.minFaces);
     check('a plain cube scorches to 3-2', engine.liveFaces(null, ['side:blue']).filter(f => f.side === 'blue').length, 2);
+}
+
+// **A charred face is remains: it stands there and counts for nothing.**
+//
+// Both halves, because the face is both and shipping only one of them is exactly what went wrong. The
+// cube loses the face for the rest of the climb — that is `liveFaces` above — and the position in front
+// of you stops being a cube: no side toward the count, no points, no payout, no turn. Without the second
+// half a Ratts charred by the Baroonda beside it detonates anyway, which is the case the face exists for.
+{
+    const bare = id => ({ id, burned: [], painted: [], frozen: null, heat: 0, hauled: false, blessed: false });
+    let seen = 0;
+    let counted = 0;
+    let paid = 0;
+    let scored = 0;
+    for (let t = 0; t < 20000 && seen < 400; t += 1) {
+        const res = engine.resolveLine(
+            engine.throwSet([bare('greed'), bare(DIE), bare('greed'), bare(null)]),
+            'blue', [], { jail: [], rungs: 2 },
+        );
+        (res.charred || []).forEach((dead, at) => {
+            if (!dead) return;
+            seen += 1;
+            // `cubes` is only the positions that counted, so a charred one showing a colour would make
+            // it longer than the sides actually on the line.
+            if ((res.pays || []).some(p => p.at === at)) paid += 1;
+            if ((res.pointsAt || []).includes(at)) scored += 1;
+        });
+        counted += res.cubes.length;
+    }
+    ok('a charred position is reached at all', seen > 0, 'nothing was scorched in 20,000 throws');
+    check('and it pays nothing', paid, 0);
+    check('and it scores no face points', scored, 0);
+    ok('and it counts toward no colour',
+        engine.pointsOf({ face: { id: 'greed', kind: 'charred' }, side: null }) === 0);
+}
+
+// **A blessing outlives the rung it was given on**, which is the whole of what separates it from the
+// one-rung mark it was first written as — and the difference is invisible inside a single throw, so it
+// is measured across the carry. A line of plain cubes has nothing on it that can destroy anything, so
+// a blessing put on one has to still be there however many times the set is thrown.
+{
+    const blessed = () => ({ id: null, burned: [], painted: [], frozen: null, heat: 0, hauled: false, blessed: true });
+    let set = [blessed(), { ...blessed(), blessed: false }, { ...blessed(), blessed: false }];
+    let held = true;
+    for (let rung = 1; rung <= 6; rung += 1) {
+        const res = engine.resolveLine(engine.throwSet(set), 'blue', [], { jail: [], rungs: rung });
+        held = held && res.set.filter(x => x && x.blessed).length === 1;
+        set = res.set;
+    }
+    ok('a blessing survives six throws of a quiet line', held,
+        'nothing on a plain line can spend one, so the only thing that could take it off is the rung ending');
+}
+
+// **The Jawa salvages what this roll broke, the player's own scrap included.**
+//
+// Both halves are measured because both were once the other way. A cube destroyed earlier in the same
+// line used to be unreachable until settlement, which made the Scavenger a delayed payout rather than a
+// reaction; and the cube the player *scrapped* used to be held back on the grounds that a Jawa handing
+// it over refunds a purchase. Neither holds now: Scrap takes a cube off the line, the Scavenger is the
+// cube that pulls things back onto it, and a rack fielding both lives with the tension it built.
+//
+// **No cloner in this rack, deliberately.** A Binder cloning a salvaged cube puts two of it on the line,
+// which looks exactly like the duplication bug this is here to catch and is not one.
+{
+    const bare = id => ({ id, burned: [], painted: [], frozen: null, heat: 0, hauled: false, blessed: false });
+    let salvaged = 0;
+    let scrapBack = 0;
+    let twice = 0;
+    let turns = 0;
+    for (let t = 0; t < 4000; t += 1) {
+        const res = engine.resolveLine(
+            engine.throwSet([bare('scavenger'), bare(null), bare(null), bare('wild')]),
+            'blue', [], { jail: [], rungs: 2, wrecked: [bare('greed')] },
+        );
+        const kinds = res.notes.map(n => n.kind);
+        if (!kinds.includes('scavenge') && !kinds.includes('scavenge.empty')) continue;
+        turns += 1;
+        if (kinds.includes('scavenge')) salvaged += 1;
+        const onLine = res.set.filter(x => x && x.id === 'greed').length;
+        const inHold = (res.hold || []).filter(x => x && x.id === 'greed').length;
+        if (onLine) scrapBack += 1;
+        if (onLine + inHold > 1) twice += 1;
+    }
+    ok('a Jawa salvages what the same roll destroyed', salvaged > 0,
+        `took ${turns} turns and salvaged nothing — the roll's own wreckage is not reaching the hold`);
+    ok('and the cube the player scrapped is fair salvage', scrapBack > 0);
+    // The bug the early sweep can produce if the two sweeps do not agree: the cube standing on the line
+    // *and* sitting in the hold, because the one at the end of the roll swept it a second time.
+    check('and nothing ends up in two places at once', twice, 0);
+}
+
+// **A paint is a mark on one copy of a face, not on the face id**, which is the same rule the scorch
+// obeys and for the same reason: a cube carries three faces under `side:red` and the crowd visited one
+// of them. Read off the id instead and one visit turns all three, which is a cube fused to a colour in
+// a single landing rather than in three — and then refuses to take any further paint, because the id
+// already reads blue. Measured rather than asserted structurally: the whole mechanism is a draw.
+{
+    const N = 30000;
+    const painted = marks => ({ id: null, burned: [], painted: marks, frozen: null, heat: 0, hauled: false });
+    const blueRate = function (marks) {
+        let blue = 0;
+        for (let i = 0; i < N; i++) if (engine.throwSet([painted([...marks])])[0].side === 'blue') blue += 1;
+        return blue / N;
+    };
+    const one = blueRate(['side:red|blue']);
+    ok('one red painted blue is four faces in six', Math.abs(one - (4 / 6)) < 0.02,
+        `measured ${(one * 100).toFixed(1)}%, want 66.7% — a mark on one copy, not on the id`);
+    const all = blueRate(['side:red|blue', 'side:red|blue', 'side:red|blue']);
+    ok('and three of them is the whole cube', all > 0.995,
+        `measured ${(all * 100).toFixed(1)}%, want 100% — three paints fuse a plain cube to a colour`);
 }
 
 // ---------------------------------------------------------------------------
@@ -101,8 +220,9 @@ check('an untouched Wild has six faces', engine.liveFaces(die && SPECIALS.find(s
 // ---------------------------------------------------------------------------
 
 const stats = {
-    throws: 0, freeze: 0, scorch: 0, vault: 0, lockout: 0, seam: 0, jail: 0, plunge: 0, boonta: 0,
+    throws: 0, freeze: 0, scorch: 0, vault: 0, blessing: 0, seam: 0, jail: 0, plunge: 0, crowd: 0,
     heldFaces: 0, thawed: 0, iced: 0, burned: 0, leanFree: 0, plungeSelf: 0, jailbreak: 0,
+    painted: 0, spared: 0, blocks: 0,
 };
 
 // A rack with the die and enough around it for the positional faces to have neighbours worth having.
@@ -111,7 +231,6 @@ const RACK = [DIE, 'wild', 'greed', 'binder', 'symbiont', 'multiplier'];
 for (let t = 0; t < CLIMBS; t++) {
     let set = [slot(null), slot(DIE), ...RACK.slice(1).map(slot), slot(null), slot(null)];
     let jail = [];
-    let locked = false;
     let sealed = null;
     const call = t % 2 ? 'red' : 'blue';
 
@@ -133,15 +252,66 @@ for (let t = 0; t < CLIMBS; t++) {
         // A scorched plain cube draws off its own faces, which is the one draw the daily lean cannot
         // reach. Asserted structurally: it has no `face`, so it must have come off `PLAIN_FACES`.
         for (const c of line) {
-            if (!c.special && c.slot.burned.length) {
+            if (!c.special && (c.slot.burned.length || c.slot.painted.length)) {
                 stats.leanFree++;
-                ok('a scorched plain cube still lands on a colour', c.side === 'red' || c.side === 'blue');
+                ok('a got-at plain cube still lands on a colour', c.side === 'red' || c.side === 'blue');
             }
         }
 
         const res = engine.resolveLine(line, call, [], { jail, rungs: rung });
         const kinds = res.notes.map(n => n.kind);
-        for (const k of ['freeze', 'scorch', 'vault', 'lockout', 'seam', 'jail', 'plunge', 'boonta']) {
+
+        // **The crowd paints the leader, and paint is what a face counts for.** Every mark it writes
+        // has to be readable back off the slot as a side, or the position it lands on next rung counts
+        // toward nothing and the face has quietly done nothing at all.
+        const crowded = res.notes.find(n => n.kind === 'crowd');
+        if (crowded) {
+            stats.painted += crowded.painted;
+            check('the crowd paints at most both neighbours', crowded.painted <= 2, true);
+            ok('and paints a side', crowded.side === 'red' || crowded.side === 'blue');
+            // **Read off the frame and not off the carried set.** The crowd takes its turn now, so a
+            // cube it painted can be destroyed by something later in the same roll — the mark going
+            // with it is correct, and asserting the set still carries one fails on a legitimate roll.
+            const marks = (res.steps || [])
+                .flatMap(x => (x.painted || []))
+                .filter(Boolean);
+            ok('and every mark names a side',
+                marks.every(m => m === 'red' || m === 'blue'));
+            // **It takes its turn like everything else**, which is the whole of what moving it out of
+            // the after-count pass bought: a frame in fire order, and a tint the player sees land.
+            const frame = (res.steps || []).find(x => x.note && x.note.kind === 'crowd');
+            ok('and it gets a frame in the turn order', !!frame,
+                'a face resolved after the count is past the end of the walk that hands out frames');
+            ok('and the paint is on that frame', !!frame && (frame.painted || []).some(Boolean),
+                'the tint is drawn off the frame, so a paint that is not on it is a paint nobody sees');
+        }
+
+        // **The blessing rides the cube, and one thing takes it off: using it.**
+        //
+        // The invariant that matters is *persistence* — it was written as a one-rung mark first, which
+        // is a completely different face, and the difference is invisible inside a single throw. So it
+        // is asserted across the carry: a blessing given on this rung has to be on the set the next one
+        // is thrown from, and the only thing that clears one is a destroyer being turned away.
+        const blessed = res.notes.find(n => n.kind === 'blessing');
+        if (blessed) ok('a blessing names a face', typeof blessed.faceId === 'string');
+        // **A plunge always takes two or takes none**, which is what keeps it parity-preserving on a die
+        // that is sideless everywhere else — a blessed cube on an end does not stop it, it makes the
+        // ledge crumble one further in. Persistence is asserted in the controlled test above rather than
+        // here: on a rack with a mine in it a blessed cube can be destroyed, or spend the blessing, on
+        // the roll it was given, and neither is a failure.
+        const fell = res.notes.find(n => n.kind === 'plunge');
+        if (fell) {
+            check('a plunge still takes two', fell.destroyed, 2);
+            ok('and it takes them from the ends inward', Array.isArray(fell.at) && fell.at.length === 2);
+        }
+        // Nothing else clears one. Counted rather than asserted per-throw: a blessing can leave with the
+        // cube it was on, which is not the same as being spent.
+        const blocks = kinds.filter(k => k.endsWith('.blessed')).length
+            + res.notes.filter(n => Number(n.spared) > 0).length;
+        stats.blocks += blocks;
+        const sparedBy = res.notes.filter(n => Number(n.spared) > 0);
+        for (const n of sparedBy) stats.spared += n.spared;
+        for (const k of ['freeze', 'scorch', 'vault', 'blessing', 'seam', 'jail', 'plunge', 'crowd']) {
             if (kinds.includes(k)) stats[k]++;
         }
         if (kinds.some(k => k.endsWith('.iced'))) stats.iced++;
@@ -186,15 +356,13 @@ for (let t = 0; t < CLIMBS; t++) {
         // Settle the run-level half the way `settleWin` does, so the next rung is thrown against a
         // table the game would actually have built.
         if (!res.faceIds.length) break;
-        const majority = res.majority || (res.boonta ? call : null);
+        const majority = res.majority;
         if (majority !== call) break;
 
         jail = [...res.jail];
         const released = [...res.freed];
         if (jail.length) released.push(jail.shift());
         set = [...res.set, ...released];
-        if (locked && rung > 1) locked = false;
-        if (res.lockout) locked = true;
         sealed = res.sealed || null;
     }
 }
@@ -263,8 +431,6 @@ const makeWorld = function () {
 (async () => {
     const world = makeWorld();
     let sealedSeen = 0;
-    let lockedSeen = 0;
-    let boontaSeen = 0;
     let jailSeen = 0;
 
     for (let t = 0; t < 4000; t++) {
@@ -277,12 +443,6 @@ const makeWorld = function () {
             const ctx = world.ctxOf();
             const thrown = actions.throwLevel(ctx, run);
             if (thrown.asking) { actions.parkTie(ctx, thrown); break; }
-            if (thrown.boonta) {
-                boontaSeen++;
-                check('a Boonta tie is never asked about', thrown.asking, false);
-                check('a Boonta tie is never priced', thrown.cost, 0);
-                check('a Boonta tie goes the player way', thrown.breaker, run.call);
-            }
             const settled = await actions.settleThrow(ctx, { thrown });
             if (settled.outcome !== 'live') break;
 
@@ -297,15 +457,6 @@ const makeWorld = function () {
                 check('and says why', blocked.code, 'sealed');
                 const other = settled.sealed === 'red' ? 'blue' : 'red';
                 ok('the other side still pushes', actions.pushRun(world.ctxOf(), { call: other }).ok);
-            }
-
-            // **A sealed bank is refused**, with the standing left exactly where it was.
-            if (settled.locked) {
-                lockedSeen++;
-                const banked = actions.bank(world.ctxOf());
-                check('the bank is refused', banked.ok, false);
-                check('and says why', banked.code, 'locked');
-                ok('the run is still live', !!world.db.ch.cube.ladders[ME]);
             }
 
             if (settled.jailed) jailSeen++;
@@ -394,9 +545,8 @@ const makeWorld = function () {
                 if (settled && settled.outcome !== 'live') break;
                 const live = persist.ladderOf(world.db, ME);
                 if (!live) break;
-                // At the top, take the money — unless Malastare will not let go, in which case the
-                // only way out is through.
-                if (live.level >= pstate.MAX_LEVEL && !live.locked) {
+                // At the top, take the money.
+                if (live.level >= pstate.MAX_LEVEL) {
                     const banked = actions.bank(world.ctxOf());
                     if (banked.ok) returned += banked.standing;
                     break;
@@ -442,7 +592,7 @@ const makeWorld = function () {
     const pct = n => `${((n / stats.throws) * 100).toFixed(2)}%`;
     console.log(`Planet Octahedron · ${stats.throws.toLocaleString()} throws over ${CLIMBS.toLocaleString()} climbs`);
     console.log('  faces fired');
-    for (const k of ['freeze', 'scorch', 'vault', 'lockout', 'seam', 'jail', 'plunge', 'boonta']) {
+    for (const k of ['freeze', 'scorch', 'vault', 'blessing', 'seam', 'jail', 'plunge', 'crowd']) {
         console.log(`    ${k.padEnd(8)} ${String(stats[k]).padStart(7)}  ${pct(stats[k])}`);
     }
     console.log('  consequences');
@@ -452,10 +602,13 @@ const makeWorld = function () {
     console.log(`    draws off the lean     ${stats.leanFree}`);
     console.log(`    plunges taking the die ${stats.plungeSelf}`);
     console.log(`    jailbreaks             ${stats.jailbreak}`);
+    console.log(`    faces painted over     ${stats.painted}`);
+    console.log(`    cubes a blessing kept  ${stats.spared}`);
+    console.log(`    blessings spent        ${stats.blocks}`);
     console.log('  plumbing');
     console.log(`    sealed sides refused   ${sealedSeen}`);
-    console.log(`    sealed banks refused   ${lockedSeen}`);
-    console.log(`    ties won outright      ${boontaSeen}`);
+
+
     console.log(`    rungs carrying a jail  ${jailSeen}`);
     console.log(`  EV · a climb banked at the top, ${EV_RUNS.toLocaleString()} runs a rack, lean off`);
     console.log('    rack                    raw    vs bare');

@@ -154,11 +154,11 @@ exports.LEVELS = [
 //   freeze      both neighbours keep the face they are showing into the next throw and take no turn
 //   scorch      burns the face each neighbour is showing **off that cube**, for the rest of the climb
 //   vault       seals the side just called; the next rung has to be called the other way
-//   lockout     seals the bank until a level rung is cleared
+//   blessing    one cube at random cannot be destroyed this rung, a mine included
 //   seam        payout multiplier + seamBonus for every rung this run has walked
 //   jail        holds up to `jailSize` other cubes off the table until the run wins them back out
 //   plunge      the head and the tail of the line fall away — the die included, if it is on an end
-//   boonta      a tie on this line is won outright rather than rolled for
+//   crowd       paints a face on each neighbour in the colour leading the line, for the climb
 
 // ---------------------------------------------------------------------------
 // Face points
@@ -240,18 +240,18 @@ exports.POINTS = {
     scavenge: 3,
     haul: 2,
     // The Planet Octahedron, scored by the same rule as everything above it: 3 changes the shape of
-    // the board, 2 moves one thing, 1 is the floor for turning up. `scorch`, `jail` and `plunge`
-    // restructure; `freeze`, `vault` and `boonta` move one thing each — a face, a call, a verdict;
-    // `seam` is already paid on the multiple, and `lockout` did nothing to the line at all but is
-    // still a cube standing on it.
+    // the board, 2 moves one thing, 1 is the floor for turning up. `scorch`, `jail`, `plunge` and
+    // `crowd` restructure — the first three the line, the last a cube, which is the more permanent of
+    // the two; `freeze`, `vault` and `blessing` move one thing each — a face, a call, a cube's odds of
+    // surviving the rung; `seam` is already paid on the multiple.
     freeze: 2,
     scorch: 3,
     vault: 2,
-    lockout: 1,
+    blessing: 2,
     seam: 1,
     jail: 3,
     plunge: 3,
-    boonta: 2,
+    crowd: 3,
     // Corpses. The mine that went off, the cube that came apart, and the two thirds of a razed
     // neighbour Ben is lying across. None of them is on the table any more.
     end: 0,
@@ -839,30 +839,37 @@ exports.SPECIALS = [
         // **Eight faces, one per planet, and not one of them is a side.**
         //
         // Every other cube in the game acts on the line. This one reaches outside it: at the cubes
-        // themselves (`freeze`, `scorch`), at the two buttons the player actually presses (`vault`,
-        // `lockout`), and at the verdict (`boonta`). It is the only cube whose effects survive the
-        // throw that produced them.
+        // themselves (`freeze`, `scorch`, `crowd`, `blessing`) and at the one button the player
+        // actually presses (`vault`). It is the only cube whose effects survive the throw that
+        // produced them.
         //
         // **Eight faces is free and it is not cosmetic.** Nothing in the engine assumes six — a face is
         // drawn with `randomInt(0, faces.length)` — so the shape costs nothing to build, and it changes
         // the odds it is built on: any one planet is 12.5% a throw against a six-sider's 16.7%. Each face
         // therefore has to be worth meeting, which is why several of them are as sweeping as they are.
         //
-        // **It is sideless on all eight faces, on every throw**, which is a consequence of the rule
-        // rather than a choice: a planet face that also counted as blue would have to draw as a planet
-        // *and* as a colour, and a position drawn as two glyphs is a position players count as two. So
-        // the die is a permanent tie machine — and `boonta` is one face in eight that answers ties,
-        // which is the loop that makes the eight rules one object.
+        // **It is sideless on all eight faces as it comes off the shelf**, so the die is a permanent
+        // tie machine: it eats a voter on every throw, which is what drives 22–26% of rungs to Watto's
+        // cube. `boonta` used to answer one throw in eight of that and has been replaced — see
+        // `docs/planet-octahedron.md` — because one throw in eight of a problem the cube causes on all
+        // eight is a loop that does not close.
+        //
+        // **A painted planet face is the one exception, and it needs another die to happen.** Nothing
+        // paints itself, so only a Binder or a Mirror that has duplicated this cube can put a painted
+        // face on one. Rare enough to be a story rather than a rule, which is why no special case is
+        // written for it.
         //
         // **No wipeout and no mine, so the price lives inside the planets.** A cube with no downside
         // face never leaves the table, and the Sebulba note above is the record of what that does to an
-        // effect that only ever helps. Three faces here are bad for you: `lockout` takes the exit,
-        // `plunge` takes cubes, `jail` takes cubes and hands them back slowly. Against that: one payer,
-        // one guaranteed tie-win, and two faces as likely to hurt as help.
+        // effect that only ever helps. **Two faces here are bad for you and it used to be three:**
+        // `plunge` takes cubes, `jail` takes cubes and hands them back slowly, and the exit is no
+        // longer taken at all. Against that: one payer, one guard, and a `crowd` that is as likely to
+        // paint a table against its owner as for it — which is a real cost and a slower one, and is
+        // the thing the re-measure has to answer for.
         //
         // **`plunge` is the key to all of it.** It takes whatever is standing on the ends of the line,
         // this cube included, which makes it the die's only self-destruct, the jailbreak that frees
-        // everything `jail` is holding, and the release for `lockout`. Three cruelties, one key, and the
+        // everything `jail` is holding. Two cruelties, one key, and the
         // key is a cube nobody can aim.
         //
         // Two pairs and four singles, which is what makes it learnable: **ice and fire** take both
@@ -879,9 +886,9 @@ exports.SPECIALS = [
         // held out of `rewardChoices` by `OFF_RACK` already.
         //
         // The mechanical reason is `plunge`. It is this cube's only self-destruct, the jailbreak that
-        // frees everything `jail` is holding, and the release for `lockout` — three cruelties and one
+        // frees everything `jail` is holding — two cruelties and one
         // key. A weld halves the rate of every face on it, so the key thins out at exactly the same
-        // rate as the locks do; but `jail` also drips one prisoner out per rung won, so the two do not
+        // rate as the prison does; but `jail` also drips one prisoner out per rung won, so the two do not
         // cancel and the prison fills faster than it empties. Diluting this cube reintroduces the
         // deadlock the road had to engineer the tie rule around, measured at 9.6% of full-rack runs.
         //
@@ -892,11 +899,11 @@ exports.SPECIALS = [
             { kind: 'freeze', id: 'freeze' },
             { kind: 'vault', id: 'vault' },
             { kind: 'scorch', id: 'scorch' },
-            { kind: 'lockout', id: 'lockout' },
+            { kind: 'blessing', id: 'blessing' },
             { kind: 'seam', id: 'seam' },
             { kind: 'jail', id: 'jail' },
             { kind: 'plunge', id: 'plunge' },
-            { kind: 'boonta', id: 'boonta' },
+            { kind: 'crowd', id: 'crowd' },
         ],
     },
 ];
@@ -2212,21 +2219,21 @@ exports.cube = {
             blurb: 'Weld two cubes into one seat, carrying three faces from each.',
         },
         {
+            // **Naming the parent the major share lands on belongs to the uneven cut itself** — the
+            // moment a cut *has* a bigger share, the player says where it goes — rather than to a
+            // rung of its own, which would sell the choice separately from the thing being chosen
+            // about. See `pressPicks`, which honours `major` at any rung for exactly that reason.
             name: 'Uneven Cuts',
-            blurb: 'The press sometimes takes four faces from one cube and two from the other.',
+            blurb: 'The press sometimes takes four faces from one cube and two from the other — '
+                + 'and you name which cube gives more.',
         },
         {
             name: 'The Third Cube',
             blurb: 'The press takes three cubes at once, two faces from each.',
         },
         {
-            // **The Heavy Half, folded in.** Naming the parent the major share lands on used to be a
-            // perk of its own and was never wired to anything; it belongs to this rung because 5+1 is
-            // the only thing this rung unlocks, and a useful 5+1 is "one press in 220" precisely
-            // because that choice is otherwise a coin flip. Bought here it is one in 110.
             name: 'Deep Cuts',
-            blurb: 'Rarely the press takes five faces from one cube and one from the other — '
-                + 'and you name which cube.',
+            blurb: 'Rarely the press takes five faces from one cube and one from the other.',
         },
     ],
     // **How the press cuts, and how often**, keyed by how many cubes went in. A weld takes `take[k]`
@@ -2262,9 +2269,9 @@ exports.cube = {
     // keeps. The argument against is on the record in `docs/the-weld.md` §5.2 — every *other* luck
     // reward here is per-roll and evaporates, where this one is permanent.
     //
-    // At these weights, once both rungs are bought, 4+2 is ~9% of presses and 5+1 ~0.9% — halved again
-    // by the major share landing on the parent you wanted, so a useful 5+1 is roughly one press in 220.
-    // Below those tiers they are not rare, they are **absent**, and the common cut is the whole table.
+    // At these weights, once both rungs are bought, 4+2 is ~9% of presses and 5+1 ~0.9% — and the major
+    // share lands on the parent the player named, so a useful 5+1 is roughly one press in 110. Below
+    // those tiers they are not rare, they are **absent**, and the common cut is the whole table.
     weldSplits: {
         2: [
             { take: [3, 3], weight: 100, tier: 1 },

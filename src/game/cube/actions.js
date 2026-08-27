@@ -173,14 +173,6 @@ const resolveThrown = function (ctx, run, { line, set, bag: drawnBag, kind, wrec
 
     // **Tatooine collects.** A tie on a line with a Boonta face standing on it is simply won — no
     // lean, no cube of Watto's, nothing to ask about. It short-circuits both branches below, so a
-    // player holding Bribe Ties is never offered a price for something they have already won.
-    //
-    // It settles through `breaker` rather than through a channel of its own, which means a Boonta tie
-    // also earns the plain cube a rolled tie earns. That is deliberate: the rescue exists to break a
-    // table that can no longer decide a roll, and a table this die has chewed down is exactly that
-    // table. What the rule refuses is a tie *bought*, and this one wasn't.
-    const boonta = tie && !!res.boonta;
-
     // The multiple this roll is played for: whatever the run carried, worked on by this rung —
     // **doubled** by a level, **+1** by an Again — plus what this roll's greed added. Computed
     // **once**, here, and carried: a resumed tie arrives with it already stepped and must not be
@@ -198,7 +190,7 @@ const resolveThrown = function (ctx, run, { line, set, bag: drawnBag, kind, wrec
     // What the tie is worth if it goes the player's way, and what Watto wants for it. The
     // multipliers still waiting on a winner count, because either answer produces one.
     const worth = tie ? engine.bankPayout(run.stake, engine.applyMults(base, res.mults, run.call)) : 0;
-    const cost = tie && s.bribe && !boonta ? pstate.bribeCostFor(worth, s.bribes, s.nudge) : 0;
+    const cost = tie && s.bribe ? pstate.bribeCostFor(worth, s.bribes, s.nudge) : 0;
     // **He always asks.** Owning the pick is the whole gate: if the rack handed over the right to buy a
     // tie, every tie is one you get offered.
     //
@@ -209,18 +201,18 @@ const resolveThrown = function (ctx, run, { line, set, bag: drawnBag, kind, wrec
     // is not a sum this file can do on the player's behalf. Withdrawing the offer did it for them, and it
     // did it wrong: at a deep level a tie well over the level's own payout can still be the cheapest thing
     // on the table.
-    const asking = tie && s.bribe && !boonta;
+    const asking = tie && s.bribe;
     // His cube, drawn here with every other draw. A tie he is *asking* about draws its own when the
-    // answer arrives — there is nothing to fix until then. A Boonta tie never reaches his cube at all.
-    const breaker = boonta ? run.call
-        : (tie && !asking ? engine.rollTiebreak(run.call, s.nudge) : null);
+    // answer arrives — there is nothing to fix until then.
+    //
+    // **Every tie reaches his cube now.** Tatooine used to take one outright, and the measurement is
+    // what retired it: 22-26% of rungs tie with this die on the table and one face in eight answered
+    // them, so what it closed was an eighth of a loop. See `docs/planet-octahedron.md`.
+    const breaker = tie && !asking ? engine.rollTiebreak(run.call, s.nudge) : null;
 
     return {
         run, res, rolled, rolledState, set, bag: res.bag || drawnBag, line, wrecked,
         level: LEVELS[run.level],
-        // Tatooine took the tie. Carried so the client can say who did it — it is Watto's cube that
-        // normally settles one, and a tie that resolves with no cube of his on screen needs a reason.
-        boonta,
         // Which rung this is. The client draws an Again differently and the settlement decides
         // whether it banks a clear off it, so it travels with the throw rather than being
         // re-derived from `run.again` in three places.
@@ -311,7 +303,6 @@ const takeThrow = function (live, shown, call) {
         jail: engine.decodeSet(live.jail),
         hold: engine.decodeSet(live.hold),
         rungs: Number(shown.rungs) || 0,
-        locked: !!live.locked,
         sealed: live.sealed || null,
         saw: !!live.saw, armed: armsOf(live.armed),
         // **The bet comes back up with the throw**, and this is the line it was missing. Everything
@@ -429,7 +420,7 @@ const settleThrow = async function (ctx, { thrown, bribed = 0, reverse = 0 }) {
     // is *asking* about parks without settling and only reaches this on the answer.
     if (thrown.tie) {
         pstate.recordTie(s, patch, {
-            bribed, breaker, boonta: thrown.boonta, call: run.call,
+            bribed, breaker, call: run.call,
         });
     }
 
@@ -513,9 +504,22 @@ const settleLoss = function (ctx, { run, res, thrown, patch }) {
             // either way and the hold is the only place it can honestly be.
             hold: engine.encodeSet([...(run.hold || []), ...(thrown.wrecked || [])]),
             rungs: Number(run.rungs) || 0,
-            locked: !!run.locked,
             sealed: run.sealed || null,
             faces: res.faceIds,
+            // **Which cube stood on each of those positions**, and the only thing on this node that is
+            // subscripted against `faces`. `set` above is deliberately the table as it was *thrown* —
+            // that is what a reroll buys back — and the line stored beside it is the one the effects
+            // left, so the two are different lines: a grower makes the line longer than the table, a
+            // wipeout shorter, a mirror reorders it. A client dealing one along the other named the
+            // wrong cube from the first fired face onward and fell off the end into the plain one, so
+            // a bust screen on a rack of specials answered `Chance Cube` for most of the line. The
+            // live run and the parked tie both store a set that *is* their line's; this is the one
+            // node where the client cannot work it out, so it is sent.
+            // Plain cubes as `0` rather than `null`, on exactly the argument in `encodeSet`: RTDB drops
+            // a null out of an array, so `[null, 'greed', null]` comes back as a set of one and every
+            // position after the first plain cube is shifted. `slotId` on the client reads `0` back as
+            // "an ordinary cube", which is the same answer a bare id gives everywhere else.
+            cubeIds: (res.cubeIds || []).map(id => id || 0),
             roll: res.cubes,
             reason,
             // Carried onto the corpse too: a reroll buys this rung back and resumes the same run, so
@@ -633,17 +637,6 @@ const settleWin = function (ctx, { run, majority, pure, cubes, standing, mult, p
     const survivors = [...res.set, ...released];
     if (rescued) survivors.push(engine.plainSlot());
 
-    // **Malastare's lock lifts on a level rung**, which is the whole of the rule: an Again is
-    // `M → M+1` and the entire house edge lives in the Agains, so being unable to bank marches the
-    // player through exactly that stretch. Past the top there are no level rungs left to clear, so it
-    // lasts one rung instead of never lifting.
-    //
-    // Checked against the rung that came *in*, then re-sealed, so a level rung that also threw
-    // Malastare lifts the old lock and starts a new one rather than cancelling itself out.
-    let locked = !!run.locked;
-    if (locked && (run.level >= MAX_LEVEL || !run.again)) locked = false;
-    if (res.lockout) locked = true;
-
     // Still standing, which is now the only thing a win can be.
     const live = {
         stake: run.stake, level: run.level, again: run.again || 0,
@@ -653,10 +646,10 @@ const settleWin = function (ctx, { run, majority, pure, cubes, standing, mult, p
         // Everything this roll destroyed, broke or wrote over is already baked into the set.
         set: engine.encodeSet(survivors), bag: engine.encodeBag(bag),
         // What the Planet Octahedron is holding over the run. `sealed` is a side that can't be called
-        // next rung and lasts exactly one because this node is rewritten on every one; `locked` is the
-        // bank; `jail` is whoever is still inside; `rungs` is what Mon Gazza's seam is paid off.
+        // next rung and lasts exactly one because this node is rewritten on every one; `jail` is
+        // whoever is still inside; `rungs` is what Mon Gazza's seam is paid off. The bank lock was
+        // here too and is gone — see `docs/planet-octahedron.md`, "Cut on purpose".
         sealed: res.sealed || null,
-        locked,
         jail: engine.encodeSet(jail),
         hold: engine.encodeSet(hold),
         rungs: (Number(run.rungs) || 0) + 1,
@@ -703,8 +696,6 @@ const settleWin = function (ctx, { run, majority, pure, cubes, standing, mult, p
         released: released.length,
         jailbreak: (res.freed || []).length > 0,
         jailed: jail.length,
-        // The bank is sealed, and the client needs to know so the button can say why it is dead.
-        locked,
         // The side the next rung cannot be called on.
         sealed: res.sealed || null,
         atTop: run.level >= MAX_LEVEL,
@@ -752,8 +743,8 @@ exports.startRun = function (ctx, { call }) {
             stake, standing: 0, level: 0, again: 0, call: side, mult: 0, spent: [], set: [],
             bag: engine.fillBag(s.equipped),
             // A fresh run owes the Planet Octahedron nothing: nobody is in the prison, no side is
-            // sealed, the bank is open, and no rungs have been walked.
-            jail: [], hold: [], rungs: 0, locked: false, sealed: null,
+            // sealed, and no rungs have been walked.
+            jail: [], hold: [], rungs: 0, sealed: null,
             // **Run-scoped, not rung-scoped.** Premonition and Swap are each once a run, and
             // the ladder node is rewritten on every rung — so these travel on the run descriptor and
             // are written back by every one of the four things that save a ladder. A flag that lived
@@ -818,7 +809,6 @@ exports.pushRun = function (ctx, { call }) {
             jail: engine.decodeSet(ladder.jail),
             hold: engine.decodeSet(ladder.hold),
             rungs: Number(ladder.rungs) || 0,
-            locked: !!ladder.locked,
             sealed: ladder.sealed || null,
             saw: !!ladder.saw, armed: armsOf(ladder.armed),
             bet: ladder.bet || null,
@@ -859,7 +849,6 @@ exports.spendReroll = function (ctx) {
             jail: engine.decodeSet(dead.jail),
             hold: engine.decodeSet(dead.hold),
             rungs: Number(dead.rungs) || 0,
-            locked: !!dead.locked,
             sealed: dead.sealed || null,
             saw: !!dead.saw, armed: armsOf(dead.armed),
             // The other end of the pair the corpse now carries. A run stored before this existed has
@@ -1382,14 +1371,6 @@ exports.bank = function (ctx) {
     if (shown && shown.called) {
         return refuse('roll_live', 'The cubes are down and called. Finish the roll.');
     }
-    // **Malastare sealed the bank.** The only refusal in the mode that stops a player leaving with
-    // money they have already won, and it is deliberately a refusal rather than a hidden button: the
-    // run is still live, the standing is still theirs, and what they are short of is a level rung.
-    if (ladder.locked) {
-        return refuse('locked', 'Malastare sealed the bank. Clear a level to get out.',
-            { locked: true, level: ladder.level });
-    }
-
     moveTruguts({ transaction: 'd', amount: ladder.standing });
     persist.clearLadder(database, db, discordId);
 
@@ -1543,11 +1524,10 @@ const pressReady = function (ctx, id) {
 // The Heavy Half were sold off the rack, written to the profile and reported to the client while doing
 // nothing whatsoever. This is the gate the note on `orderFor` promised was here.
 //
-// `major` is an index into `ids` — which parent the major share of an uneven cut lands on. It used to be
-// The Heavy Half and is now part of **Deep Cuts**, press rung 4, because 5+1 is the only thing that rung
-// unlocks and a useful 5+1 is "one press in 220" precisely because the choice is otherwise a coin flip.
-// Below rung 4 the request is dropped rather than refused: an even cut has no major share to name, so a
-// client sending one at rung 1 is early rather than wrong.
+// `major` is an index into `ids` — which parent the major share of an uneven cut lands on. It comes
+// with the uneven cut itself: the moment the press can cut 4+2, the player names which cube gives the
+// four — so there is no tier gate here at all. Only an uneven cut reads it, and a press that can only
+// cut even has nothing for it to decide, which makes a request sent at rung 1 moot rather than wrong.
 //
 // `keep` is The Keeper: one **face id**, and the parent it has to survive on. `pickWith` already ignores
 // a face the parent does not carry, so a stale client naming a face off the wrong cube gets the ordinary
@@ -1561,9 +1541,7 @@ const pressPicks = function (s, ids, { major, keep } = {}) {
     const majorAt = at(major);
     const keepAt = keep ? at(keep.parent) : -1;
     return {
-        // Deep Cuts, press rung 4. Below it an even cut has no major share to name, so an early request is
-        // dropped rather than refused.
-        major: s.pressTier >= config.weldTiers.length && majorAt >= 0 ? majorAt : null,
+        major: majorAt >= 0 ? majorAt : null,
         keep: s.keeper && keepAt >= 0 && typeof keep.faceId === 'string'
             ? { parent: keepAt, faceId: keep.faceId }
             : null,
@@ -1838,7 +1816,6 @@ exports.parkTie = function (ctx, thrown, { reverse = 0 } = {}) {
         // into the rung. Settling the tie needs both — the first to apply, the second to step from —
         // and a reroll of a tie that busts needs the second on its own.
         sealed: res.sealed || null,
-        lockout: !!res.lockout,
         jail: engine.encodeSet(res.jail || []),
         freed: engine.encodeSet(res.freed || []),
         hold: engine.encodeSet(res.hold || []),
@@ -1851,7 +1828,6 @@ exports.parkTie = function (ctx, thrown, { reverse = 0 } = {}) {
         // reroll replays has to carry the scrap forward all the same. See `settleLoss`.
         wrecked: engine.encodeSet(thrown.wrecked || []),
         carryRungs: Number(run.rungs) || 0,
-        carryLocked: !!run.locked,
         carrySealed: run.sealed || null,
         saw: !!run.saw, armed: armsOf(run.armed),
         // **The bet the tied rung was riding on, and that the run has spent it.** This node is built
@@ -1897,7 +1873,6 @@ const resumeTie = function (parked) {
         jail: engine.decodeSet(parked.carryJail),
         hold: engine.decodeSet(parked.carryHold),
         rungs: Number(parked.carryRungs) || 0,
-        locked: !!parked.carryLocked,
         sealed: parked.carrySealed || null,
         saw: !!parked.saw, armed: armsOf(parked.armed),
         // The run's bet, and spent whichever way the tie goes.
@@ -1927,16 +1902,13 @@ const resumeTie = function (parked) {
         faceLog: [],
         specials: [],
         set: engine.decodeSet(parked.set),
-        // What the die did on the roll being resumed. `boonta` is always false here by construction:
-        // a Boonta tie is won on the spot and is never parked, because there is nothing to ask about.
+        // What the die did on the roll being resumed.
         sealed: parked.sealed || null,
-        lockout: !!parked.lockout,
         jail: engine.decodeSet(parked.jail),
         freed: engine.decodeSet(parked.freed),
         hold: engine.decodeSet(parked.hold),
         sprung: engine.decodeSet(parked.sprung),
         recovered: Object.values(parked.recovered || {}),
-        boonta: false,
     };
     // Taken as-is rather than recomputed: it was stepped up the ladder when the tie was parked and
     // would be stepped a second time here.
@@ -1953,7 +1925,7 @@ const resumeTie = function (parked) {
         kind: run.again ? 'again' : 'level',
         rolled: res.faceIds, set: run.set, bag: run.bag,
         wrecked: engine.decodeSet(parked.wrecked),
-        tie: true, asking: false, breaker: null, boonta: false,
+        tie: true, asking: false, breaker: null,
         cost: Number(parked.cost) || 0, worth: Number(parked.worth) || 0,
         reverse: Number(parked.reverse) || 0,
     };

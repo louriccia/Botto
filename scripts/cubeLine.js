@@ -54,12 +54,21 @@ const messySet = function (n) {
         if (roll < 0.15) { out.push(null); continue; }
         const id = roll < 0.2 && OCTA ? OCTA.id : RACK[Math.floor(Math.random() * RACK.length)];
         const sp = SPECIALS.find(s => s.id === id);
-        const slot = { id, burned: [], frozen: null, heat: 0, hauled: false };
-        // Scorch a face or two off it, which is what makes `charred` reachable at all.
+        const slot = { id, burned: [], painted: [], frozen: null, heat: 0, hauled: false };
+        // Scorch a face or two off it, so the codec is measured on a cube the fire has been at.
         if (Math.random() < 0.35) {
             const f = sp.faces[Math.floor(Math.random() * sp.faces.length)];
             slot.burned.push(f.id);
             if (Math.random() < 0.4) slot.burned.push(f.id);
+        }
+        // The crowd has been at it. Marks go on by face id, one per copy, so a cube can carry two of
+        // them under one id and the codec has to bring both back — a `painted` that round-trips as a
+        // single mark is a cube that quietly un-fuses itself on the next reload.
+        if (Math.random() < 0.3) {
+            const f = sp.faces[Math.floor(Math.random() * sp.faces.length)];
+            const side = Math.random() < 0.5 ? 'red' : 'blue';
+            slot.painted.push(`${f.id}|${side}`);
+            if (Math.random() < 0.4) slot.painted.push(`${f.id}|${side}`);
         }
         // Ando Prime is holding it on the face it was showing.
         if (Math.random() < 0.2) {
@@ -93,8 +102,8 @@ for (let t = 0; t < THROWS; t += 1) {
         seen.add(wasF[i]);
         if (wasF[i] !== nowF[i]) fail('face', `${t}.${i}`, wasF[i], nowF[i]);
         if (wasS.frozen[i] !== nowS.frozen[i]) fail('frozen', `${t}.${i}`, wasS.frozen[i], nowS.frozen[i]);
-        if (wasS.charred[i] !== nowS.charred[i]) fail('charred', `${t}.${i}`, wasS.charred[i], nowS.charred[i]);
         if (wasS.cubeIds[i] !== nowS.cubeIds[i]) fail('cube', `${t}.${i}`, wasS.cubeIds[i], nowS.cubeIds[i]);
+        if (wasS.painted[i] !== nowS.painted[i]) fail('painted', `${t}.${i}`, wasS.painted[i], nowS.painted[i]);
         if (wasS.burned[i].join(',') !== nowS.burned[i].join(',')) {
             fail('burned', `${t}.${i}`, wasS.burned[i], nowS.burned[i]);
         }
@@ -106,11 +115,15 @@ for (let t = 0; t < THROWS; t += 1) {
             fail('heat', `${t}.${i}`, line[i].slot.heat, slot.heat);
         }
         if (!!line[i].slot.hauled !== !!slot.hauled) fail('hauled', `${t}.${i}`, line[i].slot.hauled, slot.hauled);
+        // Every mark, in order. A `painted` that comes back one short is a cube that un-fuses itself.
+        if ((line[i].slot.painted || []).join(',') !== (slot.painted || []).join(',')) {
+            fail('painted marks', `${t}.${i}`, line[i].slot.painted, slot.painted);
+        }
     }
 }
 
-// A codec that never met a charred face is a codec that hasn't been tested on one, so the coverage is
-// reported rather than assumed.
+// A codec that never met a scorched cube is a codec that hasn't been tested on one, so the coverage
+// is reported rather than assumed.
 const every = new Set();
 for (const sp of SPECIALS) for (const f of sp.faces) every.add(f.id);
 every.add(`side:${'red'}`);
@@ -140,7 +153,7 @@ for (let t = 0; t < 400; t += 1) {
         faces: asFirebase(shown.faces),
         state: {
             frozen: asFirebase(shown.state.frozen),
-            charred: asFirebase(shown.state.charred),
+            painted: asFirebase(shown.state.painted),
             cubeIds: asFirebase(shown.state.cubeIds),
             burned: asFirebase(shown.state.burned.map(asFirebase)),
         },

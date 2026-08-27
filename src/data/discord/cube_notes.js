@@ -61,6 +61,9 @@ const SAY = {
     clone: n => `copied ${faceGlyph(n.srcFaceId)} onto the cube on its right.`,
     'cull.nothing': () => 'nothing else on the table.',
     cull: () => 'took a cube off the table.',
+    // The shot has to cross the line, so a shield turns it away — and is the only thing on its
+    // far side the Tusken can hit.
+    'cull.shield': () => 'took the shield off the table.',
     'raze.nothing': () => 'nothing beside it.',
     raze: n => `destroyed the cube${n.both ? 's either side' : ' beside it'}.`,
     'pair.noroom': () => 'no room for a pair.',
@@ -99,12 +102,12 @@ const SAY = {
         + `${n.both ? 'they hold their faces' : 'it holds its face'} next roll.`,
     'scorch.nothing': () => 'nothing beside it to burn.',
     // Names the faces it took, because which one it took is the entire value of the effect and the
-    // cube it came off is about to roll dead on it forever. **Charred rather than taken off**: the face
-    // is still there and still turns up, and does nothing when it does.
-    scorch: n => `charred ${n.burned.map(faceGlyph).join(' ')} on `
-        + `${n.both ? 'the cubes' : 'the cube'} beside it — dead for the rest of the climb.`,
+    // cube it came off is about to lose it forever. **Taken off the cube, not left to land dead**: the
+    // face is gone from the list, so every face still on it comes up likelier.
+    scorch: n => `burned ${n.burned.map(faceGlyph).join(' ')} off `
+        + `${n.both ? 'the cubes' : 'the cube'} beside it — gone for the rest of the climb.`,
     vault: n => `sealed ${chip(n.side)} — call the other way next roll.`,
-    lockout: () => '**sealed the bank** — no cashing out until you clear a level.',
+    blessing: n => `**blessed ${faceGlyph(n.faceId)}** — nothing can destroy it this rung.`,
     // Past tense, unlike the Greed's flat rate, because what it pays is a function of how far the run
     // has already come and that number is settled the moment it lands.
     seam: n => `**+${n.bonus}×** for ${plural(n.rungs, 'rung')} walked.`,
@@ -116,7 +119,8 @@ const SAY = {
     'plunge.nothing': () => 'nothing standing at the ends.',
     plunge: n => 'the ends of the line fell away'
         + (n.self ? ' — **the die went with them**.' : '.'),
-    boonta: () => 'a tie on this line is **won**, not rolled for.',
+    crowd: n => `the crowd **painted ${n.painted.map(faceGlyph).join(' ')}** ${n.side}`
+        + ' for the rest of the climb.',
     // No face behind it either: the table stopped resolving, which is not something a cube did.
     overflow: n => `**Memory overflow** — ${plural(n.spawned, 'cube')} on the table and still growing.`,
 

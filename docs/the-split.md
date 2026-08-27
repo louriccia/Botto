@@ -237,6 +237,12 @@ precisely because the major share is a coin flip, and naming the parent halves t
 **Fold it into the rung that already charges for it.** Deep Cuts is press rung 4 and 5+1 is the only
 thing it unlocks; the choice of where the five faces land belongs to the same purchase.
 
+*(Revised while the press screen was being built: the choice moved again, off Deep Cuts and onto the
+uneven cut itself. `pressPicks` now honours `major` at **any** rung — only an uneven cut reads it, so
+below rung 2 the request is moot rather than gated, and a rung-2 player naming the four-face parent of
+a 4+2 is the point rather than a leak. Deep Cuts keeps 5+1 as its whole value, and the "you name which"
+clause lives on the Uneven Cuts blurb now. The Keeper's gate on `keep` is unchanged.)*
+
 One helper in `actions.js`, used by both `weldCubes` and `rerollWeld` — the reroll included, because it
 already re-cuts at the player's *current* tier, so buying rung 4 applies to welds already standing:
 
@@ -246,7 +252,7 @@ const pressPicks = function (s, ids, { major, keep } = {}) {
     const majorAt = at(major);
     const keepAt = keep ? at(keep.parent) : -1;
     return {
-        major: s.pressTier >= config.weldTiers.length && majorAt >= 0 ? majorAt : null,
+        major: majorAt >= 0 ? majorAt : null,
         keep: s.keeper && keepAt >= 0 && typeof keep.faceId === 'string'
             ? { parent: keepAt, faceId: keep.faceId } : null,
     };
@@ -274,14 +280,17 @@ The first pair is the halving `weldSplits` promised: a useful 5+1 goes from one 
 The second is measured on a face that is neither certain nor a downside, because `weldPurity` holds a mine
 on 99% of welds and a downside face therefore has no room to show a difference.
 
-Both are dropped rather than refused when the rung is not owned, so a client that sends them early presses
-exactly as it always did. **Neither is reachable yet**: the press has no Activity screen — §"Status" of
-`the-weld.md` — so nothing sends either field in production.
+Both are dropped rather than refused when they cannot apply — `keep` when The Keeper is not owned,
+`major` when the cut comes out even — so a client that sends them early presses exactly as it always
+did. The Activity's press screen sends both: the first press slot is the major, and The Keeper's face
+is named on the sheet of a cube sitting in the slots.
 
-`weldTiers[3].blurb` gains the clause:
+The "you name which" clause rides on `weldTiers[1]` — Uneven Cuts, the rung where a cut first has a
+bigger share to name:
 
 ```js
-blurb: 'Rarely the press takes five faces from one cube and one from the other — and you name which.',
+blurb: 'The press sometimes takes four faces from one cube and two from the other — '
+    + 'and you name which cube gives more.',
 ```
 
 ### 4.1 The point already spent on Heavy

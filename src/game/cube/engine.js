@@ -203,10 +203,10 @@ const pickIdx = function (n, take, from) {
 //
 // `take` is written biggest-first, so the parent whose entry here is `0` takes the major share. Left
 // alone that is a shuffle — see the note on `rollWeld` for why the press is not precision equipment.
-// **The Heavy Half is what buys the choice**, and it buys exactly one: the named parent takes the
-// major share and the rest are still shuffled below it, so a 3+2+1 is half-decided rather than
-// arranged. Nothing here checks whether the perk is owned; `weldCubes` in `actions.js` is the gate,
-// for the same reason it is the gate on everything else a client can ask for.
+// **Naming `major` buys exactly one choice**: the named parent takes the major share and the rest are
+// still shuffled below it, so a 3+2+1 is half-decided rather than arranged. The choice comes with the
+// uneven cut itself — any press that can cut unevenly honours it — and nothing here translates ids;
+// `pressPicks` in `actions.js` is where a wire id becomes this index.
 const orderFor = function (n, major) {
     const idx = Array.from({ length: n }, (_, i) => i);
     if (!Number.isInteger(major) || major < 0 || major >= n) return shuffle(idx);
@@ -758,20 +758,30 @@ const slotOf = function (v) {
             id: v.id ? String(v.id) : null,
             // Firebase hands back an object where an array went in, so both go through `Object.values`.
             burned: Object.values(v.burned || {}).map(String),
+            // **What the crowd has painted on this cube**, as `faceId|side` — see `paintOn`. A flat
+            // list of strings for the same reason `burned` is one: it is what survives Firebase
+            // without a codec of its own. The pipe rather than a colon because half the face ids in
+            // the game already carry one, and `side:blue|red` has to come apart the right way.
+            painted: Object.values(v.painted || {}).map(String),
             frozen: v.frozen ? String(v.frozen) : null,
             heat: Number(v.heat) || 0,
             hauled: !!v.hauled,
+            // **Nugtosh's blessing rides the cube until something spends it.** On the slot rather than
+            // on the position, which is the difference between a blessing and a rung: a position is
+            // gone when the throw is, and this has to still be there next rung and the one after.
+            blessed: !!v.blessed,
         };
     }
     return {
-        id: v ? String(v) : null, burned: [], frozen: null, heat: 0, hauled: false,
+        id: v ? String(v) : null,
+        burned: [], painted: [], frozen: null, heat: 0, hauled: false, blessed: false,
     };
 };
 exports.slotOf = slotOf;
 
 // An ordinary cube with nothing done to it — the thing most of a set is.
 const plainSlot = () => ({
-    id: null, burned: [], frozen: null, heat: 0, hauled: false,
+    id: null, burned: [], painted: [], frozen: null, heat: 0, hauled: false, blessed: false,
 });
 exports.plainSlot = plainSlot;
 
@@ -793,27 +803,93 @@ const liveFaces = function (special, burned) {
 };
 exports.liveFaces = liveFaces;
 
-// Every face a cube can land on, burnt ones included. **A scorch no longer takes a face off the cube;
-// it kills it where it stands.** The face is still in the pile and still turns up as often as it ever
-// did — what it no longer does is anything at all: no side, no effect, no bonus, no colour toward the
-// count. See `charredFace`.
+// **What colour a face has been painted, if the one that just landed is a painted one.**
 //
-// The two lists are the difference between the two questions, and both are still asked. This one is
-// what a cube *rolls*; `liveFaces` is what a cube has *left*, which is what the floor is counted
-// against and what a rack screen means by a cube's odds.
-const allFaces = special => (special ? special.faces : PLAIN_FACES).slice();
-exports.allFaces = allFaces;
+// The mirror image of the scorch, and it borrows the scorch's trick wholesale. `painted` is keyed by
+// face **id**, and a cube can carry several faces under one id — three Greeds, four wilds — so which
+// of them the crowd got at is not recorded and does not need to be: drawing one of them and calling
+// it painted with probability `painted of that id / all of that id` is the same distribution as
+// having painted a particular one and asking whether this is it.
+//
+// Two marks on the same id and opposite colours resolve to whichever the draw lands in, which is the
+// honest answer for a cube the crowd has been at twice from different sides.
+const paintOn = function (faces, painted, face) {
+    const id = face && face.id;
+    if (!id || !(painted || []).length) return null;
+    const marks = painted.filter(p => p.slice(0, id.length + 1) === `${id}|`);
+    if (!marks.length) return null;
+    const of = faces.filter(f => f && f.id === id).length;
+    if (!of) return null;
+    const k = crypto.randomInt(0, of);
+    return k < marks.length ? marks[k].slice(id.length + 1) : null;
+};
 
-// What a cube actually throws from. **A spent heat is not a scorched face**, and the difference is the
-// whole of the Turbine: a scorch leaves the face in the pile and kills it where it lands, so the odds
-// of every *other* face are untouched; a heat is genuinely consumed, so the list gets shorter and the
-// one face that never leaves — the wipeout — climbs from 1-in-6 to certain across five landings.
+// **What a scorch leaves standing.** The id survives and the kind does not, which is the whole of the
+// mechanic in one object: the client still knows which face it was and draws it burnt, and every pass
+// that dispatches on `kind` — the two effect switches, the paying faces, the `SIDED` test that decides
+// whether a position keeps its colour — falls through to nothing without a single case of its own.
 //
-// That is what makes the cube a uniform shuffle read until the wipeout, and so what makes 0 through 5
-// heats equally likely. Reusing `burned` would have left the wipeout flat at 1-in-6 and turned the
-// cube inert instead of dangerous, which is a different and much worse object.
+// **Mutated in place, never replaced.** Pass two walks a queue of the position objects themselves, so a
+// cube handed a fresh object would go on holding the old one and take its turn out of it: a Ratts
+// charred by the Baroonda beside it would detonate anyway, which is the exact case the face exists for.
+//
+// `charred` on the position rather than only on the face, because `lineState` reports it per position
+// and a face object is not what the line is indexed by.
+const charFace = function (cube, id) {
+    cube.side = null;
+    cube.charred = true;
+    cube.face = { id, kind: 'charred' };
+    return cube;
+};
+
+// The marks the crowd has left on one face id of this cube.
+const marksOn = (slot, id) => (slot.painted || []).filter(p => p.slice(0, id.length + 1) === `${id}|`);
+
+// **How many copies of a face id are still not counting for `side`.**
+//
+// The whole reason this is a count rather than a test: `painted` is keyed by face **id**, and a cube
+// carries several faces under one id — three Greeds, three blue sides. A mark is a mark on *one of
+// them*, exactly as a scorch is, and asking "is this id painted blue" would repaint all three off one
+// visit and then refuse to paint any of the rest. So a copy counts for `side` if it carries a mark
+// saying so, or if it carries no mark at all and the face is that side on its own.
+const openOn = function (faces, slot, id, side) {
+    const of = faces.filter(f => f && f.id === id).length;
+    if (!of) return 0;
+    const marks = marksOn(slot, id);
+    const own = (faces.find(f => f && f.id === id) || {}).side || null;
+    const already = marks.filter(m => m.slice(id.length + 1) === side).length
+        + (own === side ? of - marks.length : 0);
+    return Math.max(0, of - already);
+};
+
+// **What the crowd can actually paint on a cube**, which is a copy of a face that is not already that
+// colour. Painting the shown face is the readable choice — the thing being changed is on screen at the
+// moment it changes — but the leading colour is by definition the majority of what is showing, so on a
+// plain table the shown face already matches it most of the time and the face would be a no-op on the
+// majority of its landings. So it takes the shown face where it can and another where it cannot, and
+// passes over a cube already painted end to end, which is a real endpoint the way the scorch floor is.
+const paintable = function (special, slot, shown, side) {
+    const faces = liveFaces(special, slot.burned);
+    const ids = [...new Set(faces.map(f => f && f.id).filter(Boolean))]
+        .filter(id => openOn(faces, slot, id, side) > 0);
+    if (!ids.length) return null;
+    if (shown && ids.includes(shown.id)) return shown.id;
+    return ids[crypto.randomInt(0, ids.length)];
+};
+
+// What a cube actually throws from: what it has left, less the heats it has already spent.
+//
+// **Both take faces off the cube and they are not the same mechanic.** A scorch removes a face for the
+// rest of the climb and is floored by `minFaces`; a heat is consumed by being landed on and has no
+// floor, which is what makes the Turbine's wipeout climb from 1-in-6 to certain across five landings
+// and what makes 0 through 5 heats equally likely. They compose here rather than sharing a field,
+// because a Turbine that has been at by Baroonda has had both done to it.
+//
+// **This used to draw off every face the cube ever had**, charring the burnt ones where they landed
+// instead of removing them — see the note on the `scorch` case for why that is gone. Nothing is left
+// of it: a burnt face is not rolled, so there is no such thing as a position standing on one.
 const rollFaces = function (special, slot) {
-    const all = allFaces(special);
+    const all = liveFaces(special, slot && slot.burned);
     let n = (slot && slot.heat) || 0;
     if (!n) return all;
     return all.filter((f) => {
@@ -822,31 +898,6 @@ const rollFaces = function (special, slot) {
     });
 };
 exports.rollFaces = rollFaces;
-
-// **Whether the face just drawn is one of the charred ones.**
-//
-// `burned` is a multiset of face *ids*, and a cube can carry several faces under one id — a Wild Cube
-// is four wilds and a Ratts. Which of the four the fire took is not recorded and does not need to be:
-// drawing one of them and charring it with probability `burnt of that id / all of that id` is the same
-// distribution as having charred a particular one and asking whether this is it. That is also what
-// keeps the stored shape unchanged — a run in progress carries its scorch marks through this.
-const isCharred = function (faces, burned, face) {
-    const id = face && face.id;
-    if (!id || !(burned || []).length) return false;
-    const burnt = burned.filter(b => b === id).length;
-    if (!burnt) return false;
-    const of = faces.filter(f => f && f.id === id).length;
-    return of > 0 && crypto.randomInt(0, of) < burnt;
-};
-
-// What a charred face lands as. **The id survives and the kind does not**, which is the whole of the
-// mechanic in one object: the client still knows which face it was and draws it burnt, and every pass
-// that dispatches on `kind` — the two effect switches, the paying faces, the `SIDED` test that decides
-// whether a position keeps its colour — falls through to nothing without a single case of its own.
-//
-// `charred` on the position rather than only on the face, because `lineState` reports it per position
-// and a face object is not what the line is indexed by.
-const charredFace = (cube, id) => ({ ...cube, side: null, charred: true, face: { id, kind: 'charred' } });
 
 // What a frozen slot comes back up as: the face it was holding when the ice took it, rebuilt off the
 // cube it belongs to. `null` when that face isn't there any anymore — scorched off in the meantime, or
@@ -907,9 +958,14 @@ exports.drawCubes = function (set, bag, levelIdx) {
 exports.encodeSet = function (set) {
     return (set || []).map((c) => {
         const slot = slotOf(c);
-        if (!slot.burned.length && !slot.frozen && !slot.heat && !slot.hauled) return slot.id || 0;
+        if (!slot.burned.length && !slot.painted.length && !slot.frozen && !slot.heat && !slot.hauled
+            && !slot.blessed) {
+            return slot.id || 0;
+        }
         const out = { id: slot.id || 0 };
         if (slot.burned.length) out.burned = slot.burned;
+        if (slot.painted.length) out.painted = slot.painted;
+        if (slot.blessed) out.blessed = true;
         if (slot.frozen) out.frozen = slot.frozen;
         if (slot.heat) out.heat = slot.heat;
         if (slot.hauled) out.hauled = true;
@@ -962,19 +1018,32 @@ exports.throwSet = function (set) {
 
         const faces = rollFaces(special, slot);
         if (!special) {
-            // **A plain cube draws through `rollSide` however burnt it is.** A scorch does not change
-            // what a cube rolls any more — it changes what the roll is worth — so the draw is the same
-            // one it has always been, the daily lean included, and the fire is applied to the answer.
-            const side = rollSide();
-            const face = faces.find(f => f.side === side);
-            return isCharred(faces, slot.burned, face)
-                ? charredFace({ special: null, slot }, face.id)
-                : { side, special: null, face: null, slot };
+            // **An untouched plain cube draws through `rollSide`; one that has been got at does not.**
+            // A cube drawing off a face list never calls it, so a cube Baroonda or Tatooine has reached
+            // is drawing from three blue and three red less what the fire took and plus what the crowd
+            // painted — which is what makes it *loaded* rather than nudged, and readable as a count
+            // rather than felt as a bias. Nothing here is a special case; it is where the two draws
+            // already were, and the paint arrives on the same side of the fork as the fire.
+            if (!slot.burned.length && !slot.painted.length) {
+                return { side: rollSide(), special: null, face: null, slot };
+            }
+            const face = faces[crypto.randomInt(0, faces.length)];
+            // **Through `paintOn`, exactly as a special's face is.** A plain cube is three blue and
+            // three red under two ids, so reading the mark straight off the id would turn all three
+            // reds blue on one visit from the crowd. One mark, one copy, one throw in three.
+            const paint = paintOn(faces, slot.painted, face);
+            return { side: paint || face.side || null, special: null, face: null, slot, paint };
         }
         const face = faces.length ? faces[crypto.randomInt(0, faces.length)] : null;
-        return isCharred(faces, slot.burned, face)
-            ? charredFace({ special, slot }, face.id)
-            : { side: rollSide(), special, face, slot };
+        return {
+            side: rollSide(),
+            special,
+            face,
+            slot,
+            // Resolved here rather than at the count, for the reason the face itself is: which of three
+            // Greeds landed is a fact about this throw, and asking twice would answer differently.
+            paint: paintOn(faces, slot.painted, face),
+        };
     });
 };
 
@@ -999,7 +1068,7 @@ exports.canSplitAt = function (line, at) {
 // Forger — see `TREE`. Returns the positions to put in its place, or null if it will not come apart.
 //
 // `throwSet` does all of the work, which is the whole reason this is four lines: it copies slots, rolls
-// each parent off `liveFaces`, handles a charred face, and hands back positions in exactly the shape the
+// each parent off `liveFaces` and hands back positions in exactly the shape the
 // line already holds. The parents are specials by construction — `parseWeld` resolves every one through
 // `baseById` — so nothing plain can enter the line this way and `rollSide` is never reached.
 //
@@ -1030,15 +1099,22 @@ exports.splitAt = function (line, at) {
 // a face id back into the position it was. A face the cube no longer carries comes back as a position
 // that counts toward nothing, which is the same way a stale freeze degrades and for the same reason.
 exports.relineFrom = function (set, faces, state = {}) {
-    const charred = state.charred || [];
     const frozen = state.frozen || [];
+    const painted = state.painted || [];
     const ids = faces || [];
     return (set || []).map(slotOf).map((slot, i) => {
         const special = slot.id ? specialById(slot.id) : null;
-        if (charred[i]) return charredFace({ special, slot }, ids[i]);
         const built = frozenCube(special, ids[i]);
-        if (!built) return { side: null, special, face: null, slot };
-        return frozen[i] ? { ...built, slot, frozen: true } : { ...built, slot };
+        // **The paint comes back off the state rather than being re-rolled off the slot.** Which of
+        // three Greeds was the painted one is a fact about the throw, and `paintOn` would answer it
+        // differently the second time — so a relined position would count for a colour the roll it is
+        // rebuilding never gave it.
+        const paint = painted[i] || null;
+        if (!built) return { side: paint, special, face: null, slot, paint };
+        const side = paint || built.side;
+        return frozen[i]
+            ? { ...built, side, slot, frozen: true, paint }
+            : { ...built, side, slot, paint };
     });
 };
 
@@ -1258,12 +1334,24 @@ exports.rolledFaces = line => line.map(faceIdOf);
 // scorch applied *this* rung is on the second and not the first — which is exactly the beat.
 const lineState = line => ({
     frozen: (line || []).map(c => !!(c && c.frozen)),
+    // What the fire has taken off the cube over the whole climb. There is no companion flag for "this
+    // position is standing on a burnt face" because there is no such position: a burnt face is not
+    // rolled. What this is for is the rack screen — a cube's odds are its face list less this.
     burned: (line || []).map(c => ((c && c.slot && c.slot.burned) ? [...c.slot.burned] : [])),
-    // **This position landed on one of the burnt faces**, which is not answerable from `burned`: that
-    // says what the fire has taken off the cube over the whole climb, and this says whether the face
-    // showing right now is one of them. A charred position counts toward nothing and does nothing, and
-    // without this it would draw as an ordinary one doing neither for no visible reason.
+    // **This position is standing on a face the fire has just taken.** Not the same fact as `burned`,
+    // which is what the cube has lost over the whole climb: this is about the face showing *now*, and
+    // it is what makes a charred position draw dark and count for nobody instead of looking like an
+    // ordinary cube the count is ignoring for no reason.
     charred: (line || []).map(c => !!(c && c.charred)),
+    // **Which positions are carrying a blessing.** It rides the cube rather than the rung, so unlike
+    // the ice this is not a fact about the throw — a cube blessed three rungs ago is still wearing it,
+    // and the player has to be able to see which one it is or the whole face works off screen.
+    blessed: (line || []).map(c => !!(c && c.slot && c.slot.blessed)),
+    // **The colour this position's face has been painted**, or null. Per position rather than per cube
+    // because that is what the client draws: the art is tinted to the side the face in front of you
+    // counts for, which is the whole of how one picture goes on saying two things. The cube's marks are
+    // on its slot and travel with it; this is which of them landed.
+    painted: (line || []).map(c => ((c && c.paint) ? c.paint : null)),
     // Off `special` rather than off `slot.id`, which is the cube the position *arrived* with: a clone
     // or a reflection rewrites the cube standing here and only the first of the two follows it.
     cubeIds: (line || []).map(c => ((c && c.special) ? c.special.id : null)),
@@ -1314,6 +1402,12 @@ const resolveLine = function (line, call, bag, opts = {}) {
     // at the end of the roll, hauled cubes carried off during it — and `scavenge` takes the last one
     // in. Order is the whole of the structure.
     const hold = [...(opts.hold || [])];
+    // **What this roll has already put in the hold**, so the sweep at the end does not put it there a
+    // second time. A Jawa taking its turn sweeps the wreckage in early — see the `scavenge` case — and
+    // the two sweeps are looking at the same cubes from opposite ends of the roll. Identity rather than
+    // contents: what goes into the hold is a copy, so the only thing that can be compared afterwards is
+    // the slot it was copied from.
+    const takenIn = new Set();
     // Cubes the *player* took off this line before it resolved — Scrap, and nothing else so far. They
     // are wreckage like anything else the roll took, so they belong in the hold; they arrive here
     // rather than being swept up below because the line they were on no longer holds them, and a cube
@@ -1343,8 +1437,7 @@ const resolveLine = function (line, call, bag, opts = {}) {
     // rather than applied here, because none of them is the line's business: a sealed side and a
     // sealed bank are the *run's* state, and a won tie is the caller's verdict to hand out.
     let sealed = null;
-    let lockout = false;
-    let boonta = false;
+
 
     // Every face that moves the payout multiple, recorded **where the multiple is actually moved**
     // rather than reconstructed afterwards from the line. That is the whole reliability of phase two
@@ -1396,7 +1489,13 @@ const resolveLine = function (line, call, bag, opts = {}) {
     // halfway through pass two and it has to arrive settled — with its side stripped or asserted and
     // its note written — exactly as though it had been in the line from the start.
     const settle = function (c) {
-        if (c.face && !SIDED.has(c.face.kind)) c.side = null;
+        // **Paint decides the side, whatever the face is.** This is the whole of the rule change the
+        // crowd brought with it — see `docs/planet-octahedron.md` §1. An unpainted effect face is
+        // stripped exactly as it always was; a painted one keeps the colour it was painted, which is
+        // the only way a face in this game does a thing *and* counts for a side. It overrides a wild
+        // too, deliberately: paint is not a bonus on top of what a face is, it is what the position
+        // counts as, and a wild the crowd painted the wrong way is the sharpest thing on the cube.
+        if (c.face && (c.paint || !SIDED.has(c.face.kind))) c.side = c.paint || null;
         if (!c.face) return c;
         switch (c.face.kind) {
             case 'end':
@@ -1507,6 +1606,11 @@ const resolveLine = function (line, call, bag, opts = {}) {
     // a bind at the end of the line, did nothing worth a frame.
     const steps = [];
 
+    // How many times a blessing turned something away this roll, for the frame that reports it. The
+    // blessings themselves ride the cubes and outlive the roll; this is only the count of the ones
+    // spent here.
+    let saves = 0;
+
     // A copy of a face is a real face and gets its own turn — a cloned Greed pays twice, a
     // reflected Tusken culls twice. That needs a **work queue** rather than a walk over the thrown
     // line, because the line grows turns as it resolves.
@@ -1524,6 +1628,43 @@ const resolveLine = function (line, call, bag, opts = {}) {
     //
     // A copied Pit Droid draws like any other: `drawOne` spends the bag, which is finite and never
     // refilled, so it was never the thing that needed bounding.
+    // **Nugtosh's blessing, marked before pass two rather than during it.** Every other face on the
+    // die acts in its turn; this one has to be in force for the whole rung or it protects only
+    // whatever happened to be destroyed after it came up, which is a rule about firing order rather
+    // than about the cube. So it is read off the thrown line here, between the two passes, and the
+    // destroyers below simply find it already there.
+    //
+    // **It never blesses itself** — the same rule the prison carries, and for a sharper reason: a die
+    // that cannot be destroyed cannot be plunged, and the plunge is the key to the prison.
+    for (let i = 0; i < line.length; i += 1) {
+        const c = line[i];
+        if (!c || c.gone || c.frozen || !c.face || c.face.kind !== 'blessing') continue;
+        // **Never a cube that is already blessed**, which is the same rule the crowd paints under: a
+        // face that can land on a target it cannot change is a face doing nothing on a table it is
+        // supposed to be improving. A line where every cube already carries one is a real endpoint and
+        // it says so rather than blessing somebody twice.
+        const pool = line.filter((x, j) => j !== i && x && !x.gone && x.slot && !x.slot.blessed);
+        if (!pool.length) {
+            note(c, 'blessing.nothing');
+            continue;
+        }
+        const lucky = pool[crypto.randomInt(0, pool.length)];
+        lucky.slot.blessed = true;
+        note(c, 'blessing', {
+            faceId: faceIdOf(lucky), special: !!lucky.special, at: i, hitAt: [line.indexOf(lucky)],
+        });
+        // Its own frame, for the reason the crowd needs one: this is marked before pass two rather
+        // than taking a turn in it, so the walk that hands every other face a frame never reaches it.
+        // Without this the blessing lands, saves a cube three frames later, and the save has no cause
+        // on screen — the worst version of an effect, which is one that works invisibly.
+        steps.push({
+            faceIds: line.map(faceIdOf),
+            note: notes[notes.length - 1],
+            at: i,
+            ...lineState(line),
+        });
+    }
+
     const queue = line.slice();
 
     // Every cube handed a turn after the throw — reflections, clones, draws off the bag, a wipeout
@@ -1670,6 +1811,19 @@ const resolveLine = function (line, call, bag, opts = {}) {
         // with it, so it is off the line and cannot be found twice.
         const shielding = x => !!x && !x.gone && x.face && x.face.kind === 'shield';
 
+        // The positions an effect standing at `i` can reach: clipped to `reach` on each side when it
+        // has one, and stopped at the nearest live shield on either flank. The shield sits *inside*
+        // the span — it stops what reaches its own position — and `stopped` names the shields that
+        // did, for the effects that break what stops them.
+        const shieldSpan = function (i, reach = Infinity) {
+            const stopped = [];
+            let first = Math.max(0, i - reach);
+            let last = Math.min(final.length - 1, i + reach);
+            for (let k = i - 1; k >= first; k--) if (shielding(final[k])) { first = k; stopped.push(k); break; }
+            for (let k = i + 1; k <= last; k++) if (shielding(final[k])) { last = k; stopped.push(k); break; }
+            return { first, last, stopped };
+        };
+
         // **The ice takes one hit.** Anything that would destroy, overwrite or switch a frozen cube
         // shatters the ice instead: the effect is spent, the face it was holding survives, and the cube
         // walks away thawed. That gives Ando Prime's freeze a second identity as one-shot armour whose
@@ -1684,6 +1838,32 @@ const resolveLine = function (line, call, bag, opts = {}) {
             if (!x || !x.frozen) return false;
             x.frozen = false;
             if (x.slot) x.slot.frozen = null;
+            return true;
+        };
+
+        // **Nugtosh's blessing, from the receiving end.**
+        //
+        // **It stays on the cube and one thing takes it off: using it.** The blessing is a property of
+        // the cube rather than of the rung — it is given once and it waits, through settlements, into
+        // the next level and the one after, until something tries to destroy the cube it is on and it
+        // spends itself turning that away. A cube can carry one; a table can carry several, and a climb
+        // that meets Malastare four times has four cubes it is hard to lose.
+        //
+        // Two functions and not one, which the ice does not need: `iced` is asked exactly where the ice
+        // is consumed, and this is asked in two different ways. `holy` is a look — the plunge walks the
+        // line asking which cubes are protected before it knows which two it is taking, and a look that
+        // spent the blessing would burn one off every cube it merely walked past. `spend` is the
+        // consuming half, called only where a blessing actually turned something away.
+        //
+        // **It does not stop a cube destroying itself.** A wipeout is the cube coming apart and a mine
+        // goes with its own blast; protecting either would make this "cannot leave the table" instead of
+        // "cannot be destroyed", which would also stall the Turbine's schedule. So the acting position is
+        // never covered against its own face.
+        const holy = x => !!(x && x.slot && x.slot.blessed);
+        const spend = function (x) {
+            if (!holy(x)) return false;
+            x.slot.blessed = false;
+            saves += 1;
             return true;
         };
 
@@ -1742,6 +1922,12 @@ const resolveLine = function (line, call, bag, opts = {}) {
                     // image comes back with a hole in it, which is a picture worth having. Past the end
                     // of the line there is nothing to freeze, so a conjured position never hits this.
                     if (iced(final[to])) {
+                        froze++;
+                        continue;
+                    }
+                    // The reflection breaks against a blessing the same way it breaks against the ice —
+                    // a cube written over is a cube destroyed, however tidily the image does it.
+                    if (spend(final[to])) {
                         froze++;
                         continue;
                     }
@@ -1853,14 +2039,14 @@ const resolveLine = function (line, call, bag, opts = {}) {
                 // So: no `shieldDeflects`, no colour test, no per-throw spent flag. The shield dies holding
                 // the line, which is also the one thing it costs.
                 const reach = Math.max(0, Number(config.blastReach) || 0);
-                const stopped = [];
-                let first = Math.max(0, i - reach);
-                let last = Math.min(final.length - 1, i + reach);
-                // Nearest shield on each flank, inside the reach. It stops the blast at its own position.
-                for (let k = i - 1; k >= first; k--) if (shielding(final[k])) { first = k; stopped.push(k); break; }
-                for (let k = i + 1; k <= last; k++) if (shielding(final[k])) { last = k; stopped.push(k); break; }
+                const { first, last, stopped } = shieldSpan(i, reach);
                 const blast = [];
-                for (let k = first; k <= last; k++) blast.push(k);
+                // A blessed cube inside the reach is walked over, and it is the one case where an
+                // unshielded blast does not take the row — which is exactly the case worth having:
+                // the run ends when nothing is left standing, so one cube left standing is one run
+                // that carries on. The mine itself is never spared from its own blast.
+                for (let k = first; k <= last; k++) if (k === i || !spend(final[k])) blast.push(k);
+                const spared = (last - first + 1) - blast.length;
                 for (const k of stopped) if (final[k].special) broken.push(final[k].special.id);
                 for (const k of [...blast].reverse()) final.splice(k, 1);
 
@@ -1868,6 +2054,9 @@ const resolveLine = function (line, call, bag, opts = {}) {
                 note(c, stopped.length ? 'end.shielded' : 'end', {
                     destroyed: blast.length,
                     shields: stopped.length,
+                    // How many the blessing walked over, so the frame can say why a cube is still
+                    // standing in the crater instead of leaving it as a hole in the count.
+                    spared,
                     // Positions in the line the step was **handed**, all three of them, because the client
                     // cannot work any of it out for itself. `step.at` is the acting cube's index *after*
                     // the effect and this one took itself off the line, so the frame has no cube left to
@@ -1946,6 +2135,10 @@ const resolveLine = function (line, call, bag, opts = {}) {
                     note(c, 'burn.iced');
                     break;
                 }
+                if (spend(final[i + 1])) {
+                    note(c, 'burn.blessed');
+                    break;
+                }
                 final.splice(i + 1, 1);
                 note(c, 'burn');
                 break;
@@ -1977,6 +2170,12 @@ const resolveLine = function (line, call, bag, opts = {}) {
                     note(c, 'clone.iced');
                     break;
                 }
+                // A clone destroys the position it writes over, which is destruction however tidily it
+                // is done — the feed says *was overwritten by* and means it.
+                if (hasRight && spend(final[i + 1])) {
+                    note(c, 'clone.blessed');
+                    break;
+                }
                 const src = final[i - 1];
                 // Turned, like a reflection: cloning Ben's left third onto the right would
                 // otherwise put two of the same third on the table. A cloned wing is junk either
@@ -1998,8 +2197,28 @@ const resolveLine = function (line, call, bag, opts = {}) {
                 break;
             }
             case 'cull': {
-                // One other cube, anywhere in the line, gone.
-                const others = final.map((_, j) => j).filter(j => j !== i);
+                // One other cube gone — but the shot has to **cross the line to get there**, and that
+                // is the one thing a shield stops. So the Tusken's targets are the positions it can
+                // see: out to the nearest live shield on either flank, and no further.
+                //
+                // **This is the mine's rule, reused** — `shieldSpan`, the same walk the blast makes. A
+                // shield stops what reaches its own position and dies where it is stopped; it turns
+                // away everything behind it and pays nothing for that. Which means the shield is
+                // one sentence rather than a list — *it stops anything that has to cross it* — and
+                // every other destructive face falls out of that sentence for free: burn, Ben and the
+                // Sandcrawler all act on a position they are touching, so nothing can ever stand
+                // between them and it, and a purge is not travel at all.
+                //
+                // **The shield is a target, not a wall.** It sits inside the range it defines, so a
+                // Tusken next to one is quite likely to shoot the shield itself — which is the
+                // picture. That is also why the reach shapes the *choice* rather than being checked
+                // after it: rolling a victim first and whiffing on a block would spend nothing, show
+                // nothing and read as the face being broken, where culling out of what it can see
+                // means the Tusken always hits something and the shield draws fire instead of
+                // deleting the effect.
+                const { first, last } = shieldSpan(i);
+                const others = [];
+                for (let k = first; k <= last; k++) if (k !== i) others.push(k);
                 if (!others.length) {
                     note(c, 'cull.nothing');
                     break;
@@ -2009,8 +2228,13 @@ const resolveLine = function (line, call, bag, opts = {}) {
                     note(c, 'cull.iced');
                     break;
                 }
+                if (spend(final[victim])) {
+                    note(c, 'cull.blessed');
+                    break;
+                }
+                const ate = shielding(final[victim]);
                 final.splice(victim, 1);
-                note(c, 'cull');
+                note(c, ate ? 'cull.shield' : 'cull');
                 break;
             }
             case 'raze': {
@@ -2030,8 +2254,12 @@ const resolveLine = function (line, call, bag, opts = {}) {
                 // Ice on either side stops him on that flank and nowhere else, so a raze can come out
                 // as half a Ben — which is the same picture he already makes at the end of a line.
                 const wings = c.face.wings || {};
-                const tookRight = right && !iced(final[i + 1]);
-                const tookLeft = left && !iced(final[i - 1]);
+                // Ice first, then the blessing, and the ice is consumed either way: `iced` thaws what it
+                // tests, and a cube that was both frozen and blessed has spent its ice turning away a
+                // blow the blessing would have turned away anyway. That is the ice behaving as it does
+                // everywhere else rather than a rule about the pair.
+                const tookRight = right && !iced(final[i + 1]) && !spend(final[i + 1]);
+                const tookLeft = left && !iced(final[i - 1]) && !spend(final[i - 1]);
                 if (tookRight) final[i + 1] = razed(wings.right, wings.left);
                 if (tookLeft) final[i - 1] = razed(wings.left, wings.right);
                 if (!tookLeft && !tookRight) {
@@ -2112,11 +2340,40 @@ const resolveLine = function (line, call, bag, opts = {}) {
                 // has, for the same reason: a special handed over inert would be a Ratts that never went
                 // off.
                 //
-                // **It reads the hold as it stands at this moment**, which is the previous rungs'
-                // wreckage plus anything hauled earlier in this roll. What this roll destroys is swept
-                // up after resolution, so a cube cannot break and come straight back on the same throw —
-                // and the haul-then-scavenge loop still closes inside one roll, because a haul happens
-                // in its turn.
+                // **It reads the hold as it stands at this moment**, and the sweep below brings this
+                // roll's own wreckage into it first — so a cube that went up two positions ago can come
+                // straight back on the same line. That is the whole of what makes the Jawa a *reaction*
+                // rather than a delayed payout: the interesting throw is the one where you watch a cube
+                // go and watch it come back, and it was unreachable while the hold only filled at
+                // settlement.
+                //
+                // **The cube the player scrapped is salvage too**, and that is a deliberate reversal.
+                // The end-of-roll sweep existed so a Jawa could not hand back a scrap the player had
+                // paid for, on the grounds that it refunds the purchase — but Scrap takes a cube off the
+                // *line* and the Scavenger is the cube that pulls things back onto it, and a rack
+                // fielding both should have to live with that rather than be protected from it. It is a
+                // tension the player built, on two picks they chose.
+                //
+                // Swept here rather than at each destroyer for the reason the end sweep reads the thrown
+                // line rather than the working one: a cube a Mirror conjured and a Tusken then ate never
+                // really joined the set, and sweeping at the site would put cubes nobody ever owned into
+                // the hold. One place, one rule, asked at the only moment anything reads it.
+                //
+                // The scrapped cube is swept separately because it is **not on the thrown line** — it
+                // was taken off before the line was re-parked, which is exactly why the end sweep has
+                // always handled it apart from the rest.
+                const up = new Set(final.filter(x => x && !x.gone).map(x => x.slot));
+                const already = new Set(hold);
+                for (const w of wrecked) {
+                    if (!w || takenIn.has(w)) continue;
+                    hold.push({ ...w, hauled: false });
+                    takenIn.add(w);
+                }
+                for (const x of line) {
+                    if (!x.slot || up.has(x.slot) || already.has(x.slot) || takenIn.has(x.slot)) continue;
+                    hold.push({ ...x.slot, hauled: false });
+                    takenIn.add(x.slot);
+                }
                 if (!hold.length) {
                     note(c, 'scavenge.empty');
                     break;
@@ -2179,6 +2436,9 @@ const resolveLine = function (line, call, bag, opts = {}) {
                 const doomed = [];
                 for (let k = 0; k < final.length; k++) {
                     const x = final[k];
+                    // Blessed, and not the cube giving the order — Order 66 always goes with its own
+                    // purge, which is what makes it fire once a run.
+                    if (k !== i && spend(x)) continue;
                     if (x.face && x.face.kind === 'razed') doomed.push(k);
                     else if (x.special && !x.gone) doomed.push(k);
                 }
@@ -2246,16 +2506,22 @@ const resolveLine = function (line, call, bag, opts = {}) {
                     note(c, 'freeze.nothing');
                     break;
                 }
-                let frozen = 0;
+                const iced = [];
                 for (const j of targets) {
                     const x = final[j];
                     // A cube already holding ice is not frozen again — the ice is one throw deep and
                     // stacking it would let one cube sit on a face for a whole climb.
                     if (x.frozen || !x.slot) continue;
                     x.slot.frozen = faceIdOf(x);
-                    frozen++;
+                    iced.push(j);
                 }
-                note(c, frozen ? 'freeze' : 'freeze.already', { frozen, both: frozen > 1 });
+                // **`hitAt` is what makes the freeze visible on the frame it happens.** The ice reaches
+                // *forward* — the cube wears its frost on the next throw, not this one — so on the frame
+                // Ando Prime fires there is nothing on the line to show for it, which is the same gap the
+                // crowd's paint had. The positions travel with the note so the board can ice them over
+                // where they stand.
+                note(c, iced.length ? 'freeze' : 'freeze.already',
+                    { frozen: iced.length, both: iced.length > 1, at: i, hitAt: iced });
                 break;
             }
             case 'scorch': {
@@ -2266,13 +2532,20 @@ const resolveLine = function (line, call, bag, opts = {}) {
                 // being destroyed is on screen at the moment it is destroyed. It also flips how a line
                 // reads — a wipeout or a Ratts landing next to Baroonda is good news.
                 //
-                // **One face of six, never a kind.** A Wild charred of a wild is three live wilds, a
-                // dead one and a Ratts — so the mine keeps its 1-in-6 and the cube loses a sixth of its
-                // usefulness. That is the difference from what this used to do: burning a face off
-                // *shortened* the cube and made every remaining face likelier, which quietly made a
-                // scorched Wild Cube more dangerous than a fresh one. A charred face still turns up and
-                // simply does nothing, so the fire only ever takes away. See `charredFace`, and
-                // `liveFaces`, where the floor on how much of a cube can be killed still lives.
+                // **One face of six, never a kind.** A Wild scorched of a wild is four wilds and a
+                // Ratts, not a cube with no wilds on it — so a burn changes a cube's *odds* rather than
+                // only its length, and what one is worth depends entirely on which face it took.
+                //
+                // **It concentrates what is left, and that is the price rather than a flaw.** Burning a
+                // wild off a Wild Cube walks its mine from 1-in-6 to 1-in-5; burning the mine off hands
+                // you a pure wild for the rest of the climb. One face in six is the best thing that can
+                // happen to a rack and five in six make the cube a little more dangerous, which is the
+                // trade the fire is, and it is the counterweight the good case has to be paid for with.
+                //
+                // This was briefly the other thing — the face left in the pile to land and do nothing,
+                // so the fire only ever subtracted — which made Baroonda purely punitive and made a
+                // scorched cube duller rather than loaded. See `docs/planet-octahedron.md` §3.
+                // `liveFaces` is where the floor on how much of a cube can be killed lives.
                 const targets = [i - 1, i + 1]
                     .filter(j => j >= 0 && j < final.length && final[j] && !final[j].gone);
                 if (!targets.length) {
@@ -2293,19 +2566,24 @@ const resolveLine = function (line, call, bag, opts = {}) {
                     // line below is a freeze that landed earlier in this same pass and would otherwise
                     // hold it through the *next* roll. Both are ice on the cube the fire reached, and a
                     // scorch that melted one and left the other standing would be answering half a
-                    // question. Neither is charred: the turn went on the thaw.
+                    // question. Neither loses a face: the turn went on the thaw.
                     if (iced(x)) continue;
                     if (!x.slot) continue;
                     if (x.slot.frozen) { x.slot.frozen = null; continue; }
-                    // Already ash. The face standing there has been burnt once and there is nothing
-                    // left in it to take — and charring it twice would spend a mark off the floor
-                    // below for nothing.
-                    if (x.charred) continue;
                     // Nothing to take: the cube is already down to its last live face.
                     if (liveFaces(x.special, x.slot.burned).length <= config.minFaces) continue;
                     const id = faceIdOf(x);
                     x.slot.burned = [...x.slot.burned, id];
                     burned.push(id);
+                    // **And it is dead where it stands, not only gone from the cube.** Both halves are
+                    // the face: the cube loses the face for the rest of the climb, and the position in
+                    // front of you stops counting, stops paying and never takes its turn. Without the
+                    // second half the fire is a thing that happens to a cube's odds and to nothing you
+                    // can see — and the line it is supposed to flip stays exactly as dangerous, because
+                    // a Ratts charred by Baroonda would go off anyway. That is what makes a wipeout or
+                    // a mine landing next to her **good news**, which is the whole of why she burns the
+                    // face a neighbour *landed on* rather than a face off its list.
+                    charFace(x, id);
                 }
                 if (!burned.length) {
                     note(c, 'scorch.nothing');
@@ -2328,19 +2606,6 @@ const resolveLine = function (line, call, bag, opts = {}) {
                 // where it lasts exactly one rung because that node is rewritten on every one.
                 sealed = call;
                 note(c, 'vault', { side: call });
-                break;
-            case 'lockout':
-                // **Malastare**, which is merciless in the lore and is the mechanical version of it:
-                // not taking your money, taking your way out. The bank is sealed until a level rung is
-                // cleared.
-                //
-                // **It aims at exactly the right rungs.** A level push is EV 1.000, so forcing one
-                // costs nothing but nerve; an Again is `M → M+1`, and the whole house edge in this mode
-                // lives in the Agains. So the lock marches the player through the only stretch of road
-                // the house makes money on — and the cost scales with how much road is left, harshest
-                // straight after a prestige and nearly harmless on a collapsed route.
-                lockout = true;
-                note(c, 'lockout');
                 break;
             case 'seam':
                 // **Mon Gazza.** The only paying face on the die, and the only one in the game that
@@ -2395,22 +2660,109 @@ const resolveLine = function (line, call, bag, opts = {}) {
                     note(c, 'plunge.nothing');
                     break;
                 }
-                const ends = [0, final.length - 1];
+                // **A blessed cube holds its ground and the ledge crumbles past it.**
+                //
+                // The blessing turns this away like everything else, and the way it does it is the
+                // rule rather than an exception to one: the chasm still takes **two** positions, it
+                // just takes the next one along on that side. Two is what keeps a plunge
+                // parity-preserving, which is what stops it manufacturing ties on a die that is
+                // sideless everywhere else — and *"the blessing works on everything except the
+                // chasm"* is a sentence a player would have to be taught and would never guess.
+                //
+                // **Two or none.** On a line short enough that the two walks meet in the middle there
+                // is no second position to take, and taking one would break the parity the whole face
+                // is shaped around. So it takes nothing, which is the same answer it already gives on
+                // a line of one.
+                //
+                // The die is never blessed — nothing paints or blesses itself — so it still always
+                // falls when it is standing on an end, and the plunge is still the key nobody can aim.
+                // **The cube that threw it always falls**, blessed or not, and that is the one carve-out
+                // in here. A Binder or a Mirror can put a second die on the line and the two can bless
+                // each other, so a plunging die *can* be carrying one — and a plunge that spared itself
+                // would take away the die's only self-destruct, which is the jailbreak and the key the
+                // whole object is built around. Every other blessed cube on the ledge holds.
+                const edge = function (from, step) {
+                    for (let k = from; k >= 0 && k < final.length; k += step) {
+                        if (k === i || !holy(final[k])) return k;
+                    }
+                    return -1;
+                };
+                const head = edge(0, 1);
+                const tail = edge(final.length - 1, -1);
+                if (head < 0 || tail < 0 || head === tail) {
+                    note(c, 'plunge.blessed');
+                    break;
+                }
+                // Only the ones that actually held the ledge: a blessing between the true end and the
+                // position the chasm reached is a blessing that was used, and the rest of the line
+                // never came near it.
+                for (let k = 0; k < head; k += 1) spend(final[k]);
+                for (let k = final.length - 1; k > tail; k -= 1) spend(final[k]);
+                const ends = [head, tail];
                 const selfless = !ends.includes(i);
                 for (const k of [...ends].reverse()) final.splice(k, 1);
-                note(c, 'plunge', { destroyed: 2, self: !selfless });
+                note(c, 'plunge', { destroyed: 2, self: !selfless, at: ends });
                 break;
             }
-            case 'boonta':
-                // **Tatooine.** A tie on this line is won rather than rolled for. No lean, no cube of
-                // Watto's, no interaction with Qui-Gon's Nudge to reason about.
+            case 'crowd': {
+                // **Tatooine's crowd backs whoever is ahead, and paints it on.**
                 //
-                // It is dead unless the roll ties — but this die is sideless on all eight faces and
-                // three of them chew the count, so it fires far more often here than the same face
-                // would anywhere else. The die creates the problem one of its own faces solves.
-                boonta = true;
-                note(c, 'boonta');
+                // The face each neighbour is **showing** is painted the leading colour, for the rest of
+                // the climb — so the cube in front of you visibly becomes that side, and goes on
+                // counting for it every time that face comes up again.
+                //
+                // **Read off the line as it stands, in its turn**, like every other face. It resolved
+                // after the count at first, on the grounds that "whoever is ahead" is not settled until
+                // the count is in. That was true and it cost more than it bought: the face took no turn,
+                // could be cancelled outright by a mine three positions away, and painted a face nobody
+                // could see. The crowd backs whoever is ahead *now* — and if a Sebulba turns the line
+                // over after it, the crowd backed the wrong racer, which is a thing crowds do.
+                //
+                // **On a tie it paints the side you called.** Not a fallback: this die eats a voter on
+                // every throw and drives a quarter of all rungs to Watto's cube, so a crowd that idled
+                // on a level line would idle on a third of its own landings. Nobody to back, so it backs
+                // the home racer.
+                const ahead = { blue: 0, red: 0 };
+                for (const x of final) if (x && !x.gone && ahead[x.side] != null) ahead[x.side] += 1;
+                const side = ahead.blue > ahead.red ? 'blue' : ahead.red > ahead.blue ? 'red' : call;
+                const hit = [];
+                for (const j of [i - 1, i + 1]) {
+                    const x = final[j];
+                    if (!x || x.gone || !x.slot) continue;
+                    // Ice turns it away as it turns the fire away, and a corpse has no cube under it:
+                    // Ben's wings are a picture lying across the line and the cubes they replaced are
+                    // already off the table.
+                    if (iced(x)) continue;
+                    if (x.face && x.face.kind === 'razed') continue;
+                    // Already counting for that side, so there is nothing to paint. On a plain cube
+                    // showing the leading colour that is most of the time; on anything with an effect
+                    // face up it is never, which is the half of the table this face is really about.
+                    if (x.side === side) continue;
+                    // **Through `faceIdOf` and not `x.face.id`.** A plain cube carries no face object at
+                    // all — it is a side and nothing else — so reading the id off one skipped every
+                    // ordinary cube on the table, which is most of them and the whole point of the face.
+                    // Taken before the side is changed, or the mark names the colour it is becoming.
+                    const id = faceIdOf(x);
+                    if (!id) continue;
+                    x.slot.painted = [...(x.slot.painted || []), `${id}|${side}`];
+                    // **The position counts for it from this moment**, which is what makes the paint
+                    // visible at all: the tint is drawn off the resolved line, and a mark that only
+                    // showed when that face next landed would be a face that did nothing on screen. It
+                    // counts this rung too — the crowd acts before the count, like everything else.
+                    x.paint = side;
+                    x.side = side;
+                    hit.push(j);
+                }
+                if (!hit.length) {
+                    note(c, 'crowd.nothing');
+                    break;
+                }
+                note(c, 'crowd', { side, painted: hit.length, both: hit.length > 1 });
                 break;
+            }
+            // `blessing` has no turn of its own either. It is read before pass two starts and by
+            // everything below that takes a cube off the line; by the time the queue reaches the face
+            // itself there is nothing left for it to do. See the loop above the queue.
             // `shield` has no turn of its own. It is read by the mine and by the wipeout, which is the
             // whole of what it does — a shield on a line with neither has genuinely done nothing, and
             // should say nothing.
@@ -2659,9 +3011,12 @@ const resolveLine = function (line, call, bag, opts = {}) {
     // in: it was taken while the line was held, before a single effect fired. It is swept here with the
     // rest and not when the player scrapped it for the reason the rest are swept here — so a Jawa
     // standing on the same line cannot hand back the cube the player has just thrown away.
-    for (const slot of wrecked) if (slot) hold.push({ ...slot, hauled: false });
+    // `takenIn` is what a Jawa already took in during the roll — see the `scavenge` case. Without it a
+    // cube that broke, was salvaged and is standing on the line again would also be sitting in the
+    // hold, which is one cube in two places.
+    for (const slot of wrecked) if (slot && !takenIn.has(slot)) hold.push({ ...slot, hauled: false });
     for (const c of line) {
-        if (c.slot && !standing.has(c.slot) && !carried.has(c.slot)) {
+        if (c.slot && !standing.has(c.slot) && !carried.has(c.slot) && !takenIn.has(c.slot)) {
             hold.push({ ...c.slot, hauled: false });
         }
     }
@@ -2747,12 +3102,10 @@ const resolveLine = function (line, call, bag, opts = {}) {
         swept,
         // What the Planet Octahedron did that isn't to the line. All four are the *run's* business
         // rather than the table's, so they are reported and applied by the caller: `sealed` is the side
-        // the next rung can't be called on, `lockout` seals the bank, `boonta` says a tie on this line
+        // the next rung can't be called on, and `painted` is what the crowd wrote onto the cubes
         // is won rather than rolled for, and `jail`/`freed` are the prisoners still held and the ones
         // a jailbreak just let out.
         sealed,
-        lockout,
-        boonta,
         jail: held,
         freed,
         // The Scavenger's hold as this roll leaves it, `sprung` being the hauled cubes a destroyed

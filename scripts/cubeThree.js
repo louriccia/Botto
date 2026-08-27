@@ -90,7 +90,7 @@ ok('guideBonus is a live per-cube bonus', config.guideBonus > 0,
 // ---------------------------------------------------------------------------
 
 check('a clean slot still encodes as a bare id',
-    engine.encodeSet([{ id: 'wild', burned: [], frozen: null, heat: 0, hauled: false }]), ['wild']);
+    engine.encodeSet([{ id: 'wild', burned: [], painted: [], frozen: null, heat: 0, hauled: false }]), ['wild']);
 check('a plain clean slot still encodes as 0', engine.encodeSet([engine.plainSlot()]), [0]);
 check('heat encodes as an object',
     engine.encodeSet([{ id: 'turbine', burned: [], frozen: null, heat: 3, hauled: false }]),
@@ -106,7 +106,7 @@ check('hauled round-trips', engine.decodeSet(engine.encodeSet([
 ]))[0].hauled, true);
 check('a set written before either existed reads back clean',
     engine.decodeSet(['wild', 0])[0], {
-        id: 'wild', burned: [], frozen: null, heat: 0, hauled: false,
+        id: 'wild', burned: [], painted: [], frozen: null, heat: 0, hauled: false, blessed: false,
     });
 
 // ---------------------------------------------------------------------------
@@ -128,7 +128,7 @@ ok('a scorch is not a heat',
 const heats = new Array(6).fill(0);
 let paidTotal = 0;
 for (let r = 0; r < CLIMBS; r++) {
-    let slot = { id: 'turbine', burned: [], frozen: null, heat: 0, hauled: false };
+    let slot = { id: 'turbine', burned: [], painted: [], frozen: null, heat: 0, hauled: false };
     let n = 0;
     let paid = 0;
     for (;;) {
@@ -171,7 +171,7 @@ const specialOf = function (id, kind) {
         side: null,
         special: sp,
         face: faceOf(sp, kind),
-        slot: { id, burned: [], frozen: null, heat: 0, hauled: false },
+        slot: { id, burned: [], painted: [], frozen: null, heat: 0, hauled: false },
     };
 };
 const guideOn = function (spec, call) {
@@ -234,7 +234,7 @@ ok('and says so', nothing.notes.some(n => n.kind === 'haul.nothing'));
 let back = null;
 for (let i = 0; i < 200; i += 1) {
     back = scav(['red', 'scavenger.scavenge', 'red'], 'red', {
-        hold: [{ id: 'wild', burned: [], frozen: null, heat: 0, hauled: false }],
+        hold: [{ id: 'wild', burned: [], painted: [], frozen: null, heat: 0, hauled: false }],
     });
     if (!back.notes.some(n => n.kind === 'end' || n.kind === 'end.shielded')) break;
 }
@@ -269,7 +269,7 @@ let holdMax = 0;
 let leaks = 0;
 for (let r = 0; r < Math.min(CLIMBS, 20000); r++) {
     let set = [
-        { id: 'scavenger', burned: [], frozen: null, heat: 0, hauled: false },
+        { id: 'scavenger', burned: [], painted: [], frozen: null, heat: 0, hauled: false },
         engine.plainSlot(), engine.plainSlot(), engine.plainSlot(), engine.plainSlot(),
     ];
     let hold = [];
