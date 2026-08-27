@@ -110,7 +110,6 @@ const RACK = [DIE, 'wild', 'greed', 'binder', 'symbiont', 'multiplier'];
 
 for (let t = 0; t < CLIMBS; t++) {
     let set = [slot(null), slot(DIE), ...RACK.slice(1).map(slot), slot(null), slot(null)];
-    let jail = [];
     let locked = false;
     let sealed = null;
     const call = t % 2 ? 'red' : 'blue';
@@ -135,11 +134,14 @@ for (let t = 0; t < CLIMBS; t++) {
         for (const c of line) {
             if (!c.special && c.slot.burned.length) {
                 stats.leanFree++;
-                ok('a scorched plain cube still lands on a colour', c.side === 'red' || c.side === 'blue');
+                // Unless the face it landed on is one of the burnt ones, which is the whole of what a
+                // scorch does to a plain cube: it still draws a colour, and that colour is dead.
+                ok('a scorched plain cube still lands on a colour',
+                    c.charred || c.side === 'red' || c.side === 'blue');
             }
         }
 
-        const res = engine.resolveLine(line, call, [], { jail, rungs: rung });
+        const res = engine.resolveLine(line, call, [], { rungs: rung });
         const kinds = res.notes.map(n => n.kind);
         for (const k of ['freeze', 'scorch', 'vault', 'lockout', 'seam', 'jail', 'plunge', 'boonta']) {
             if (kinds.includes(k)) stats[k]++;
@@ -166,17 +168,20 @@ for (let t = 0; t < CLIMBS; t++) {
             ok('a scorch takes at most one face per neighbour', scorched.burned.length <= 2);
         }
 
-        // **The prison is bounded and it always has a door.**
-        ok('the prison never exceeds its size', res.jail.length <= config.jailSize,
-            `held ${res.jail.length}`);
-        const dieStanding = res.set.some(s => s.id === DIE);
-        if (res.freed.length) {
-            stats.jailbreak++;
-            ok('a jailbreak means no jailer left standing', !dieStanding);
-            check('a jailbreak empties the prison', res.jail.length, 0);
+        // **The prison is bounded and it always has a door.** It belongs to the die now rather than
+        // to the run — see Capture in the tuning — so both claims are about a cell on a slot: no cell
+        // holds more than it was built for, and nobody is inside a cube that isn't standing.
+        for (const s of res.set) {
+            ok('no cell exceeds its size', s.held.length <= config.jailSize,
+                `${s.id || 'plain'} holding ${s.held.length}`);
         }
-        ok('prisoners are only held by a standing jailer', !res.jail.length || dieStanding,
-            `held ${res.jail.length} with the die ${dieStanding ? 'up' : 'gone'}`);
+        const dieStanding = res.set.some(s => s.id === DIE);
+        const inCells = res.set.reduce((n, s) => n + engine.countHeld(s.held), 0);
+        check('the reported hold matches the set', res.held, inCells);
+        ok('prisoners are only held by a standing jailer or hauler', !inCells || dieStanding
+            || res.set.some(s => s.id === 'scavenger'),
+            `held ${inCells} with the die ${dieStanding ? 'up' : 'gone'}`);
+        if (kinds.includes('hold.break')) stats.jailbreak++;
 
         // Every position on the resolved line has exactly one id — the rule the whole face scheme
         // exists for, re-asserted here because the die adds eight ids to it.
@@ -189,21 +194,17 @@ for (let t = 0; t < CLIMBS; t++) {
         const majority = res.majority || (res.boonta ? call : null);
         if (majority !== call) break;
 
-        jail = [...res.jail];
-        const released = [...res.freed];
-        if (jail.length) released.push(jail.shift());
-        set = [...res.set, ...released];
+        set = [...res.set];
         if (locked && rung > 1) locked = false;
         if (res.lockout) locked = true;
         sealed = res.sealed || null;
     }
 }
 
-// **Nothing stays in the prison forever.** One out per rung won, all out if the die dies — so a run
-// that keeps winning empties it, and one that loses ends anyway. Checked as a property of the whole
-// sweep rather than of one climb: if the drip were missing, some climb above would have carried a
-// non-empty prison to its last rung with the die still standing and never let anyone out.
-ok('the prison drains', stats.jail === 0 || stats.jailbreak > 0 || stats.throws > 0);
+// **Nothing stays in the prison forever.** One out at the start of every turn the die takes, all out
+// if the die dies — so a run that keeps throwing empties it whether or not the rungs go its way.
+// `scripts/cubeHolds.js` is what proves the two valves; this only says the sweep exercised them.
+ok('the prison was exercised', stats.jail === 0 || stats.throws > 0);
 
 // ---------------------------------------------------------------------------
 // Phase four: the plumbing
@@ -308,7 +309,7 @@ const makeWorld = function () {
                 ok('the run is still live', !!world.db.ch.cube.ladders[ME]);
             }
 
-            if (settled.jailed) jailSeen++;
+            if (settled.held) jailSeen++;
 
             const side = settled.sealed
                 ? (settled.sealed === 'red' ? 'blue' : 'red')
@@ -318,7 +319,9 @@ const makeWorld = function () {
             run = pushed.run;
             // The run state the die holds has to survive the ladder round trip, which is the whole
             // reason this phase talks to storage instead of calling the engine directly.
-            ok('the prison survives storage', Array.isArray(run.jail));
+            // Prisoners ride the set now, inside the slot of the cube holding them, so what has to
+            // survive storage is the hold on a slot rather than a key on the ladder node.
+            ok('a hold survives storage', run.set.every(s => Array.isArray(s.held)));
             ok('the rung count survives storage', Number.isFinite(run.rungs));
         }
     }
@@ -456,7 +459,7 @@ const makeWorld = function () {
     console.log(`    sealed sides refused   ${sealedSeen}`);
     console.log(`    sealed banks refused   ${lockedSeen}`);
     console.log(`    ties won outright      ${boontaSeen}`);
-    console.log(`    rungs carrying a jail  ${jailSeen}`);
+    console.log(`    rungs carrying a hold  ${jailSeen}`);
     console.log(`  EV · a climb banked at the top, ${EV_RUNS.toLocaleString()} runs a rack, lean off`);
     console.log('    rack                    raw    vs bare');
     for (const [label, v] of bench) {

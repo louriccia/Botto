@@ -244,6 +244,11 @@ module.exports = function mountCube(app, ctx) {
         // counting toward nothing. See `lineState`.
         charred: thrown.res.charred,
         cubeIds: thrown.res.cubeIds,
+        // How many cubes each position is **carrying**, index for index against the line. The one
+        // thing in `lineState` that isn't visible on the position at all: a captured cube is off the
+        // line, so a sandcrawler with four in it draws exactly like one with none, and the row simply
+        // gets shorter with nothing on screen to say where they went. See Capture in the tuning.
+        holds: thrown.res.holds,
         steps: thrown.res.steps,
         notes: thrown.res.notes,
         pays: engine.multSteps(thrown.opening, thrown.res.pays,
@@ -268,6 +273,9 @@ module.exports = function mountCube(app, ctx) {
         rerolls: thrown.res.rerolls,
         shortcuts: thrown.res.shortcuts,
         ended: thrown.res.ended,
+        // Cubes the table is holding when the dust settles, nested holds included — the total behind
+        // `holds`, and what the board draws as `N held`.
+        held: thrown.res.held,
         // How many cubes the table had spawned when the engine gave up on it, 0 on every roll that
         // resolved. The bust reason already says `overflow`; this is the number, which is the only
         // part of that ending a client can't work out from the line in front of it — the line stops
