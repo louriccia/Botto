@@ -1356,6 +1356,17 @@ exports.rolledFaces = line => line.map(faceIdOf);
 // Index for index against the line it was taken from, so a caller holding `faceIds` can read all
 // three off the same subscript. Taken separately for the thrown line and the resolved one, because a
 // scorch applied *this* rung is on the second and not the first — which is exactly the beat.
+// **Everything `lineState` says about a line, as one comparable string.** Only `resolveLine` wants it,
+// and only to answer "did this turn change anything a frame would show" — see `changed`. A string
+// rather than a deep compare because the answer is needed once per turn and the shape is small; a
+// missed field here reads as a frame that never happened, so it is built off `lineState` itself.
+const stateKey = function (line) {
+    const st = lineState(line);
+    return [st.frozen, st.charred, st.blessed, st.painted, st.cubeIds, st.holds]
+        .map(a => (a || []).join(',')).join('|')
+        + '|' + (st.burned || []).map(b => (b || []).join('.')).join(',');
+};
+
 const lineState = line => ({
     frozen: (line || []).map(c => !!(c && c.frozen)),
     // What the fire has taken off the cube over the whole climb. There is no companion flag for "this
@@ -1744,6 +1755,14 @@ const resolveLine = function (line, call, bag, opts = {}) {
         // turn have with each other.
         const freshlyFreed = new Set();
         let was = final.map(faceIdOf);
+        // **And the state those faces are standing in.** `changed` used to be a comparison of face ids
+        // alone, which is not what a frame shows: the ice, the paint, the char and the blessing are all
+        // drawn on the cube, and every one of them can land without moving a face. So Ando Prime
+        // freezing a neighbour, Tatooine painting one and Baroonda charring one all came out `quiet` —
+        // and a client that treats the flag as a filter drew none of them, which is the Planet
+        // Octahedron losing most of its turns on screen. Five of its eight faces change state and
+        // nothing else.
+        let wasMarks = stateKey(final);
         let noteAt = notes.length;
 
         // **A copy needs no payout-side turn of its own.** It used to get one here, because the
@@ -2003,15 +2022,25 @@ const resolveLine = function (line, call, bag, opts = {}) {
         // than a footnote to whatever the die did next. That is what `was` and `noteAt` are re-taken
         // for: the face that follows gets a clean frame of its own.
         if (c.slot && c.slot.held.length && c.special && JAILERS.has(c.special.id)) {
+            // **The prisoner's own note is lifted off and re-appended behind the parole's.** A cube
+            // coming out of a hold is thrown on the way — `liftOne` rolls it a face and writes the note
+            // for whatever it landed on — so the note this frame reads as its own was the *prisoner's*
+            // side, and the frame came out labelled `side` with a parole nowhere in it. Same trick and
+            // the same reason as `scavenge` and `draw`: the frame is labelled with the release, and
+            // what the freed cube rolled follows it.
+            const before = notes.length;
             const out = liftOne(c.slot.held, 'shift');
+            const its = notes.splice(before);
             final.splice(releasePoint(), 0, out);
             freshlyFreed.add(out);
             note(c, 'parole', { faceId: faceIdOf(out), left: c.slot.held.length });
+            notes.push(...its);
             const after = final.map(faceIdOf);
             steps.push({
                 faceIds: after, note: notes[noteAt] || null, at: at(c), ...lineState(final),
             });
             was = after;
+            wasMarks = stateKey(final);
             noteAt = notes.length;
         }
 
@@ -2953,7 +2982,10 @@ const resolveLine = function (line, call, bag, opts = {}) {
         // filter — but it stays, because "took its turn and found nothing to do" is a real distinction
         // from "never got a turn" and only the engine knows which happened.
         const now = final.map(faceIdOf);
-        const changed = now.length !== was.length || now.some((e, k) => e !== was[k]);
+        const marks = stateKey(final);
+        const changed = now.length !== was.length
+            || now.some((e, k) => e !== was[k])
+            || marks !== wasMarks;
         if (changed || notes.length > noteAt) {
             // Where the acting cube ended up, so the frame can point at it. Read *after* the effect
             // because inserting and destroying move it — a Padmé slipping a cube in on its left
@@ -2992,7 +3024,11 @@ const resolveLine = function (line, call, bag, opts = {}) {
                 if (!slot.held.length || standing.has(slot)) continue;
                 const sp = slot.id ? specialById(slot.id) : null;
                 const from = notes.length;
+                // Every prisoner is thrown on the way out and writes its own note, so the same lift-off
+                // the parole needs is needed here — and needed more, because `spring` empties the whole
+                // hold and there can be four of them in front of the one note this frame is about.
                 const freed = spring(slot);
+                const theirs = notes.splice(from);
                 notes.push({
                     kind: 'hold.break',
                     faceId,
@@ -3000,6 +3036,7 @@ const resolveLine = function (line, call, bag, opts = {}) {
                     specialName: sp ? sp.name : null,
                     freed: freed.length,
                 });
+                notes.push(...theirs);
                 steps.push({
                     faceIds: final.map(faceIdOf),
                     note: notes[from],
