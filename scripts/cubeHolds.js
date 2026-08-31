@@ -31,8 +31,8 @@ const crypto = require('crypto');
 
 let state = 1;
 const seed = function (n) { state = n >>> 0 || 1; };
-// mulberry32, as `cubeParity.js` uses it: not cryptographic and doesn't need to be — it stands in
-// for the CSPRNG only so a roll can be replayed.
+// mulberry32: not cryptographic and doesn't need to be — it stands in for the CSPRNG only so a
+// roll can be replayed.
 const next = function () {
     state = (state + 0x6D2B79F5) >>> 0;
     let t = state;

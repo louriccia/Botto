@@ -25,7 +25,7 @@ const engine = require('../src/game/cube/engine.js');
 const { SPECIALS, LEVELS, cube: config } = require('../src/game/cube/tuning.js');
 
 const CLIMBS = Number(process.argv[2]) || 40000;
-const CUBES = LEVELS.map(l => l.cubes);
+const CUBES = LEVELS.map((l, i) => engine.nominalCubes(i));
 const ALL = SPECIALS.map(s => s.id);
 const OTHER = { red: 'blue', blue: 'red' };
 

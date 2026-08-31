@@ -13,8 +13,8 @@ against how far it reaches: the die held four of the game's five `binds` faces, 
 cells on the whole grid — *nothing guards a cube*, and *nothing ever adds to one* — turned out to be
 this cube's to fill. §9's numbers predate all of it and are marked where they are now stale.
 
-Coverage is `scripts/cubeOctahedron.js`, which `cubeParity.js` deliberately does not cover: the frozen
-reference engine predates this cube, so a climb fielding it is not a divergence in the ported rules.
+Coverage is `scripts/cubeOctahedron.js`. The retired port-fidelity harness never covered this cube —
+the frozen reference engine predated it — so this is the only place its claims are checked.
 
 An eight-sided die whose every face is one of the eight planets, each doing something no other cube
 does. It is not another special cube with a bigger number on it — it is the first cube that reaches
@@ -59,25 +59,16 @@ See §7 — it is one change, not three, and it is the thing to scope before any
 
 ## 2. The faces
 
-| Planet | Kind | What it does | Pts |
-|---|---|---|---|
-| **Ando Prime** | `freeze` | Both neighbours keep the face they are showing into the next rung and take no turn. | 2 |
-| **Aquilaris** | `vault` | The side you just called is sealed. Next rung, you must call the other one. | 2 |
-| **Baroonda** | `scorch` | Burns the face each neighbour is showing **off that cube**, for the rest of the climb. | 3 |
-| **Malastare** | `blessing` | One cube at random cannot be destroyed this rung — a mine included. | 2 |
-| **Mon Gazza** | `seam` | **+0.5** on the run's multiple for every rung already cleared this run. | 1 |
-| **Oovo IV** | `jail` | Imprisons up to four cubes in its own cell. One out at the start of every turn it takes; all out if the die is destroyed. | 3 |
-| **Ord Ibanna** | `plunge` | The cubes at the **head and the tail** of the line fall into the chasm. | 3 |
-| **Tatooine** | `crowd` | Paints one face on each neighbour over in the colour leading the line, for the rest of the climb. | 3 |
-
-Points follow the existing convention in `POINTS`: **3** restructures the shape of the line, **2** is
-positional or otherwise moves one thing, **1** is the floor for turning up, **0** is a corpse. The
-crowd scores 3 because it restructures a *cube* rather than the line, which is the more permanent of
-the two; the blessing scores 2 for protecting one thing, the same as the Gungan Shield.
-
-The die averages **2.375** against a plain cube's 1, up from 2.125 — worth about +1.4% of the stake a
-throw at `pointValue`, still a sweetener rather than a second scoring axis, but a slightly richer one
-than the design signed off on. It is on the list in §6 of things this amendment made stronger.
+| Planet | Kind | What it does |
+|---|---|---|
+| **Ando Prime** | `freeze` | Both neighbours keep the face they are showing into the next rung and take no turn. |
+| **Aquilaris** | `vault` | The side you just called is sealed. Next rung, you must call the other one. |
+| **Baroonda** | `scorch` | Burns the face each neighbour is showing **off that cube**, for the rest of the climb. |
+| **Malastare** | `blessing` | One cube at random cannot be destroyed this rung — a mine included. |
+| **Mon Gazza** | `seam` | **+0.5** on the run's multiple for every rung already cleared this run. |
+| **Oovo IV** | `jail` | Imprisons up to four cubes in its own cell. One out at the start of every turn it takes; all out if the die is destroyed. |
+| **Ord Ibanna** | `plunge` | The cubes at the **head and the tail** of the line fall into the chasm. |
+| **Tatooine** | `crowd` | Paints one face on each neighbour over in the colour leading the line, for the rest of the climb. |
 
 ---
 
@@ -464,8 +455,7 @@ the game. So a scorched cube leaving the lean behind is not a carve-out to write
 when a plain cube stops being plain. Untouched cubes keep calling `rollSide` and keep drawing exactly
 as they do now.
 
-**Everything else is small:** eight new kinds need `POINTS` entries and cases in the engine's two
-passes, and Malastare's lock is one flag on the ladder node beside `mult` and `carry`, cleared on a
+**Everything else is small:** eight new kinds need cases in the engine's two passes, and Malastare's lock is one flag on the ladder node beside `mult` and `carry`, cleared on a
 level push.
 
 > **Amended.** The lock and its flag come out entirely. What arrives in their place is a fourth slot

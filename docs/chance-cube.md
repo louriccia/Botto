@@ -62,10 +62,11 @@ Set a stake, call a side, roll. Win the level if your side is the **majority** �
 the double or push for two more cubes. Bust and you lose the stake and everything standing
 on it.
 
-**Watto calls every roll himself.** He is the house, so he is delighted when you lose and
-personally insulted when you don't. His dialogue comes first, in a block of its own, drawn at
-random from `WATTO` in the tuning data — then exactly one plain line saying what happened to the
-player's truguts:
+**Watto called every roll himself.** He was the house, so he was delighted when you lost and
+personally insulted when you didn't. His dialogue came first, in a block of its own, drawn at
+random from a `WATTO` table in the tuning data — then exactly one plain line saying what happened
+to the player's truguts. Both the table and the board that spoke it are **gone**; the Activity has
+never had a voice for him, and the lines below are a record of the embed, not of what ships:
 
 - `**Congrats!** You won **1,000** truguts and unlocked **Level 2 · Test Your Luck**!`
 - `**Sorry!** You lost **1,000** truguts and a **16,000** standing.`
@@ -181,7 +182,8 @@ one. The band between *worth owning* and *prints* is one notch of this dial wide
 has: `againBonus` is 1, so the price is *how many Agains' worth of climb this costs you*. It is a
 share rather than a per-rung table because the two come apart the moment a run goes hot — every
 paying face in the Gambler tree lifts the multiple off nominal, and a flat table would then sell the
-pick at a discount exactly when it is worth most. That is the mirror of the `pointValue` argument.
+pick at a discount exactly when it is worth most: a flat sum against a scaling standing always
+favours one end of the range.
 
 **An arm is for one rung and expires unspent.** Letting it carry is the same exploit in a different
 hat: one payment covers every remaining rung, so the pick is bought at rung 2 — where 40% of 1.94
@@ -198,11 +200,13 @@ hold asking only where to point it, which is not a question worth racing. Allowi
 on one line measured 0.96 / 0.90 / 0.85 / 0.93 against 0.95 / 0.93 / 0.94 / 0.82 for one-only — inside
 the error bar.
 
-The flat prices are their own argument. `lookCost` is flat because Premonition's value is roughly
-constant — one face, and the right to walk — where Scrap's scales with the standing; at 1 mult it is
-52% of an opening standing and 3.7% of an overtime one, which self-selects the look toward the deep
-rungs where walking away is worth something. Free and played well it measured a small faucet (L2 1.04
-against 0.84 for not owning it). `betAnte` is the side bet's missing half: `scripts/cubeSideBet.js`
+The look is priced as a share, and the argument for that is the argument against the flat price it
+replaced. A flat `lookCost 1` was 52% of an opening standing and 3.6% of a Level 5 one — the same
+flat-price-against-a-compounding-multiple problem the arms had, and it self-selected the look toward
+the deep rungs for a reason that had nothing to do with what the look was worth there. `lookShare`
+charges the same fraction of the standing at every rung, floored like the arms are. Free and played
+well the look measured a small faucet (L2 1.04 against 0.84 for not owning it). `betAnte` is the side
+bet's missing half: `scripts/cubeSideBet.js`
 derives every price in `SIDE_BETS` as `1/p - 1`, the fair return on a **one-unit wager**, and nothing
 ever staked the unit — so each card was a free option worth `price × p` on top of the rung. Because
 `price` is *net* odds, the ante comes back inside the payout: a card that lands pays `price + betAnte`,
@@ -406,8 +410,7 @@ on five faces in six, and a Binder or a Mirror can put a second copy of it on th
 no natural ceiling on how many a roll can throw. The embed kept the **last** frames rather than the
 first, so the walk started partway along and no frame ever showed a number that wasn't true.
 
-Both caps are dead letters now: they live in `RENDER` in `data/discord/cube_emoji.js` and are read
-only by `src/interactions/cube*.js`, which is the retired board. **A long roll is paced rather than
+Both caps are gone, along with `RENDER` and the embed board that read them. **A long roll is paced rather than
 truncated** — `BEAT.effect` and `BEAT.pay` are about a second each, so a rack that throws a dozen
 paying faces takes its time and says all of it. That is the price of a roll explaining itself, and
 it is only paid by a rack that earned it.
@@ -608,13 +611,20 @@ to put it, more often than a settled one does.
 Each level wears the goal-time symbol for its depth — the set run backwards, bronze at Level 1 up to
 diamond at the top.
 
-| Level | Name | Cubes | Pays | P(win) |
-|---|---|---|---|---|
-| 1 🥉 | A Friendly Wager | 1 | **1.9×** | 50% |
-| 2 🥈 | Test Your Luck | 3 | **3.8×** | 50% |
-| 3 🥇 | Rolling Thunder | 5 | **7.3×** | 50% |
-| 4 <:platinum:> | Gamblers and Swindlers | 7 | **14.2×** | 50% |
-| 5 💎 | Fate Decides | 9 | **27.5×** | 50% |
+| Level | Cubes | Pays | P(win) |
+|---|---|---|---|
+| 1 🥉 | 1 | **1.9×** | 50% |
+| 2 🥈 | 3 | **3.8×** | 50% |
+| 3 🥇 | 5 | **7.3×** | 50% |
+| 4 <:platinum:> | 7 | **14.2×** | 50% |
+| 5 💎 | 9 | **27.5×** | 50% |
+
+The levels **had** names once — "A Friendly Wager" up to "Fate Decides" — printed in the header of
+every roll the embed board drew. They went with the board: the Activity never rendered them, so they
+were crossing the wire for nobody. A level is a count and a payout now.
+
+The `Cubes` column here is the *nominal* width, which is `engine.nominalCubes` and not a field on
+`LEVELS` — the real width diverges the moment a special acts.
 
 **That `Pays` column is computed, not chosen.** It is `levelStep^n` exactly — so it cannot go stale
 the way a hand-typed `2, 4, 8, 16, 32` did the moment the step was priced — and it is quoted here at
@@ -794,8 +804,8 @@ None of that is needed when the transport is an authenticated request instead of
 **What went with it is the audience**, and that is worth recording as a gap rather than a decision.
 The channel used to watch every roll land, which is exactly why the separate in-channel
 announcement was reserved for **clearing the top level** and nothing else — everything smaller was
-already on screen for everyone who cared. That announcement still exists, in `interactions/cube.js`,
-which is the retired board; nothing on the Activity path has replaced it. **The mode now has no
+already on screen for everyone who cared. That announcement is gone with the embed board,
+and nothing on the Activity path has replaced it yet. **The mode now has no
 shared object at all** — the daily lean was the last one, and [pricing it honestly meant deleting
 it](#21-the-cube-is-fair-and-the-edge-is-in-the-pay-table). Whatever replaces it has to be something
 the whole channel can see without it also being something the whole channel can farm.
@@ -1297,8 +1307,7 @@ in one pass over a queue only originals feed, and the slowest single throw measu
 
 Drawing a runaway table is the client's problem and no longer the engine's. The embed needed a
 `LINE_BUDGET` — it drew as many cubes as fit and counted the rest (`… **+37**`) — because a
-description running past 4,096 characters made discord.js throw rather than trim. That budget still
-sits in `interactions/cube/functions.js` with the rest of the retired board; the Activity lays the
+description running past 4,096 characters made discord.js throw rather than trim. That budget went with the embed board; the Activity lays the
 line out and scrolls it. A table that got away from you should read as a triumph, not a crash.
 
 **Ben is drawn across three positions.** A raze doesn't delete its neighbours from the line — it
@@ -1793,10 +1802,11 @@ exactly that unreadable. Measured over 450,000 throws on a Ben-heavy rack it hit
 razed anything**. All four now come off one pass over the resolved line: **what is not on the table
 does not pay**, and a copy counts by standing there rather than by being handed a turn of its own.
 
-The engine's parity harness (`scripts/cubeParity.js`) diverges from its frozen pre-port reference
-because of this, and should: over 3,000 climbs it reports `mult`/`pays` on 41, `rerolls` on 14,
-`shortcut` on 11, and the reroll note's wording on 196 — and nothing else at all. That harness was the
-gate on the *port* being faithful; it cannot also be the gate on the rules never changing.
+The engine's parity harness diverged from its frozen pre-port reference because of this, and should
+have: over 3,000 climbs it reported `mult`/`pays` on 41, `rerolls` on 14, `shortcut` on 11, and the
+reroll note's wording on 196 — and nothing else at all. That harness was the gate on the *port* being
+faithful, and it could not also be the gate on the rules never changing; it was retired along with
+the embed board it rendered through.
 
 **The bag is what makes a big rack worth building.** A single special got slightly *weaker* — the old
 flat chance rolled per cube, so two cubes a level gave it a 44% look-in and it usually landed early;
@@ -1920,7 +1930,7 @@ same rack without one, because it converts the first bust of a climb into anothe
 what the ×1.5-per-held-reroll price is defending against, and it is the number to watch first if the
 economy runs hot.
 
-The knobs, all in `src/data/challenge/cube.js`: `specialChance` (how often a rack shows up at
+The knobs, all in `src/game/cube/tuning.js`: `specialChance` (how often a rack shows up at
 all — the single strongest lever), `rerollCost` and `rerollPriceStep`, then `greedBonus` and
 `multBonus`.
 
@@ -1945,8 +1955,9 @@ API knows nothing about how they are played, and the client knows nothing it was
 | Ties | `rollTiebreak` + `applyMults` in the engine; `parkTie` / `resumeTie` / `answerTie` in `actions.js` |
 | Face art | one glyph per face, never composed — Discord's map is `data/discord/cube_emoji.js`, the Activity's is `activity/faces.js` |
 | Live state mirror | `src/firebase.js` listener on `challenge/cube/live` |
-| Retired board | `src/interactions/cube.js`, `cube/functions.js`, `data/challenge/cube.js` — the embed. Still loaded for `isUnlocked`/`lockedEmbed` and as the parity harness's subject; it draws no game any more |
-| Harnesses | `scripts/cubeParity.js` (the port is faithful), `cubeOctahedron.js`, `cubeEconomy.js`, `cubePoints.js`, `cubeFixtures.js` (client fixtures), `cubeApiSmoke.js`, `cubeActivityCheck.js` |
+| Unlock gate | `src/data/discord/cube_gate.js` — `isUnlocked` / `lockedEmbed`, all that survives of the deleted embed board |
+| Discord glyphs | `src/data/discord/cube_emoji.js` — face and level art, kept for messages the bot still sends; it draws no game |
+| Harnesses | `cubeOctahedron.js`, `cubeEconomy.js`, `cubeFixtures.js` (client fixtures), `cubeApiSmoke.js`, `cubeActivityCheck.js` |
 | Inspector | `scripts/inspectChanceCube.js` |
 
 **State.**

@@ -12,6 +12,8 @@
 const axios = require('axios');
 const jwt = require('jsonwebtoken');
 
+const { isUnlocked } = require('../data/discord/cube_gate.js');
+
 const DISCORD_API = 'https://discord.com/api/v10';
 const TOKEN_TTL = '2h';
 
@@ -283,9 +285,9 @@ exports.requireAuth = ctx => function (req, res, next) {
 };
 
 // The chance cube is unlocked by the "Red vs Blue" collection, and the Activity respects that gate
-// exactly as the slash command does — see `isUnlocked` in src/interactions/cube.js.
+// exactly as the slash command does — the same `isUnlocked`, not a second copy of the test.
 exports.requireCube = function (req, res, next) {
-    if (!req.player.profile?.effects?.chance_cube) {
+    if (!isUnlocked(req.player.profile)) {
         return res.status(403).json({
             error: "You haven't got a chance cube. Collect three red sides and three blue ones.",
             locked: true,

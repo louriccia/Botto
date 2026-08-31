@@ -17,13 +17,20 @@ const engine = require('../game/cube/engine.js');
 const pstate = require('../game/cube/state.js');
 const persist = require('../game/cube/persist.js');
 const actions = require('../game/cube/actions.js');
+const { rollResponse } = require('../game/cube/wire.js');
+const sandbox = require('../game/cube/sandbox.js');
 const {
-    LEVELS, SPECIALS, SIDES, WATTO, TREE, TREES, SIDE_BETS, SKIN_SETS, cube: config,
+    LEVELS, SPECIALS, SIDES, TREE, TREES, SIDE_BETS, SKIN_SETS, cube: config,
 } = require('../game/cube/tuning.js');
 
 // Balance is derived, never stored — the profile keeps two lifetime counters and the difference
-// between them is what the player has.
-const balanceOf = p => (Number(p?.truguts_earned) || 0) - (Number(p?.truguts_spent) || 0);
+// between them is what the player has. The actions layer owns the sum; a second copy here is a
+// second place for the two counters to be read the wrong way round.
+const { balanceOf } = actions;
+
+// One map per question, over the one list of arms the actions layer already owns. The three maps
+// below used to be three hand-written triples, so a fourth arm meant finding all of them.
+const byArm = fn => Object.fromEntries(actions.ARMS.map(k => [k, fn(k)]));
 
 // Everything the board needs in one response. The client renders from this and nothing else, so a
 // field missing here is a field the Activity cannot draw.
@@ -34,6 +41,7 @@ const boardOf = function (ctx, req) {
     const dead = persist.deadOf(ctx.db, discordId);
     const tie = persist.tieOf(ctx.db, discordId);
     const shown = persist.shownOf(ctx.db, discordId);
+    const gap = pstate.gapSize(s);
     return {
         player: s,
         balance: balanceOf(profile),
@@ -55,8 +63,8 @@ const boardOf = function (ctx, req) {
             goal: pstate.goalOf(s),
             // Agains per gap. `perLevel` is the name the client grew up with and means the same
             // number; `gap` is what it is called now.
-            gap: pstate.gapSize(s),
-            perLevel: pstate.gapSize(s),
+            gap,
+            perLevel: gap,
             canPrestige: pstate.canPrestige(s),
             maxLevel: pstate.MAX_LEVEL,
             ...pstate.routeOf(s),
@@ -100,31 +108,19 @@ const boardOf = function (ctx, req) {
             // button and the standing would jump when it was pressed. `arm` is kept as the fallback for
             // anything unlisted, which today is Split.
             arm: engine.armPriceOf(live.mult),
-            arms: {
-                scrap: engine.armPriceOf(live.mult, 'scrap'),
-                swap: engine.armPriceOf(live.mult, 'swap'),
-                split: engine.armPriceOf(live.mult, 'split'),
-            },
+            arms: byArm(k => engine.armPriceOf(live.mult, k)),
             // The look is a share of the standing now rather than a flat mult, so it has to be worked out
             // against the live multiple like the arms are.
             look: engine.lookPriceOf(live.mult),
             bet: engine.betPriceOf(),
             // Which of the three are paid up for the rung ahead. Cleared by every settlement, so a
             // board drawn between rungs shows an empty set even if the last rung was fully armed.
-            armed: {
-                scrap: !!(live.armed || {}).scrap,
-                swap: !!(live.armed || {}).swap,
-                split: !!(live.armed || {}).split,
-            },
+            armed: byArm(k => !!(live.armed || {})[k]),
             // Whether the standing can carry one more purchase at all. `spendMultiple` refuses a price
             // that would leave nothing behind, and a button that offers a refusal is a bug on screen.
             canAfford: (Number(live.mult) || 0) > engine.armPriceOf(live.mult),
             // Per arm too: Swap can be affordable on a standing that cannot carry Scrap.
-            canAffordArm: {
-                scrap: (Number(live.mult) || 0) > engine.armPriceOf(live.mult, 'scrap'),
-                swap: (Number(live.mult) || 0) > engine.armPriceOf(live.mult, 'swap'),
-                split: (Number(live.mult) || 0) > engine.armPriceOf(live.mult, 'split'),
-            },
+            canAffordArm: byArm(k => (Number(live.mult) || 0) > engine.armPriceOf(live.mult, k)),
             canLook: (Number(live.mult) || 0) > engine.lookPriceOf(live.mult),
             // **The ante has its own test.** The board was reading `canAfford` for it, which is the *arm*
             // test — so on a standing that covers an arm but not the ante it offered a bet the server
@@ -225,6 +221,30 @@ module.exports = function mountCube(app, ctx) {
         moveTruguts: moveTrugutsFor(req.player.profile, req.player.ref),
     });
 
+    // **How a throw ends, in one place.** Three routes throw cubes — `/roll`, `/held` and `/reroll`
+    // — and all three end the same way: a tie Watto is *asking* about parks where settlement would
+    // have written and blocks the board until it is answered; anything else settles. `wire.js`
+    // already stopped the response *shape* from drifting between them, but the sequence around it
+    // was still written out three times, so a fourth ending state had to be found in three routes.
+    //
+    // Returns the body and whether it parked; the caller decides what that means to it — `/roll`
+    // alone has a stake to hand back if it did not get this far.
+    const finishThrow = async function (rctx, req, thrown, { reverse = 0 } = {}) {
+        if (thrown.asking) {
+            actions.parkTie(rctx, thrown, { reverse });
+            return {
+                parked: true,
+                body: {
+                    ...rollResponse(thrown, null),
+                    tie: { asking: true, cost: thrown.cost, worth: thrown.worth },
+                    board: boardOf(rctx, req),
+                },
+            };
+        }
+        const settled = await actions.settleThrow(rctx, { thrown, reverse });
+        return { parked: false, body: { ...rollResponse(thrown, settled), board: boardOf(rctx, req) } };
+    };
+
     // -----------------------------------------------------------------------
     // Signing in
     // -----------------------------------------------------------------------
@@ -256,11 +276,17 @@ module.exports = function mountCube(app, ctx) {
     // The rules, so the client can draw a rack and a ladder without hardcoding either. Behind auth
     // only because there is no reason to serve it to anyone else; it is not a secret, and the one
     // thing that *is* — the daily lean salt — is nowhere near this.
-    app.get('/tuning', requireAuth(ctx), (req, res) => res.json({
-        levels: LEVELS,
+    // Built once. Every field below is a function of the tuning tables and nothing else, so
+    // rebuilding it per request — `treeCatalogue` walks every node of every tree — was work whose
+    // answer could not change between two calls.
+    const tuningResponse = {
+        // `cubes` is derived here rather than carried in `LEVELS`, which holds no nominal widths —
+        // see `nominalCubes`. The wire is the one place a nominal ladder is the right answer: the
+        // client draws the shape of a climb nobody has thrown yet, and reading it off `cubesPerLevel`
+        // itself would be the client hardcoding the very arithmetic this endpoint exists to spare it.
+        levels: LEVELS.map((l, i) => ({ ...l, cubes: engine.nominalCubes(i) })),
         specials: SPECIALS,
         sides: SIDES,
-        watto: WATTO,
         config: wireConfig,
         // The shape of the rack: five trees and every node's tier and prerequisites. Static, so it
         // belongs here beside `specials` rather than on the board — what changes per player is which
@@ -285,7 +311,9 @@ module.exports = function mountCube(app, ctx) {
         // — a price half from the server and half from a bundle is the version that overcharges
         // somebody quietly.
         skins: SKIN_SETS,
-    }));
+    };
+
+    app.get('/tuning', requireAuth(ctx), (req, res) => res.json(tuningResponse));
 
     // -----------------------------------------------------------------------
     // The board
@@ -327,96 +355,8 @@ module.exports = function mountCube(app, ctx) {
     // Playing
     // -----------------------------------------------------------------------
 
-    // Everything the client needs to animate a throw and then show what it paid. The reveal caps
-    // the embed lives with — three effect frames, four pay frames — are **not** applied: they are a
-    // property of a message edit, and this client has no such limit.
-    const rollResponse = (thrown, settled) => ({
-        // The line as thrown, one id per position, before any effect resolved.
-        thrown: thrown.rolled,
-        // **What a face id cannot say about the position it is standing on**, index for index against
-        // the line beside it — see `lineState` in the engine. `frozen` is Ando Prime holding a cube on
-        // the face it is showing, `burned` is what Baroonda has scorched off the cube standing there,
-        // and `cubeIds` is which cube it is at all — the one thing a client naming the casualties of
-        // an effect cannot work out from the faces alone.
-        //
-        // Two copies rather than one, because the two lines genuinely disagree and the difference is
-        // the beat: a scorch applied on this rung is on the resolved line and not on the thrown one,
-        // and a cube whose ice an effect broke against is held on the throw and thawed by the payout.
-        // Every step carries its own for the same reason.
-        thrownState: thrown.rolledState,
-        // The line as it ended up, and the walk that got there.
-        line: thrown.res.faceIds,
-        frozen: thrown.res.frozen,
-        burned: thrown.res.burned,
-        // Which positions are standing on a face the crowd painted, and what colour. The client tints
-        // the art to it — one picture, still saying what the face does, and the tint saying which side
-        // it counts for. See `lineState`.
-        painted: thrown.res.painted,
-        // Which positions are standing on a face Baroonda has just burnt — dead where they stand, and
-        // counting toward nothing. See `lineState`.
-        charred: thrown.res.charred,
-        // Which cubes are carrying Nugtosh's blessing. Unlike the ice this is not a fact about the
-        // throw — it was given on some earlier rung and it is still there — so the board has to be able
-        // to draw it on every line until something spends it.
-        blessed: thrown.res.blessed,
-        cubeIds: thrown.res.cubeIds,
-        // How many cubes each position is **carrying**, index for index against the line. The one
-        // thing in `lineState` that isn't visible on the position at all: a captured cube is off the
-        // line, so a sandcrawler with four in it draws exactly like one with none, and the row simply
-        // gets shorter with nothing on screen to say where they went. See Capture in the tuning.
-        holds: thrown.res.holds,
-        steps: thrown.res.steps,
-        notes: thrown.res.notes,
-        pays: engine.multSteps(thrown.opening, thrown.res.pays,
-            settled ? settled.majority : null),
-        level: thrown.run.level,
-        // Which rung this was. `kind` is 'level' or 'again'; `again` is which time round, so a
-        // client can draw `Again ×3` without inferring it from anything.
-        kind: thrown.kind,
-        again: thrown.run.again || 0,
-        call: thrown.run.call,
-        stake: thrown.run.stake,
-        opening: thrown.opening,
-        breaker: thrown.breaker,
-        // What the line *held*, as totals rather than as faces — and the client cannot derive either
-        // from `line`. Both pay in the first pass and can be written over in the second, which leaves
-        // the line with no position to count them off; a mirrored copy pays without ever having been
-        // thrown. Sent for the same reason a razed greed still gets a `pays` entry with no `at`: a
-        // readout that climbs with nothing on screen to explain it reads as a bug.
-        //
-        // **Held, not banked.** Neither is awarded off a roll that ends the run — see `settleThrow` —
-        // so a client counting these up has to check `settled.won` first, exactly as it does for `pays`.
-        rerolls: thrown.res.rerolls,
-        shortcuts: thrown.res.shortcuts,
-        ended: thrown.res.ended,
-        // Cubes the table is holding when the dust settles, nested holds included — the total behind
-        // `holds`, and what the board draws as `N held`.
-        held: thrown.res.held,
-        // How many cubes the table had spawned when the engine gave up on it, 0 on every roll that
-        // resolved. The bust reason already says `overflow`; this is the number, which is the only
-        // part of that ending a client can't work out from the line in front of it — the line stops
-        // at whatever `maxCubes` and the effects left standing, not at the count that tripped it.
-        overflow: thrown.res.overflow,
-        // **How many cubes the bag had left when this roll finished.** The client reads that off the
-        // run the roll left behind, which works until there is no run left to read: a bust by a player
-        // with no reroll banked clears the ladder outright — see `settleLoss` — so a run that died on
-        // its opening throw could never say what it had been drawing from. Sent on every roll rather
-        // than only on that one, because a figure a client has to fetch two ways is a figure that will
-        // disagree with itself.
-        bag: (thrown.bag || []).length,
-        // **The side bet this rung was carrying, and what it paid.** Both are already worked out by the
-        // settlement — see `settleThrow` — and neither is derivable on the other side: the board's `bet`
-        // is nulled the moment the rung settles, and whether a proposition *hit* is a predicate in
-        // `SIDE_BETS` that only this side holds. `betPaid` folds into the rung's multiple beside the
-        // roll's own paying faces, so a client that cannot see it has a readout climbing by a figure
-        // with nothing on screen to explain it — the same reason a razed greed still gets a `pays` entry.
-        //
-        // `0` on a bet that missed and `null` on a rung nobody bet, which are different facts: one is a
-        // proposition that lost and has to be shown losing, the other is nothing to show.
-        bet: thrown.bet || null,
-        betPaid: thrown.bet ? (Number(thrown.betPaid) || 0) : null,
-        ...(settled ? { settled } : {}),
-    });
+    // The shape a settled throw goes on the wire in lives in `wire.js`, because the sandbox route
+    // below builds one too — see the note at the top of that file for why there must be only one.
 
     // Stake and call, or push and call. Both end in a throw, which is settled immediately — the
     // client animates a result that is already final, so a closed tab cannot cost a standing.
@@ -477,21 +417,11 @@ module.exports = function mountCube(app, ctx) {
                 ? actions.resolveThrown(ctx, parked.run, parked)
                 : actions.throwLevel(ctx, opened.run);
 
-            // A tie Watto is *asking* about is the one throw that does not settle here. The whole
-            // roll is parked where settlement would have written, so it can be picked up and
-            // finished later — and it blocks the board until it is.
-            if (thrown.asking) {
-                actions.parkTie(ctx, thrown, { reverse: opened.reverse || 0 });
-                committed = true;
-                return res.json({
-                    ...rollResponse(thrown, null),
-                    tie: { asking: true, cost: thrown.cost, worth: thrown.worth },
-                    board: boardOf(ctx, req),
-                });
-            }
-
-            const settled = await actions.settleThrow(ctx, { thrown, reverse: opened.reverse || 0 });
-            return res.json({ ...rollResponse(thrown, settled), board: boardOf(ctx, req) });
+            const done = await finishThrow(ctx, req, thrown, { reverse: opened.reverse || 0 });
+            // A parked tie has written where settlement would have, so the stake is spoken for and
+            // must not be handed back by the catch below.
+            if (done.parked) committed = true;
+            return res.json(done.body);
         } catch (err) {
             // The stake is already spent but nothing settled, so the run would simply vanish. Hand
             // it back, exactly as the embed does when Discord is unreachable mid-roll.
@@ -547,16 +477,7 @@ module.exports = function mountCube(app, ctx) {
         if (!out.ok) return refused(res, out);
         try {
             const thrown = actions.resolveThrown(rctx, out.run, out.thrown);
-            if (thrown.asking) {
-                actions.parkTie(rctx, thrown);
-                return res.json({
-                    ...rollResponse(thrown, null),
-                    tie: { asking: true, cost: thrown.cost, worth: thrown.worth },
-                    board: boardOf(rctx, req),
-                });
-            }
-            const settled = await actions.settleThrow(rctx, { thrown });
-            return res.json({ ...rollResponse(thrown, settled), board: boardOf(rctx, req) });
+            return res.json((await finishThrow(rctx, req, thrown)).body);
         } catch (err) {
             // The rung was already called and the cubes are already down, so there is no stake to hand
             // back — the same position `/roll` is in once it has committed.
@@ -634,18 +555,9 @@ module.exports = function mountCube(app, ctx) {
         if (!again.ok) return refused(res, again);
         try {
             const thrown = actions.throwLevel(ctx, again.run);
-            if (thrown.asking) {
-                // The bust this reroll is undoing has to be carried onto the parked node, or
-                // answering the tie would settle without reversing it.
-                actions.parkTie(ctx, thrown, { reverse: again.reverse });
-                return res.json({
-                    ...rollResponse(thrown, null),
-                    tie: { asking: true, cost: thrown.cost, worth: thrown.worth },
-                    board: boardOf(ctx, req),
-                });
-            }
-            const settled = await actions.settleThrow(ctx, { thrown, reverse: again.reverse });
-            return res.json({ ...rollResponse(thrown, settled), board: boardOf(ctx, req) });
+            // The bust this reroll is undoing rides along as `reverse`, or a parked tie would settle
+            // later without reversing it.
+            return res.json((await finishThrow(ctx, req, thrown, { reverse: again.reverse })).body);
         } catch (err) {
             console.error('[api] /cube/reroll:', err);
             return res.status(500).json({ error: 'The reroll failed.' });
@@ -759,18 +671,18 @@ module.exports = function mountCube(app, ctx) {
                 };
                 // A rolling window only counts if its stored key is the current one — a stale block is
                 // last week's numbers and must not be ranked against this week's.
+                //
+                // Projected by `windowOf`, the same reader the board uses, rather than by a second
+                // copy of the coercions here — the stale key it zeroes is the check this loop needs
+                // anyway, so an emptied block is one whose numbers are all zero. `at` comes back
+                // stamped by it too: zeros for anything filed before the stamps existed.
                 for (const name of ['week', 'month']) {
-                    const w = c[name];
-                    if (!w || w.id !== keys[name]) continue;
-                    rows[name].push({
-                        ...who,
-                        multiple: Number(w.multiple) || 0,
-                        cubes: Number(w.cubes) || 0,
-                        streak: Number(w.streak) || 0,
-                        // When each of those landed, so the board can date its rows. Zero for anything
-                        // filed before the stamps existed — see `stampsOf`.
-                        at: pstate.stampsOf(w.at),
-                    });
+                    // `id` is dropped deliberately: the window's id is its *key* ("2026-W12"), and the
+                    // row's id is the player. Spreading the whole thing would quietly replace one with
+                    // the other and rank the board against itself.
+                    const { id: _key, ...w } = pstate.windowOf(c[name], keys[name]);
+                    if (!(w.multiple || w.cubes || w.streak)) continue;
+                    rows[name].push({ ...who, ...w });
                 }
                 rows.all.push({
                     ...who,
@@ -865,4 +777,41 @@ module.exports = function mountCube(app, ctx) {
         if (!out.ok) return refused(res, out);
         return res.json({ ...out, board: boardOf(ctx, req) });
     });
+
+    // -----------------------------------------------------------------------
+    // The sandbox
+    // -----------------------------------------------------------------------
+
+    // **Two routes that exist only outside production**, for building the reveal. See
+    // `src/game/cube/sandbox.js`: the caller names the cubes and the faces, and the line resolves
+    // through the real engine against a world that is created per request and discarded with it.
+    //
+    // Gated on `NODE_ENV`, which is the gate `auth.js` already uses for the one other thing that
+    // must not exist on a deployed build. Mounted rather than gated inside the handler, so a
+    // production build has no such path at all and answers the same 404 as any other typo — an
+    // endpoint that exists and refuses is an endpoint somebody will find and probe.
+    //
+    // Behind `auth` even so, and for a reason that outlives the gate: the whole file is, the token
+    // is free to mint locally (`scripts/cubeDevToken.js`), and a dev server on a laptop is still a
+    // dev server on a network.
+    if (process.env.NODE_ENV !== 'production') {
+        // Every cube and every face in the game, which is what a picker offers — not the rack the
+        // player owns, which is `/tuning`.
+        app.get('/sandbox/catalogue', auth, (req, res) => res.json(sandbox.catalogue()));
+
+        // A named line, thrown and settled. Answers in exactly the shape `/roll` does, minus the
+        // `board` — there is no board, and that is the point.
+        app.post('/sandbox/roll', auth, rateLimit({ perMinute: 120 }), async (req, res) => {
+            try {
+                const out = await sandbox.throwLine(req.body || {});
+                if (!out.ok) return refused(res, out);
+                return res.json(out.roll);
+            } catch (err) {
+                // Loudly, and with the stack, because the one thing this route is for is finding out
+                // what a line does — and "500" is the least useful answer to that.
+                console.error('[api] /cube/sandbox/roll:', err);
+                return res.status(500).json({ error: String(err && err.message || err) });
+            }
+        });
+    }
 };

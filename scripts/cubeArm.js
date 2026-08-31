@@ -200,9 +200,10 @@ console.log('\nTHE LOOK — priced flat, once a rung, and refunded when it sells
     const out = actions.premonition(w.ctxOf());
     ok('a look can be taken between rungs', out.ok, out.message);
     if (out.ok) {
-        near('it costs the flat price', w.ladder().mult, 7.301384 - config.lookCost);
+        near('it costs a share of the standing', w.ladder().mult,
+            7.301384 - engine.lookPriceOf(7.301384));
         eq('the standing follows the multiple', w.ladder().standing,
-            engine.bankPayout(1000, 7.301384 - config.lookCost));
+            engine.bankPayout(1000, 7.301384 - engine.lookPriceOf(7.301384)));
         eq('a second look on the same rung is refused', actions.premonition(w.ctxOf()).code, 'already_shown');
     }
 }

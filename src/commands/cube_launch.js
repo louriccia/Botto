@@ -13,7 +13,7 @@
 // `DISCORD_LAUNCH_ACTIVITY` (handler 2) is one less moving part: Discord opens the Activity and
 // posts a message, and the bot is never involved. But the chance cube is **unlocked by a
 // collection**, and a player who hasn't built one would get a loading screen followed by a refusal
-// from the API — a worse version of the answer the embed has always given straight away.
+// from the API — a worse version of the answer the gate gives straight away.
 //
 // `APP_HANDLER` (handler 1) means this interaction reaches the bot first, so the gate stays where
 // every other entry to the mode already puts it, and the copy stays the same one.
@@ -33,6 +33,7 @@
 // --global; it replaces Discord's copy.
 
 const { ApplicationCommandType } = require('discord.js');
+const { isUnlocked, lockedEmbed } = require('../data/discord/cube_gate.js');
 
 // EntryPointCommandHandlerType.AppHandler. Not exported by discord.js at this version, so it is
 // written out with the name it has in the API docs rather than as a bare 1.
@@ -61,8 +62,6 @@ module.exports = {
     // Reached because of APP_HANDLER above. `launchActivity()` is the one response that opens the
     // iframe; anything else here would leave the player looking at a message instead of a game.
     async execute({ interaction, user_profile } = {}) {
-        // eslint-disable-next-line global-require
-        const { isUnlocked, lockedEmbed } = require('../interactions/cube.js');
         if (!isUnlocked(user_profile)) {
             return interaction.reply({ embeds: [lockedEmbed()], ephemeral: true });
         }

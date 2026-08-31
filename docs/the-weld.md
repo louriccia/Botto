@@ -40,10 +40,9 @@ runs out.
 
 The weld is a second sink for the same currency. Nothing new is minted and nothing new is counted.
 
-> **Naming hazard.** `POINTS` in `tuning.js` is already taken — it is the per-face score feeding
-> `pointValue`, the Chips half of the payout. That is a different thing from `s.points`, the prestige
-> currency. The state field should stay `points` because it already exists and is already persisted,
-> but every line of copy about the weld has to say **build token** in full, and any new tuning key
+> **Naming hazard.** `s.points` is the prestige currency, not a score. The state field should stay
+> `points` because it already exists and is already persisted, but every line of copy about the weld
+> has to say **build token** in full, and any new tuning key
 > should be `weld*` rather than `point*`.
 
 ---
@@ -82,7 +81,7 @@ other, or, almost never, five and one.
 
 Nothing about resolution changes. `randomInt(0, faces.length)` already draws from a list of any
 length, a welded face resolves exactly as its parent face resolved, takes its own turn in the second
-pass, scores its own `POINTS`, and is copied by a Mirror or a Binder like anything else.
+pass, and is copied by a Mirror or a Binder like anything else.
 
 **The guardrail is covered for free.** "A set always keeps something on it that can decide a roll"
 tests a cube's own face list for `side` / `wild` / `twins` rather than checking a list of ids — which

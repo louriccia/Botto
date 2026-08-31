@@ -1,8 +1,7 @@
 // The Turbine, the Scavenger and the Guide, measured and asserted.
 //
-// Same job `cubeOctahedron.js` does for the die, and for the same reason: the frozen reference engine
-// `cubeParity.js` proves against predates all three, so a climb fielding one is not a divergence in
-// the ported rules. This is where they earn their place instead.
+// Same job `cubeOctahedron.js` does for the die, and for the same reason: the retired port-fidelity
+// harness never reached these three, so this is the only place their claims are checked.
 //
 //   1. **Invariants.** The claims each cube's design rests on. The Turbine's distribution is derived
 //      rather than measured and so is asserted exactly; the Scavenger's hold has to conserve cubes;
@@ -20,7 +19,7 @@ const engine = require('../src/game/cube/engine.js');
 const actions = require('../src/game/cube/actions.js');
 const pstate = require('../src/game/cube/state.js');
 const persist = require('../src/game/cube/persist.js');
-const { SPECIALS, POINTS, cube: config } = require('../src/game/cube/tuning.js');
+const { SPECIALS, cube: config } = require('../src/game/cube/tuning.js');
 
 const ME = '1';
 
@@ -63,8 +62,6 @@ check('guide pay faces', guide.faces.filter(f => f.kind === 'guide').length, 5);
 check('guide mines', guide.faces.filter(f => f.kind === 'end').length, 1);
 
 for (const sp of [turbine, scavenger, guide]) {
-    ok(`${sp.id}: every face scores`, sp.faces.every(f => POINTS[f.kind] != null),
-        `unscored: ${sp.faces.filter(f => POINTS[f.kind] == null).map(f => f.id).join(', ')}`);
     ok(`${sp.id}: no face carries a side`, !sp.faces.some(f => f.side),
         'a face is a side or it does a thing, never both');
 }

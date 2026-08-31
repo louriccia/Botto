@@ -1,8 +1,8 @@
 // The Planet Octahedron, measured and asserted.
 //
-// `cubeParity.js` cannot cover this cube and says so: the frozen reference engine predates it, so a
-// climb fielding it is not a divergence in the ported rules, it is a cube the proof is not about.
-// This is where it earns its place instead.
+// The port-fidelity harness never covered this cube — the frozen reference engine predated it — and
+// that harness is gone now along with the embed board it rendered through. This is the only place
+// the die's claims are checked, which is what it was always for.
 //
 // Three things happen here, and only the first two can fail:
 //
@@ -26,7 +26,7 @@ const engine = require('../src/game/cube/engine.js');
 const actions = require('../src/game/cube/actions.js');
 const pstate = require('../src/game/cube/state.js');
 const persist = require('../src/game/cube/persist.js');
-const { SPECIALS, POINTS, PLAIN_FACES, cube: config } = require('../src/game/cube/tuning.js');
+const { SPECIALS, PLAIN_FACES, cube: config } = require('../src/game/cube/tuning.js');
 
 const CLIMBS = Number(process.argv[2]) || 40000;
 const DIE = 'octahedron';
@@ -51,8 +51,6 @@ check('die has eight faces', die.faces.length, 8);
 check('every face is distinct', new Set(die.faces.map(f => f.id)).size, 8);
 ok('no face carries a side', !die.faces.some(f => f.side),
     'a planet face that counted as a colour would have to draw as two glyphs');
-ok('every face scores', die.faces.every(f => POINTS[f.kind] != null),
-    `unscored: ${die.faces.filter(f => POINTS[f.kind] == null).map(f => f.id).join(', ')}`);
 ok('no wipeout and no mine', !die.faces.some(f => f.kind === 'end' || f.kind === 'broken'),
     'the price is meant to live inside the planets');
 check('a plain cube is three of each', PLAIN_FACES.length, 6);
@@ -116,7 +114,6 @@ check('an untouched Wild has six faces', engine.liveFaces(die && SPECIALS.find(s
     let seen = 0;
     let counted = 0;
     let paid = 0;
-    let scored = 0;
     for (let t = 0; t < 20000 && seen < 400; t += 1) {
         const res = engine.resolveLine(
             engine.throwSet([bare('greed'), bare(DIE), bare('greed'), bare(null)]),
@@ -128,15 +125,11 @@ check('an untouched Wild has six faces', engine.liveFaces(die && SPECIALS.find(s
             // `cubes` is only the positions that counted, so a charred one showing a colour would make
             // it longer than the sides actually on the line.
             if ((res.pays || []).some(p => p.at === at)) paid += 1;
-            if ((res.pointsAt || []).includes(at)) scored += 1;
         });
         counted += res.cubes.length;
     }
     ok('a charred position is reached at all', seen > 0, 'nothing was scorched in 20,000 throws');
     check('and it pays nothing', paid, 0);
-    check('and it scores no face points', scored, 0);
-    ok('and it counts toward no colour',
-        engine.pointsOf({ face: { id: 'greed', kind: 'charred' }, side: null }) === 0);
 }
 
 // **A blessing outlives the rung it was given on**, which is the whole of what separates it from the
@@ -286,6 +279,23 @@ for (let t = 0; t < CLIMBS; t++) {
                 'a face resolved after the count is past the end of the walk that hands out frames');
             ok('and the paint is on that frame', !!frame && (frame.painted || []).some(Boolean),
                 'the tint is drawn off the frame, so a paint that is not on it is a paint nobody sees');
+        }
+
+        // **The freeze bites where it lands, and not only next throw.**
+        //
+        // The reach forward is the headline — a frozen cube holds its face into a throw whose sides
+        // are otherwise random — but it was once the *whole* of the effect, which meant a Mirror frozen
+        // by its neighbour reflected anyway and a mine frozen by its neighbour still went off. So the
+        // claim asserted here is the other half: every position the note names is reported frozen on
+        // the note's own frame, which is what the walk reads to skip it and what the board draws frost
+        // from. If this fails the ice is a next-rung mark again and the face it landed on took a turn.
+        const froze = res.notes.find(n => n.kind === 'freeze');
+        if (froze) {
+            const frame = (res.steps || []).find(x => x.note === froze);
+            ok('a freeze gets a frame', !!frame);
+            ok('and every cube it names is frozen on it',
+                !!frame && (froze.hitAt || []).every(j => (frame.frozen || [])[j] === true),
+                'a position the ice landed on that is not frozen on its own frame still has its turn');
         }
 
         // **The blessing rides the cube, and one thing takes it off: using it.**

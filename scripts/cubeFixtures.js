@@ -19,6 +19,9 @@ const engine = require('../src/game/cube/engine.js');
 const pstate = require('../src/game/cube/state.js');
 const persist = require('../src/game/cube/persist.js');
 const { SPECIALS } = require('../src/game/cube/tuning.js');
+// The one roll shape. Built here exactly as the API builds it, so a fixture cannot be written
+// against a response that never arrives.
+const { rollResponse } = require('../src/game/cube/wire.js');
 
 const OUT = process.argv[2]
     || path.join(__dirname, '..', '..', 'junkyard', 'src', 'activity', 'fixtures.json');
@@ -80,43 +83,6 @@ const makeWorld = function ({ bribe = true, unlocked = 4, rack = ALL } = {}) {
     });
     return { db, database, profile, ctxOf };
 };
-
-// The same shape `src/api/cube.js` builds. Kept deliberately close to it — if the two drift, the
-// animation is being written against a response that never arrives.
-const responseOf = (thrown, settled) => ({
-    thrown: thrown.rolled,
-    // Ice and scorch marks, index for index against the line beside them. Two copies because the two
-    // lines disagree and the difference is the beat — a scorch applied this rung is on the resolved
-    // line and not on the throw. Mirrors `rollResponse` in `src/api/cube.js`; a field missing here is
-    // a field the replayed fixture cannot draw, which is what this whole shape is written against.
-    thrownState: thrown.rolledState,
-    line: thrown.res.faceIds,
-    frozen: thrown.res.frozen,
-    burned: thrown.res.burned,
-    cubeIds: thrown.res.cubeIds,
-    // `charred` and `holds` complete the set against `rollResponse`: which positions landed on a face
-    // the fire had already taken, and how many cubes each one is carrying off the line.
-    charred: thrown.res.charred,
-    holds: thrown.res.holds,
-    steps: thrown.res.steps,
-    notes: thrown.res.notes,
-    pays: engine.multSteps(thrown.opening, thrown.res.pays, settled ? settled.majority : null),
-    level: thrown.run.level,
-    // Which rung this was, mirroring `rollResponse` in `src/api/cube.js` — this shape *is* that
-    // shape, and a field missing here is a field the replayed fixture cannot draw.
-    kind: thrown.kind,
-    again: thrown.run.again || 0,
-    call: thrown.run.call,
-    stake: thrown.run.stake,
-    opening: thrown.opening,
-    breaker: thrown.breaker,
-    rerolls: thrown.res.rerolls,
-    shortcuts: thrown.res.shortcuts,
-    ended: thrown.res.ended,
-    held: thrown.res.held,
-    overflow: thrown.res.overflow,
-    ...(settled ? { settled } : {}),
-});
 
 // What makes a roll worth keeping. First one of each wins, so the file stays small and every
 // entry is a distinct beat to animate.
@@ -283,11 +249,11 @@ const sweep = async function (found, opts, budget) {
             let response;
             if (thrown.asking) {
                 actions.parkTie(ctx, thrown);
-                response = responseOf(thrown, null);
+                response = rollResponse(thrown, null);
                 persist.clearLadder(world.database, world.db, ME);
             } else {
                 const settled = await actions.settleThrow(ctx, { thrown });
-                response = responseOf(thrown, settled);
+                response = rollResponse(thrown, settled);
             }
 
             for (const [name, test] of Object.entries(WANTED)) {

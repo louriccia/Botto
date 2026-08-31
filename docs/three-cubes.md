@@ -7,9 +7,8 @@ the table and `docs/the-weld.md` what the press does to it; this documents three
 Watto's rack, taking it from fifteen to eighteen and the rack's picks from seventeen to twenty — still
 inside the select menu's twenty-five.
 
-Coverage is `scripts/cubeThree.js`, which `cubeParity.js` deliberately does not cover, for the reason
-the octahedron gives: the frozen reference engine predates these cubes, so a climb fielding one is not
-a divergence in the ported rules.
+Coverage is `scripts/cubeThree.js`, for the reason the octahedron gives: the retired port-fidelity
+harness never reached these cubes, so this is the only place their claims are checked.
 
 They are not three more numbers on three more faces. Each one occupies an axis the shipped fifteen
 leave completely empty, and §1 is the whole argument for why these three and not any other three.
@@ -48,11 +47,6 @@ Everything below falls out of those three sentences.
 | **Turbine** | 5 × `heat`, 1 × wipeout | Pays more every time it lands, and burns one of its own faces off doing it. | `anakin_eng` |
 | **Scavenger** | 3 × `scavenge`, 2 × `haul`, 1 × wipeout | Pulls the last cube out of the hold and onto the line — or takes one off the line and into it. | `jawa`, `sandcrawler` |
 | **Guide** | 5 × `guide`, 1 × Ratts | **+0.5** for every cube in the unbroken run of your called side touching it. | `guidearrow` |
-
-`POINTS`: `heat: 1` and `guide: 1` — already paid on the multiple, so the floor for turning up, same
-as `greed`, `mult`, `boost`, `shortcut`, `reroll` and `seam`. `scavenge: 3` — it restructures the
-line, same as `draw`, which is the face it is closest to. `haul: 2` — it moves one thing, same as
-`clone`, `burn` and `engine`.
 
 ---
 
@@ -265,7 +259,7 @@ scorch marks or ice, so `hauled` rides along in the object form and round-trips 
 **The Guide needs no state**, only a walk outward from its own index over the resolved line in the
 payout pass, which is where `boost` already reads the whole line from.
 
-Beyond that it is three `POINTS` entries, three cases in the payout pass, one case in the second
+Beyond that it is three cases in the payout pass, one case in the second
 resolution pass for `scavenge`, and the Discord emoji for the bot's rack screen — which sheds weight
 in tiers and has [hit its 4,096-character ceiling once already](planet-octahedron.md#7-what-it-costs-to-build);
 three more six-face cubes is well inside the fourth tier's headroom, but it is worth re-running.

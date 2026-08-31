@@ -24,9 +24,9 @@
 
 require('dotenv').config();
 const admin = require('firebase-admin');
-const { SPECIALS, LEVELS } = require('../src/data/challenge/cube.js');
+const { SPECIALS, LEVELS } = require('../src/game/cube/tuning.js');
 const { OFF_RACK } = require('../src/game/cube/state.js');
-const { bagSize } = require('../src/game/cube/engine.js');
+const { bagSize, MAX_LEVEL } = require('../src/game/cube/engine.js');
 
 admin.initializeApp({
     credential: admin.credential.cert({
@@ -100,7 +100,7 @@ const COLLECTED_FLAGS = ['grand_circuit'];
             bribes: 0,
         };
 
-    if (unlock && !revoke) patch.unlocked = LEVELS.length - 1;
+    if (unlock && !revoke) patch.unlocked = MAX_LEVEL;
 
     // The collection rewards, which live beside `cube` rather than inside it — same node the
     // Grand Circuit collection writes when its eighth face is claimed.
