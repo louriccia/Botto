@@ -12,6 +12,7 @@ const { botto_chat } = require('./auto/chat.js')
 const { join_message } = require('./auto/join.js')
 const { get_user_key_by_discord_id, initializePlayer, initializeUser } = require('./user.js')
 const { loadStaticData } = require('./loadStaticData');
+const cache = require('./cache.js');
 const { leaderboardCache } = require('./services/tourneyCache.js')
 
 //openai
@@ -231,6 +232,11 @@ client.once(Events.ClientReady, async () => {
 
     const minuteUpdater = async () => {
         try {
+            //botto-api may have been unreachable at boot; without tracks the
+            //track selectors render with zero options, which Discord rejects
+            if (!cache.tracks.length) {
+                loadStaticData().catch(err => console.error('[minuteUpdater] loadStaticData retry failed:', err?.message ?? err))
+            }
             Object.keys(db.user).filter(key => db.user[key]?.random?.items).forEach(key => completeRepairs({ user_profile: db.user[key].random, profile_ref: database.ref(`users/${key}/random`), client, member: db.user[key].discordID }))
 
             if (!testing) {

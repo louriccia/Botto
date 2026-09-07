@@ -2,7 +2,7 @@ const { updateChallenge, bribeComponents, bribeDelta, challengeContainer, getBes
 const { tracks } = require('../../data/sw_racer/track.js')
 const { planets } = require('../../data/sw_racer/planet.js')
 const { EmbedBuilder, MessageFlags } = require('discord.js');
-const { number_with_commas } = require('../../generic.js');
+const { number_with_commas, getTracks } = require('../../generic.js');
 exports.bribe = async function ({ current_challenge, current_challenge_ref, interaction, user_profile, args, profile_ref, member_avatar, db, member_id, botto_name } = {}) {
 
     //expired challenge
@@ -91,6 +91,15 @@ exports.bribe = async function ({ current_challenge, current_challenge_ref, inte
 
     //initial press or a select change: (re)render the staged bribe UI in place
     //of the challenge components -- nothing is applied until submit
+    if (!current_challenge.track_bribe && !getTracks().length) {
+        //the track cache never loaded (botto-api was down at boot); an empty
+        //select is rejected by Discord, so bail out until the retry fills it
+        const holdUp = new EmbedBuilder()
+            .setTitle("<:WhyNobodyBuy:589481340957753363> The archives are incomplete")
+            .setDescription("Track data hasn't finished loading yet. Try again in a minute.")
+        interaction.reply({ embeds: [holdUp], ephemeral: true })
+        return
+    }
     const components = bribeComponents({ current_challenge, user_profile, selection, citizen })
     if (!components.length) {
         const holdUp = new EmbedBuilder()
@@ -101,9 +110,12 @@ exports.bribe = async function ({ current_challenge, current_challenge_ref, inte
     }
     if (current_challenge.v2) {
         //a components-v2 message is entirely components, so the challenge card
-        //has to be rebuilt alongside the bribe selects
+        //has to be rebuilt alongside the bribe selects. that rebuild fetches
+        //the proof thumbnail, which can blow Discord's 3s acknowledgement
+        //window -- acknowledge first, then edit
+        await interaction.deferUpdate()
         const container = await challengeContainer({ client: interaction.client, current_challenge, user_profile, profile_ref, best: getBest(db, current_challenge), name: botto_name, member: member_id, avatar: member_avatar, db })
-        interaction.update({ components: [...container, ...components], flags: MessageFlags.IsComponentsV2 })
+        await interaction.editReply({ components: [...container, ...components], flags: MessageFlags.IsComponentsV2 })
     } else {
         interaction.update({ components })
     }
