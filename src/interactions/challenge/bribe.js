@@ -1,4 +1,4 @@
-const { updateChallenge, bribeComponents, bribeDelta, bribePerks, bribeHeat, applyHeat, challengeContainer, getBest, playButton, notYoursEmbed, isActive, expiredEmbed, manageTruguts } = require('./functions.js');
+const { updateChallenge, bribeComponents, bribeDelta, bribePerks, bribeHeat, applyHeat, rollHeatPenalty, bribeBlacklist, challengeContainer, getBest, playButton, notYoursEmbed, isActive, expiredEmbed, manageTruguts } = require('./functions.js');
 const { EmbedBuilder, MessageFlags } = require('discord.js');
 const { number_with_commas, getTracks } = require('../../generic.js');
 exports.bribe = async function ({ current_challenge, current_challenge_ref, interaction, user_profile, args, profile_ref, member_avatar, db, member_id, botto_name } = {}) {
@@ -12,6 +12,18 @@ exports.bribe = async function ({ current_challenge, current_challenge_ref, inte
     //not your challenge
     if (interaction.user.id !== current_challenge.player.member) {
         interaction.reply({ embeds: [notYoursEmbed()], components: [{ type: 1, components: [playButton()] }], ephemeral: true })
+        return
+    }
+
+    //Blacklisted: a previous roll had the player walked out of the pits. This is the
+    //authoritative check -- challengeComponents also hides the button, but a stale message
+    //can still deliver the press
+    const blacklisted = bribeBlacklist(user_profile)
+    if (blacklisted) {
+        const holdUp = new EmbedBuilder()
+            .setTitle("<:WhyNobodyBuy:589481340957753363> Your money's no good here")
+            .setDescription(`Word got around. Nobody in the pits will take your bribe until <t:${Math.round(blacklisted / 1000)}:t>.`)
+        interaction.reply({ embeds: [holdUp], ephemeral: true })
         return
     }
 

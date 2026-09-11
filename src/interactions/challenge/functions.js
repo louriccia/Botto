@@ -4234,8 +4234,7 @@ exports.heatLine = function ({ user_profile, perks } = {}) {
         return ''
     }
     const host = perks?.planet?.host
-    return `-# 🔥 Heat ${value}/${heat_tuning.MAX}`
-        + (host ? ` · ${host} is taking an interest` : '')
+    return `-# Heat: 🔥${value}/${heat_tuning.MAX}`
         + (heat_tuning.PREVIEW_NOTE ? ` · ${heat_tuning.PREVIEW_NOTE}` : '')
 }
 

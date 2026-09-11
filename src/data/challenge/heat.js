@@ -55,10 +55,10 @@ exports.DECAY = {
     cover_your_tracks: 10
 };
 
-// The gauge ships before the roll does anything, so the card has to say so rather than
-// implying a risk that isn't live yet. Set this to null when penalties go in and the note
-// disappears from every card in one edit -- put a date in it if one is announced.
-exports.PREVIEW_NOTE = 'penalties not yet active';
+// A note appended to the gauge on every card. It existed because the gauge shipped one
+// stage ahead of the roll; now that penalties are live it would be a lie, so it's off.
+// Set it to a string to put an announcement back on every card in one edit.
+exports.PREVIEW_NOTE = null;
 
 // ---------------------------------------------------------------------------
 // The roll
