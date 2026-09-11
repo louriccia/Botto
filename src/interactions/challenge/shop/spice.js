@@ -22,7 +22,7 @@ exports.spice = function ({ interaction, user_profile, profile_ref, botto_name }
         return refuse("<:WhyNobodyBuy:589481340957753363> Too soon",
             `That buyer isn't back until <t:${Math.round(until / 1000)}:R>. One run a day.`)
     }
-    const heat = Math.round(heatValue(user_profile))
+    const heat = heatValue(user_profile)
     if (heat < heat_tuning.SPICE_RUN.heat) {
         return refuse("<:WhyNobodyBuy:589481340957753363> Nothing to sell",
             `A spice run needs \`🔥${heat_tuning.SPICE_RUN.heat}\` of heat to be worth the trip. You're carrying \`🔥${heat}\`.`)

@@ -1,5 +1,5 @@
 const { banishment } = require('../functions.js');
-const { number_with_commas } = require('../../../generic.js');
+const { capitalize } = require('../../../generic.js');
 
 const { EmbedBuilder } = require('discord.js');
 
@@ -15,7 +15,8 @@ exports.amnesty = function ({ interaction, user_profile, profile_ref, botto_name
         interaction.reply({ embeds: [nothing], ephemeral: true })
         return false
     }
-    const planet_name = banished.planet.replaceAll('_', ' ').replace(/\b\w/g, c => c.toUpperCase())
+    //the record stores the display name; older ones fall back to the key
+    const planet_name = banished.name ?? capitalize(banished.planet.replaceAll('_', ' '))
     profile_ref.child('banishment').remove()
     delete user_profile.banishment
 

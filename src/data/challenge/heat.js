@@ -2,10 +2,10 @@
 // bribes. See docs/heat.md for the design these numbers come from.
 //
 // Heat is one 0-100 value on the player's profile. Bribing raises it, finishing a
-// challenge without bribing lowers it, and it drains on its own over time. Nothing reads
-// it against the player yet: stages 1 and 2 only accrue and decay it, so that every
-// number below can be checked against real play before it is allowed to cost anybody
-// anything.
+// challenge without bribing lowers it, and it drains on its own over time. Once it is up,
+// it prices the chance that a bribe goes wrong -- and pays a bonus on the challenges it
+// doesn't. Every number here is a starting default rather than a measurement; the ones
+// most likely to need moving say so where they appear.
 //
 // ---------------------------------------------------------------------------
 // This file carries no presentation and no behaviour -- only the numbers and the strings,
@@ -93,10 +93,10 @@ exports.ROLL = {
 // misdeliver, a cost penalty the player can't cover -- substitutes the fallback rather
 // than being thrown away, so there are no dead rolls and nothing to retry for.
 //
-// Banished is deliberately absent. It belongs to Tier III by design (docs/heat.md 5), but
-// stripping a role and running a recovery -- pay the fine, or three clean challenges on
-// the planet -- is a state machine, not a payout change, so it lands with the rest of the
-// citizenship work in stage 6 and joins this table then.
+// Banished is deliberately absent from this table. Friends in High Places softens a
+// citizen's tier by one, so a citizen never reaches Busted at all and a Tier III entry
+// could never fire; it is a threshold instead, checked at max heat in rollHeatPenalty.
+// See BANISHMENT below.
 exports.TIERS = [
     {
         key: 'skimmed',
@@ -147,8 +147,12 @@ exports.PENALTIES = {
     },
     short_count: {
         title: "The Price Just Went Up",
-        // doubles the bribe. You still get exactly what you paid for, at twice the price.
-        multiplier: 2,
+        // doubles the bribe: you get exactly what you paid for, at twice the price.
+        // cost_of names which of bribeDelta's numbers the surcharge is billed against and
+        // cost_times how many extra multiples of it to charge. One rule then serves both
+        // the can-the-player-cover-this check and the charge itself.
+        cost_of: 'cost',
+        cost_times: 1,
         flavor: [
             '${host} says this one costs extra.'
         ]
@@ -180,7 +184,8 @@ exports.PENALTIES = {
         // three times what the bribe would have cost undiscounted -- a citizen is not
         // exempt from a fine just because they're local, and Friends in High Places has
         // already softened their tier by the time this can land
-        fine_multiplier: 3,
+        cost_of: 'full_cost',
+        cost_times: 3,
         flavor: [
             '${host} made an example of you and charged you a fine.'
         ]

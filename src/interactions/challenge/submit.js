@@ -1,8 +1,6 @@
-const { updateChallenge, playButton, isActive, expiredEmbed, challengeWinnings, getBest, goalTimeList, predictionScore, manageTruguts, decayHeat, banishment, bribePerks, currentTruguts, predictionAchievement, bountyAchievement, achievementEmbed, randomChallengeItem, challengeProgression, playerLevel, convertLevel, progressionReward, fitField } = require('./functions.js');
+const { updateChallenge, playButton, isActive, expiredEmbed, challengeWinnings, getBest, goalTimeList, predictionScore, manageTruguts, decayHeat, banishment, bribePerks, planetKey, currentTruguts, predictionAchievement, bountyAchievement, achievementEmbed, randomChallengeItem, challengeProgression, playerLevel, convertLevel, progressionReward, fitField } = require('./functions.js');
 const { postMessage, editMessage } = require('../../discord.js');
 const { items } = require('../../data/challenge/item.js')
-const { planets } = require('../../data/sw_racer/planet.js')
-const { tracks } = require('../../data/sw_racer/track.js')
 const { raritysymbols } = require('../../data/challenge/rarity.js')
 
 const { EmbedBuilder } = require('discord.js');
@@ -160,6 +158,10 @@ exports.submit = async function ({ current_challenge, current_challenge_ref, int
     //finishing a challenge without bribing it cools the player off. The daily and the
     //monthly can't be bribed at all, so they always count as clean -- a hot player who
     //shows up for the cotd is still racing something they didn't pick
+    //the interaction's member list is fresher than any cache, and the payout below is the
+    //call that actually pays, so citizenship is resolved from it once and reused
+    const winnings_perks = bribePerks({ current_challenge, user_profile, member: member_id, db, client: interaction.client, member_roles: interaction.member?.roles?.cache })
+
     const bribed = current_challenge.track_bribe || current_challenge.racer_bribe || current_challenge.condition_bribe
     if (first_submission && !bribed) {
         user_profile = decayHeat({ user_profile, profile_ref })
@@ -167,8 +169,8 @@ exports.submit = async function ({ current_challenge, current_challenge_ref, int
         //racing a banished planet clean is the way back that doesn't cost truguts. Only
         //counts on that planet, and only on a challenge you didn't bribe.
         const banished = banishment(user_profile)
-        const challenge_planet = Array.isArray(current_challenge.track) ? null : planets[tracks[current_challenge.track]?.planet]
-        const planet_key = challenge_planet?.name.toLowerCase().replaceAll(" ", "_")
+        const challenge_planet = winnings_perks.planet
+        const planet_key = challenge_planet ? planetKey(challenge_planet) : null
         if (banished && planet_key && banished.planet == planet_key) {
             const left = Math.max(0, (banished.clean_needed ?? 0) - 1)
             if (left) {
@@ -189,9 +191,6 @@ exports.submit = async function ({ current_challenge, current_challenge_ref, int
 
     //award winnings for this submission
     let goals = goalTimeList(current_challenge, user_profile)
-    //the interaction's member list is fresher than any cache, and this is the call that
-    //actually pays, so Home Turf is resolved from it rather than from boot-time roles
-    const winnings_perks = bribePerks({ current_challenge, user_profile, member: member_id, db, client: interaction.client, member_roles: interaction.member?.roles?.cache })
     let winnings = challengeWinnings({ current_challenge, submitted_time: submissiondata, user_profile, best: getBest(db, current_challenge), goals, member: member_id, db, perks: winnings_perks })
 
     //award saboteur cut

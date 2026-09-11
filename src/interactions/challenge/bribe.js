@@ -132,14 +132,17 @@ exports.bribe = async function ({ current_challenge, current_challenge_ref, inte
         //Banished takes the role off the player, so unlike every other verdict it reaches
         //out of the challenge and into Discord. Recorded on the profile too, because the
         //way back is a fine or clean races and both outlive this challenge.
+        let strip_role = null
         if (penalty?.banish) {
             profile_ref.child('banishment').update(penalty.banish)
             user_profile.banishment = penalty.banish
-            await interaction.guild?.members.fetch(member_id)
+            strip_role = interaction.guild?.members.fetch(member_id)
                 .then(m => m.roles.remove(penalty.banish.role))
                 .catch(error => console.log('banishment role removal failed:', error?.message ?? error))
         }
-        await current_challenge_ref.update(bribe_update)
+        //the role removal is a Discord round-trip and the challenge write an RTDB one, and
+        //this path never defers, so both have to fit inside the 3s acknowledgement window
+        await Promise.all([current_challenge_ref.update(bribe_update), strip_role])
 
         //merge locally rather than re-reading db.ch.challenges -- the cache
         //listener may not have echoed the write yet, and rendering the stale

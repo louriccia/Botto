@@ -57,10 +57,10 @@ exports.shop = async function ({ interaction, args, db, database, member_id, mem
         shop_purchase = 'autobot'
     }
     const shop_purchase_function = require(`./shop/${shop_purchase}`)
-    //every handler is async and returns false to refuse a purchase -- without awaiting,
-    //that false arrived as a pending Promise, which is truthy, so a refused purchase was
-    //charged anyway. Every handler already returns true on success, so this only ever
-    //stops a charge that shouldn't have happened.
+    //handlers refuse a purchase by returning false, and most of them are async -- without
+    //awaiting, that false arrived as a pending Promise, which is truthy, so a refused
+    //purchase was charged anyway. Every handler already returns true on success, so
+    //awaiting only ever stops a charge that shouldn't have happened.
     const successful_purchase = await shop_purchase_function[shop_purchase]({ interaction, args, db, database, member_id, member_avatar, user_key, user_profile, profile_ref, botto_name, selection, shoption })
 
     //charge user

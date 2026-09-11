@@ -1,4 +1,4 @@
-const { manageTruguts, randomChallengeItem, inventoryComponents, inventoryEmbed, Collections, collectionReward, collectionRewardEmbed, openCoffer, itemString, tradeEmbed, tradeComponents, availableItemsforScrap, availableItemsforCollection, availableItemsforRepairs, heatValue, applyHeat, citizenshipCooldown, banishment } = require('./functions.js');
+const { manageTruguts, randomChallengeItem, inventoryComponents, inventoryEmbed, Collections, collectionReward, collectionRewardEmbed, openCoffer, itemString, tradeEmbed, tradeComponents, availableItemsforScrap, availableItemsforCollection, availableItemsforRepairs, heatValue, applyHeat, citizenshipCooldown, banishment, planetKey } = require('./functions.js');
 const heat_tuning = require('../../data/challenge/heat.js');
 const { postMessage, editMessage } = require('../../discord.js');
 const { planets } = require('../../data/sw_racer/planet.js')
@@ -164,7 +164,7 @@ exports.inventory = async function ({ interaction, user_profile, profile_ref, db
             postMessage(interaction.client, interaction.channelId, { embeds: [congratsEmbed] })
             user_profile = db.user[user_key].random
         } else if (args[2] == 'clean') {
-            const before = Math.round(heatValue(user_profile))
+            const before = heatValue(user_profile)
             if (!before) {
                 const nothing = new EmbedBuilder()
                     .setTitle("<:WhyNobodyBuy:589481340957753363> Nothing to wipe")
@@ -475,7 +475,7 @@ exports.inventory = async function ({ interaction, user_profile, profile_ref, db
         if (interaction.guild.id == swe1r_guild) {
             const Member = await interaction.guild.members.fetch(member_id)
             for (const p of planets) {
-                const planet_key = p.name.toLowerCase().replaceAll(" ", "_")
+                const planet_key = planetKey(p)
                 if (interaction.values.includes(p.role)) {
                     //citizenship must be unlocked by completing the planet's collection
                     if (!user_profile.effects?.[planet_key]) {
