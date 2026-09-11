@@ -83,10 +83,12 @@ exports.bribe = async function ({ current_challenge, current_challenge_ref, inte
         //profile is always clean, and it resolves here rather than at submit time: the
         //player has to see the outcome before deciding whether to race it
         const penalty = rollHeatPenalty({ user_profile, perks, delta, current_challenge, available })
+        //Short Count and The Fine add to the price, so what's charged is not delta.cost
+        const charged = delta.cost + (penalty?.extra_cost ?? 0)
 
         //process purchase
         manageTruguts({
-            user_profile, profile_ref, transaction: 'w', amount: delta.cost + (penalty?.extra_cost ?? 0), purchase: {
+            user_profile, profile_ref, transaction: 'w', amount: charged, purchase: {
                 date: Date.now(),
                 purchased_item: 'bribe',
                 selection: delta.changes.join(", ")
@@ -104,7 +106,10 @@ exports.bribe = async function ({ current_challenge, current_challenge_ref, inte
 
         //the penalty's own changes land on top of the staged ones -- Wrong Guy overwrites
         //the pick the player made, and The Handicap adds a condition they didn't ask for
-        const bribe_update = { ...delta.update, ...(penalty?.update ?? {}), predictions: {}, created: Date.now() }
+        //the receipt shows what was charged, not list price -- a citizen pays nothing and
+        //Short Count and The Fine add to it. Accumulates, because track and racer can be
+        //bought in separate presses on the same challenge
+        const bribe_update = { ...delta.update, ...(penalty?.update ?? {}), predictions: {}, created: Date.now(), bribe_cost: (current_challenge.bribe_cost ?? 0) + charged }
         if (penalty) {
             bribe_update.heat_penalty = penalty
         }

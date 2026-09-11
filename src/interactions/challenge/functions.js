@@ -336,12 +336,30 @@ exports.isActive = function (current_challenge, user_profile) {
         (!current_challenge.completed && !current_challenge.rerolled)
 }
 
+const condition_names = { nu: 'No Upgrades', skips: 'Skips', mirror: 'Mirror', backwards: 'Backwards', laps: 'Laps' }
+
+//which conditions were bought on this challenge. condition_bribe holds the list of
+//changed keys, but older challenges may carry a bare `true`
+exports.bribedConditions = function (current_challenge) {
+    const bribe = current_challenge?.condition_bribe
+    if (!bribe || typeof bribe !== 'object') {
+        return []
+    }
+    return Object.values(bribe)
+}
+
 exports.generateChallengeTitle = function (current_challenge) {
-    let nutext = current_challenge.conditions.nu ? " with **NO UPGRADES**" : ""
-    let skipstext = current_challenge.conditions.skips ? " with **SKIPS**" : ""
-    let laptext = current_challenge.conditions.laps !== 3 ? " for **" + current_challenge.conditions.laps + " Lap" + (current_challenge.conditions.laps > 1 ? "s" : "") + "**" : ""
-    let mirrortext = current_challenge.conditions.mirror && current_challenge.conditions.backwards ? ", **MIRRORED and BACKWARDS!**" : (current_challenge.conditions.mirror ? ", **MIRRORED!**" : "")
-    let backwardstext = current_challenge.conditions.backwards && !current_challenge.conditions.mirror ? ", **BACKWARDS!**" : ""
+    //a bought condition gets the same moneybag the bought racer and track do
+    const bought = exports.bribedConditions(current_challenge)
+    //the literal emoji, not the :moneybag: shorthand the racer and track use: those
+    //replace a longer custom emoji, while these are pure additions to a title capped
+    //at 255 characters. Both render the same in Discord.
+    const paid = k => bought.includes(k) ? '💰' : ''
+    let nutext = current_challenge.conditions.nu ? " with **NO UPGRADES**" + paid('nu') : ""
+    let skipstext = current_challenge.conditions.skips ? " with **SKIPS**" + paid('skips') : ""
+    let laptext = current_challenge.conditions.laps !== 3 ? " for **" + current_challenge.conditions.laps + " Lap" + (current_challenge.conditions.laps > 1 ? "s" : "") + "**" + paid('laps') : ""
+    let mirrortext = current_challenge.conditions.mirror && current_challenge.conditions.backwards ? ", **MIRRORED and BACKWARDS!**" + (paid('mirror') || paid('backwards')) : (current_challenge.conditions.mirror ? ", **MIRRORED!**" + paid('mirror') : "")
+    let backwardstext = current_challenge.conditions.backwards && !current_challenge.conditions.mirror ? ", **BACKWARDS!**" + paid('backwards') : ""
     let bribed_racer = current_challenge.racer_bribe ? "*" : ""
     let bribed_track = current_challenge.track_bribe ? "*" : ""
     let prefix = current_challenge.bounties && current_challenge.bounties.length ? ":dart: Challenge Bounty\n" : ""
@@ -398,17 +416,35 @@ exports.generateChallengeDescription = function ({ current_challenge, db, user_p
             crossout = '~~'
         }
     }
+    //every bribe on this challenge reads as one line, because it was one transaction and
+    //because the verdict rolled against it has to sit directly underneath to look linked
+    const bribed = []
     if (current_challenge.racer_bribe) {
-        desc += crossout + "\n💰 (Racer) `-📀" + number_with_commas(truguts.bribe_racer) + "`" + crossout
+        bribed.push('Racer')
     }
     if (current_challenge.track_bribe) {
-        desc += crossout + "\n💰 (Track) `-📀" + number_with_commas(truguts.bribe_track) + "`" + crossout
+        bribed.push('Track')
     }
+    const bought_conditions = exports.bribedConditions(current_challenge)
     if (current_challenge.condition_bribe) {
-        //condition_bribe holds the list of changed conditions (older challenges may have `true`)
-        const changed = typeof current_challenge.condition_bribe == 'object' ? Object.values(current_challenge.condition_bribe) : []
-        const condition_names = { nu: 'No Upgrades', skips: 'Skips', mirror: 'Mirror', backwards: 'Backwards', laps: 'Laps' }
-        desc += crossout + "\n💰 (" + (changed.length ? changed.map(k => condition_names[k] ?? k).join(", ") : 'Conditions') + ") `-📀" + number_with_commas(Math.max(changed.length, 1) * truguts.bribe_track) + "`" + crossout
+        bribed.push(...(bought_conditions.length ? bought_conditions.map(k => condition_names[k] ?? k) : ['Conditions']))
+    }
+    if (bribed.length) {
+        //what the player was actually charged, which list price no longer tells you: a
+        //citizen or smuggler pays nothing, and Short Count and The Fine add to it. Older
+        //challenges never recorded it, so those fall back to the old list-price sum.
+        const listed = (current_challenge.racer_bribe ? truguts.bribe_racer : 0)
+            + (current_challenge.track_bribe ? truguts.bribe_track : 0)
+            + (current_challenge.condition_bribe ? Math.max(bought_conditions.length, 1) * truguts.bribe_track : 0)
+        const paid = Number.isFinite(current_challenge.bribe_cost) ? current_challenge.bribe_cost : listed
+        const charge = paid > 0 ? "`-📀" + number_with_commas(paid) + "`" : "`free`"
+        desc += crossout + "\n💰 (" + bribed.join(", ") + ") " + charge + crossout
+    }
+    //the verdict goes under the receipt it belongs to. With no bribe line above it this is
+    //a challenge rerolled into after fleeing one, which stands on its own.
+    const heat_note = exports.penaltyLine(current_challenge)
+    if (heat_note) {
+        desc += "\n" + heat_note
     }
     return desc
 }
@@ -1597,11 +1633,11 @@ exports.challengeContainer = async function ({ current_challenge, user_profile, 
         //the citizen role is the one ability with a visible identity, so it gets a
         //badge on the card rather than only surfacing as a discount at bribe time
         const citizen_badge = perks?.citizen ? ` · ${perks.planet.emoji} ${perks.title}` : ''
-        //balance, then the gauge, then what the last bribe's roll did to this challenge
+        //balance, then the gauge. The verdict is not here -- it sits under the bribe
+        //receipt in the description, so the two read as one transaction
         const subtext = [
             `-# Truguts: \`📀${exports.currentTruguts(user_profile)}\`${citizen_badge}`,
-            exports.heatLine({ user_profile, perks }),
-            exports.penaltyLine(current_challenge)
+            exports.heatLine({ user_profile, perks })
         ].filter(Boolean).join('\n')
         container.addTextDisplayComponents(new TextDisplayBuilder().setContent(subtext))
     } else if (['cotd', 'cotm'].includes(current_challenge.type)) {
@@ -4374,12 +4410,12 @@ exports.penaltyLine = function (current_challenge) {
             return ''
         }
         const from = fled.host && fled.from ? `${fled.host}'s ${fled.from}` : 'a shakedown'
-        return `-# 💨 You rerolled away from ${from}. No Running Hot on this one.`
+        return `💨 You rerolled away from ${from}. *No Running Hot on this one.*`
     }
     const detail = penalty.key == 'blacklisted' && penalty.until
         ? ` No bribes until <t:${Math.round(penalty.until / 1000)}:t>.`
         : ''
-    return `-# 💥 **${penalty.title}** · ${penalty.flavor}${detail}`
+    return `💥 **${penalty.title}** · *${penalty.flavor}${detail}*`
 }
 
 //a challenge finished without bribing it cools the player off
