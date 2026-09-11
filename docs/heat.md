@@ -188,6 +188,37 @@ survivor's high is most of the fun.
 Rules 1 and 2 are what separate "interesting" from "annoying". Take truguts, take
 difficulty, take the player's dignity. Never take the run.
 
+### 4.2 Walking away
+
+A verdict can be escaped: reroll the challenge and bribe the replacement. That's a
+legitimate valve and it stays open — a player should be able to leave a challenge they
+don't want — but as first built it was mispriced in four compounding ways:
+
+1. **Flat price against a scaling penalty.** A reroll is `1,200` (`600` discounted) and
+   `initializeChallenge` hands back a completely fresh challenge — no verdict, no bribe
+   flags. What it voids scales with heat *and* with whatever multipliers the challenge was
+   carrying, so escaping a Nothing For You on a long track under Fan Service and a Trugut
+   Boost was always correct.
+2. **Rerolling never cools you off.** Decay fires on first submission, and a rerolled
+   challenge is `completed: true, rerolled: true` and never submitted. Kept as-is: heat
+   climbing through a churn is the natural brake.
+3. **Free for exactly the wrong players.** `reroll_cost` is free for `free_rerolls`, a
+   sponsor, the record holder, and a citizen on their home planet — who already bribes
+   free. That build had a zero-trugut retry loop.
+4. **And the loop paid.** Heat climbs on every retry, so a player who eventually lands a
+   clean bribe races at near-cap heat with the full Running Hot multiplier. Free retries
+   turned heat from a risk into an earnings multiplier, for the most established players in
+   the game. That inverts the entire feature.
+
+So walking away costs **heat** rather than truguts (`FLEE.heat`, and deliberately not run
+through the gain modifiers — Home Turf halving it would leave hole 3 open), and the
+replacement challenge is stamped `heat_fled` and **pays no Running Hot**. The valve stays
+open and honest: escaping costs you position instead of a flat toll, and it can't be farmed.
+
+Not done: blocking the reroll while a verdict stands. One line, closes everything, and
+strands a player who dislikes the *challenge* rather than the penalty — against the spirit
+of rule 2.
+
 ---
 
 ## 5. Penalties
@@ -263,8 +294,13 @@ cancelled itself out and stopped being one. Forfeiting also means every penalty,
 two that touch earnings, gets quietly worse the hotter you were, which is the right direction:
 without it only the *tier* scaled with heat.
 
+**So does a challenge you fled into.** The rule generalises: Running Hot is payment for
+getting away with it, and rerolling out from under a verdict isn't getting away with it
+either (§4.2). Without that, a free reroll loop launders heat straight into a multiplier.
+
 Carrying heat on a challenge you didn't bribe still pays. That's risk you're holding, and it
-is the whole reason to choose to run hot.
+is the whole reason to choose to run hot. The suppression is specifically about a challenge
+that heat has already touched — caught, or fled into.
 
 Sizing note: the coefficient is the number most likely to need tuning after launch. If bribing
 becomes strictly profitable at high heat, drop it to `heat/200` before touching anything else.
@@ -552,6 +588,7 @@ See below for why the multiplier can't come along early to make the gauge mean m
 | `bribe.js` — submit | Rolls *before* charging, since two penalties change the price. Stamps `heat_penalty` on the challenge. |
 | `challengeWinnings` | Running Hot, The Cut, Nothing For You. |
 | `challengeComponents` | Hides the button while Blacklisted. |
+| `reroll.js` | Walking away from a verdict costs heat and marks the replacement `heat_fled` (§4.2). |
 
 Heat lives on the **profile**, but a rolled penalty is stamped on the **challenge** —
 `heat_penalty = { key, tier, title, host, flavor, extra_cost, update }` — because it modifies
@@ -613,6 +650,9 @@ upside is a nerf, and it will read as one.
   own cost. Bribes are the problem; keep the mechanic aimed at them.
 - **Blocking bribes outright at max heat.** A hard lockout is the same feature as a rate
   limit with none of the drama.
+- **Blocking the reroll while a verdict stands.** Closes the escape hatch in one line, at
+  the cost of stranding a player who dislikes the challenge rather than the penalty. §4.2
+  prices the escape instead of forbidding it.
 
 ---
 

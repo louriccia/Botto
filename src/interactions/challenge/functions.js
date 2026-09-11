@@ -1079,14 +1079,17 @@ exports.challengeWinnings = function ({ current_challenge, submitted_time, user_
     const penalty_spec = heat_penalty ? heat_tuning.PENALTIES[heat_penalty.key] : null
 
     //Danger money: heat pays -- but only for getting away with it. A bribe that was caught
-    //forfeits the bonus entirely, because otherwise the two multiply: x1.90 Running Hot
+    //forfeits the bonus entirely, and so does a challenge rerolled into after fleeing a
+    //verdict: walking away isn't getting away with it either, and without that a free
+    //reroll loop would launder heat straight into an earnings multiplier.
+    //Caught forfeits because otherwise the two multiply: x1.90 Running Hot
     //against The Cut's x0.5 lands a 90-heat player within 5% of a cold one, and a penalty
     //that cancels itself out isn't a penalty. Carrying heat on a challenge you didn't bribe
     //still pays -- that's risk you're holding, and the whole reason to choose to run hot.
     //Read live rather than snapshotted: pumping heat by bribing a different challenge costs
     //far more than the multiplier ever returns.
     const heat_now = Math.round(exports.heatValue(user_profile))
-    if (heat_now > 0 && !heat_penalty) {
+    if (heat_now > 0 && !heat_penalty && !current_challenge.heat_fled) {
         const running_hot = 1 + heat_now / heat_tuning.MAX
         multipliers += `\`×${running_hot.toFixed(2)}\` *🔥Running Hot* (heat ${heat_now})\n`
         earnings_total *= running_hot
@@ -4360,11 +4363,18 @@ exports.rollHeatPenalty = function ({ user_profile, perks, delta, current_challe
     return penalty
 }
 
-//what a stamped penalty did, as one subtext line under the gauge
+//what heat did to this challenge, as one subtext line under the gauge -- either the
+//verdict rolled on its bribe, or the fact that it is the replacement for one the player
+//rerolled away from and so pays no Running Hot
 exports.penaltyLine = function (current_challenge) {
     const penalty = current_challenge?.heat_penalty
     if (!penalty) {
-        return ''
+        const fled = current_challenge?.heat_fled
+        if (!fled) {
+            return ''
+        }
+        const from = fled.host && fled.from ? `${fled.host}'s ${fled.from}` : 'a shakedown'
+        return `-# 💨 You rerolled away from ${from}. No Running Hot on this one.`
     }
     const detail = penalty.key == 'blacklisted' && penalty.until
         ? ` No bribes until <t:${Math.round(penalty.until / 1000)}:t>.`

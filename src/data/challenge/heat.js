@@ -195,3 +195,20 @@ exports.PENALTIES = {
         ]
     }
 };
+
+// Rerolling a challenge that carries a verdict is the one escape hatch the design left
+// open, and it was mispriced: a reroll is 1,200 truguts flat (600 discounted, and free for
+// free_rerolls, a sponsor, the record holder, or a citizen on their home planet) while the
+// penalty it voids scales with heat and with whatever multipliers the challenge was
+// carrying. A citizen on home turf had a zero-trugut retry loop.
+//
+// So walking away costs heat instead of truguts. It scales on its own -- every escape
+// worsens the next roll and pushes toward the cap -- and, the point, it bites even when
+// the reroll itself is free. Deliberately NOT run through MODIFIERS: fleeing isn't a
+// bribe, and Home Turf halving it would leave the hole it is here to close.
+//
+// ** My default, not a measured number. Equal to one bribed element, so escaping costs
+// ** about what the bribe did.
+exports.FLEE = {
+    heat: 15
+};
