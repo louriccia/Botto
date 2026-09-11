@@ -1,4 +1,4 @@
-const { updateChallenge, bribeComponents, bribeDelta, bribePerks, challengeContainer, getBest, playButton, notYoursEmbed, isActive, expiredEmbed, manageTruguts } = require('./functions.js');
+const { updateChallenge, bribeComponents, bribeDelta, bribePerks, bribeHeat, applyHeat, challengeContainer, getBest, playButton, notYoursEmbed, isActive, expiredEmbed, manageTruguts } = require('./functions.js');
 const { EmbedBuilder, MessageFlags } = require('discord.js');
 const { number_with_commas, getTracks } = require('../../generic.js');
 exports.bribe = async function ({ current_challenge, current_challenge_ref, interaction, user_profile, args, profile_ref, member_avatar, db, member_id, botto_name } = {}) {
@@ -73,6 +73,12 @@ exports.bribe = async function ({ current_challenge, current_challenge_ref, inte
                 selection: delta.changes.join(", ") + (delta.discounts.length ? ` (free: ${delta.discounts.join(', ')})` : '')
             }
         })
+        //heat accrues on the bribe itself, whatever it cost -- a free bribe is still a
+        //bribe. Nothing reads it against the player yet (see docs/heat.md stages 1-2);
+        //this is here to gather real numbers before it is allowed to cost anybody
+        //anything
+        user_profile = applyHeat({ user_profile, profile_ref, amount: bribeHeat({ delta, perks }) })
+
         const bribe_update = { ...delta.update, predictions: {}, created: Date.now() }
         await current_challenge_ref.update(bribe_update)
 

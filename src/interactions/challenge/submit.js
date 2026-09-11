@@ -1,4 +1,4 @@
-const { updateChallenge, playButton, isActive, expiredEmbed, challengeWinnings, getBest, goalTimeList, predictionScore, manageTruguts, currentTruguts, predictionAchievement, bountyAchievement, achievementEmbed, randomChallengeItem, challengeProgression, playerLevel, convertLevel, progressionReward, fitField } = require('./functions.js');
+const { updateChallenge, playButton, isActive, expiredEmbed, challengeWinnings, getBest, goalTimeList, predictionScore, manageTruguts, decayHeat, currentTruguts, predictionAchievement, bountyAchievement, achievementEmbed, randomChallengeItem, challengeProgression, playerLevel, convertLevel, progressionReward, fitField } = require('./functions.js');
 const { postMessage, editMessage } = require('../../discord.js');
 const { items } = require('../../data/challenge/item.js')
 const { raritysymbols } = require('../../data/challenge/rarity.js')
@@ -145,10 +145,22 @@ exports.submit = async function ({ current_challenge, current_challenge_ref, int
     //configuration before the new submission is logged
     const already_played = getBest(db, current_challenge).some(b => b.user == member_id)
 
+    //a resubmission overwrites the player's existing time, so the heat decay below has
+    //to be keyed off the first one or a player could cool off by editing a time repeatedly
+    const first_submission = !current_challenge.submissions?.[member_id]
+
     var newPostRef = challengetimeref.push(submissiondata);
     await current_challenge_ref.child("submissions").child(member_id).set({ id: newPostRef.key, player: member_id, time })
     if (['abandoned', 'private'].includes(current_challenge.type)) {
         await current_challenge_ref.update({ completed: true })
+    }
+
+    //finishing a challenge without bribing it cools the player off. The daily and the
+    //monthly can't be bribed at all, so they always count as clean -- a hot player who
+    //shows up for the cotd is still racing something they didn't pick
+    const bribed = current_challenge.track_bribe || current_challenge.racer_bribe || current_challenge.condition_bribe
+    if (first_submission && !bribed) {
+        user_profile = decayHeat({ user_profile, profile_ref })
     }
 
     let total_revenue = 0

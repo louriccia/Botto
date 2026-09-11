@@ -16,6 +16,7 @@ const { inventorySections } = require('../../data/challenge/inventory.js')
 const { shoplines } = require('../../data/flavor/shop.js')
 const { swe1r_guild } = require('../../data/discord/guild.js')
 const { truguts } = require('../../data/challenge/trugut.js')
+const heat_tuning = require('../../data/challenge/heat.js')
 const { hints } = require('../../data/challenge/hint.js')
 const { tips } = require('../../data/challenge/tip.js')
 const { items } = require('../../data/challenge/item.js')
@@ -1852,37 +1853,75 @@ exports.partSelector = function ({ customid, placeholder, min, max, descriptions
 exports.bribePerks = function ({ current_challenge, user_profile, member, db, client, member_roles } = {}) {
     //cotm carries an array of tracks and can't be bribed, so there's no planet to read
     const track = Array.isArray(current_challenge?.track) ? null : current_challenge?.track
-    const planet = track == null ? null : planets[tracks[track]?.planet]
+    const planet_index = track == null ? null : tracks[track]?.planet
+    const planet = planet_index == null ? null : planets[planet_index]
     const perks = {
         planet,
         citizen: false,
+        outlander: false,
         title: null,
         smuggling: !!user_profile?.effects?.smuggling_routes
     }
     if (!planet) {
         return perks
     }
-    const unlocked = !!user_profile?.effects?.[planet.name.toLowerCase().replaceAll(" ", "_")]
-    //an interaction's own member list is fresher than any cache --
-    //db.user[..].discord.roles is only refreshed by update_users at boot, so a role
-    //equipped this session isn't in it yet
-    const equipped = member_roles
-        ? member_roles.some(r => r.id === planet.role)
-        : exports.hasRole({ client, db, guild: current_challenge.guild, member, role: planet.role })
-    perks.citizen = unlocked && equipped
+    //a citizenship counts only while it is both unlocked and actually worn. An
+    //interaction's own member list is fresher than any cache -- db.user[..].discord.roles
+    //is only refreshed by update_users at boot, so a role equipped this session isn't
+    //in it yet
+    const held = p => {
+        if (!user_profile?.effects?.[p.name.toLowerCase().replaceAll(" ", "_")]) {
+            return false
+        }
+        return member_roles
+            ? member_roles.some(r => r.id === p.role)
+            : exports.hasRole({ client, db, guild: current_challenge.guild, member, role: p.role })
+    }
+    perks.citizen = held(planet)
     perks.title = perks.citizen ? planet.citizen : null
+    //Outlander: a citizenship worn somewhere else marks you as the offworlder who turned
+    //up with money. Holding none at all is nobody's problem, so it carries no surcharge
+    perks.outlander = !perks.citizen && planets.some((p, i) => i !== planet_index && held(p))
     return perks
+}
+
+//what a bribe adds to the player's heat. Free bribes still run hot -- citizenship and
+//Smuggling Routes discount the cost, and only the modifiers in the tuning touch the heat.
+//Reads delta.smuggled rather than delta.discounts: the latter is display text.
+exports.bribeHeat = function ({ delta, perks } = {}) {
+    if (!delta?.changes?.length) {
+        return 0
+    }
+    let heat = 0
+    delta.changes.forEach(change => {
+        if (change == 'track') {
+            //Quiet Routes: an in-system swap never leaves the planet, so nobody notices
+            heat += heat_tuning.GAIN.track * (delta.smuggled ? heat_tuning.MODIFIERS.quiet_routes : 1)
+        } else if (change == 'racer') {
+            heat += heat_tuning.GAIN.racer
+        } else {
+            //everything else in changes[] is a condition key (nu, mirror, laps, ...)
+            heat += heat_tuning.GAIN.condition
+        }
+    })
+    if (perks?.citizen) {
+        heat *= heat_tuning.MODIFIERS.home_turf
+    } else if (perks?.outlander) {
+        heat *= heat_tuning.MODIFIERS.outlander
+    }
+    return Math.round(heat)
 }
 
 //compute what a staged bribe selection would change and what it costs.
 //selection: { track: ['5']|[], racer: ['2']|[], condition: ['nu','laps_2',...]|null }
 //the condition select uses desired-state semantics (its defaults mirror the
 //challenge's current conditions); null means the select was never rendered
-//full_cost is what the bribe would have cost with no abilities in play, and
-//discounts names the ones that brought it down -- both are for display only
+//full_cost is what the bribe would have cost with no abilities in play, and discounts
+//names the ones that brought it down -- both are for display only. smuggled is the
+//structured form of "Quiet Routes covered this", which bribeHeat needs.
 exports.bribeDelta = function ({ current_challenge, user_profile, selection = {}, perks = null } = {}) {
     const c = current_challenge.conditions ?? {}
-    const delta = { cost: 0, full_cost: 0, changes: [], discounts: [], update: {}, error: null }
+    const delta = { cost: 0, full_cost: 0, changes: [], discounts: [], smuggled: false, update: {}, error: null }
     const is_citizen = !!perks?.citizen
 
     if (selection.track?.length && Number(selection.track[0]) !== current_challenge.track) {
@@ -1894,6 +1933,7 @@ exports.bribeDelta = function ({ current_challenge, user_profile, selection = {}
         delta.full_cost += truguts.bribe_track
         delta.cost += free ? 0 : truguts.bribe_track
         if (free) {
+            delta.smuggled = true
             delta.discounts.push('Smuggling Routes')
         }
         delta.changes.push('track')
@@ -4112,6 +4152,49 @@ exports.manageTruguts = function ({ user_profile, profile_ref, transaction, amou
 
 exports.currentTruguts = function (user_profile) {
     return number_with_commas(user_profile.truguts_earned - user_profile.truguts_spent)
+}
+
+//Heat drains continuously, so the stored number is only true as of heat.updated --
+//nothing may use user_profile.heat.value directly, it has to be aged forward first.
+//A profile that has never been hot has no heat node at all and reads as 0, so no
+//migration is needed for existing players.
+exports.heatValue = function (user_profile) {
+    const heat = user_profile?.heat
+    if (!heat?.value) {
+        return 0
+    }
+    const hours = Math.max(0, (Date.now() - (heat.updated ?? Date.now())) / 3600000)
+    return Math.max(0, Math.min(heat_tuning.MAX, heat.value - hours * heat_tuning.DECAY.per_hour))
+}
+
+//mirrors manageTruguts: mutate the in-memory profile and write the same values, so a
+//caller holding user_profile sees the change without waiting for the cache listener
+//to echo the write back. Negative amounts cool the player off.
+exports.applyHeat = function ({ user_profile, profile_ref, amount } = {}) {
+    amount = Number(amount)
+    if (!Number.isFinite(amount)) {
+        console.error(`applyHeat received invalid amount for ${user_profile?.name}: ${amount}`)
+        return user_profile
+    }
+    //age the stored value forward before adding to it -- writing on top of a stale
+    //value would silently refund however long the player had been cooling off
+    const value = Math.round(Math.max(0, Math.min(heat_tuning.MAX, exports.heatValue(user_profile) + amount)))
+    const heat = { value, updated: Date.now() }
+    console.log(`${user_profile?.name} heat ${amount > 0 ? '+' : ''}${amount} -> ${value}`)
+    user_profile.heat = heat
+    profile_ref?.child('heat').update(heat)
+    return user_profile
+}
+
+//a challenge finished without bribing it cools the player off
+exports.decayHeat = function ({ user_profile, profile_ref } = {}) {
+    //nothing to cool: skip the write rather than stamping a new timestamp on a zero
+    if (!exports.heatValue(user_profile)) {
+        return user_profile
+    }
+    const amount = heat_tuning.DECAY.per_clean_challenge
+        + (user_profile?.effects?.smuggling_routes ? heat_tuning.DECAY.cover_your_tracks : 0)
+    return exports.applyHeat({ user_profile, profile_ref, amount: -amount })
 }
 
 exports.randomChallengeItem = function ({ user_profile, current_challenge, db, member_id, coffer, sarlacc } = {}) {

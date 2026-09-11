@@ -6,9 +6,11 @@ A risk/reward layer on bribes in the random challenge system. Bribing is current
 fee, which means it is a wall for new players and free for rich ones. **Heat** replaces the
 price with a rate — and gives the two most-ignored collection abilities a job.
 
-**This is a proposal, not shipped behaviour** — with one exception: §7.1, surfacing the
-abilities that already exist, is built and marked as such. Every file reference below points
-at code as it exists today; everything under "the model" is a design to be argued with.
+**Partly shipped.** §10 is the plan of record and says which stages are built: stage 0
+(surfacing the abilities that already existed) and stages 1–2 (heat accrues and decays, but
+nothing reads it against the player) are live. The roll, the penalties and the upside are
+still a design to be argued with — which is the point of shipping accrual dark first, and
+why §3.3 now reports measurements instead of estimates.
 
 ---
 
@@ -124,15 +126,33 @@ is exactly the behaviour heat is trying to encourage.
 
 ### 3.3 What that feels like
 
+Measured against the shipped stage-2 code, not estimated:
+
 | Behaviour | Settles around |
 |---|---|
-| Bribe one element every few challenges | 0–10 🔥 — effectively free, which is correct |
-| Bribe one element every other challenge | 15–25 🔥 — a real but cheap gamble |
-| Bribe track+racer every challenge | 80 🔥 within ~4 challenges |
-| Stop entirely | Clean in ~3–4 days |
+| Bribe one element every few challenges | **0** 🔥 — the −12 per clean challenge outruns it entirely |
+| Bribe one element every other challenge | **+3 per pair**, so it creeps — see the note below |
+| Bribe track+racer every challenge | **30 → 60 → 90 → cap**, hot in three bribes |
+| Stop entirely from the cap | Clean in **~4.2 days** |
 
 The point of the top row is that **the system must be invisible to the player who bribes
-occasionally.** If a casual bribe ever feels scary, the design has failed.
+occasionally.** If a casual bribe ever feels scary, the design has failed. That row holds:
+one bribe every three challenges is a net cooldown.
+
+Two things the measurement changed:
+
+**The heavy row is hotter than this doc first guessed** (90 after three bribes, where the
+estimate said 80 after four). Bribing both track and racer also forfeits that challenge's
+−12, so the two effects compound. Left as-is for now: a player bribing every single
+challenge *should* be at the top of the gauge, and stage 2 exists to check assumptions like
+this one against real play before penalties make them expensive.
+
+**Every-other-challenge creeps upward under sustained play.** +15 against one −12 nets +3
+per pair, or about +5/hour at a 15-minute challenge cadence once hourly decay is counted.
+That is fine for how people actually play — 24/day of wall-clock decay dominates any normal
+session — but a marathon session would eventually reach the cap on a bribe rate this doc
+describes as "a real but cheap gamble". Watch it in the stage-2 numbers; if it bites, the
+fix is raising `per_clean_challenge`, not lowering the gain.
 
 ---
 
@@ -415,33 +435,94 @@ adding heat or forcing their next roll. The plumbing already exists at `function
 
 ---
 
-## 10. Implementation sketch
+## 10. Implementation plan
 
-Touch points, smallest first:
+Ordered by **dependency**, not by feature area — several ability effects are heat-gain
+modifiers and have to land with accrual rather than with the abilities they belong to.
 
-| # | Where | What |
-|---|---|---|
-| 1 | `src/data/challenge/heat.js` *(new)* | Tuning table — gains, decay, tiers, weights, flavour. Follows `src/game/cube/tuning.js`: data only, no presentation. |
-| 2 | `functions.js` — `heatValue()`, `applyHeat()` *(new)* | Lazy time decay on read, gain/decay on write. Everything else calls these. |
-| 3 | `bribeComponents` `:1907` | Odds on the button, ability names on the selects |
-| 4 | `bribe.js` `:55` | Roll on submit, apply penalty, write heat |
-| 5 | `challengeWinnings` `:1041` | Running Hot multiplier; Nothing For You / The Cut |
-| 6 | `challengeContainer` `:1477` | Heat line on the card |
-| 7 | `inventory.js` `:432` | Citizenship cooldown, banishment state |
-| 8 | Shop / usables | Clean Record, Launderer, Alibi, un-shelf `free_bribes` |
+### Stage 0 — Surface the existing abilities · **shipped**
 
-Steps 1–4 are the whole mechanic and could ship alone. 5 is danger money, which shouldn't
-ship separately — heat without upside is a nerf, and it will read as one.
+§7.1. Valuable with or without heat, and it answers whether anyone cares about these
+abilities before a system gets built on them. `bribePerks` is also the seam heat plugs
+into: it already resolves the planet, the citizenship and the smuggling flag §3.1 needs.
 
-### Sequencing
+### Stage 1 — Data and helpers · **shipped**
 
-§7.1 (surfacing the existing abilities) **shipped first and on its own** — valuable with or
-without heat, and it tells us whether anyone cares about these abilities before a whole
-system gets built on top of them. `bribePerks` is also the seam heat plugs into: it already
-resolves the planet, the citizenship and the smuggling flag that §3.1's gain formula needs.
+| Where | What |
+|---|---|
+| `src/data/challenge/heat.js` *(new)* | Gains, gain modifiers, decay rates, `MAX`. Data only, no presentation — follows `src/game/cube/tuning.js`. |
+| `functions.js` — `heatValue()` | Ages the stored value forward before anyone uses it. Nothing may read `heat.value` directly. |
+| `functions.js` — `applyHeat()` | Mirrors `manageTruguts` exactly: mutates the in-memory profile *and* writes, so callers holding `user_profile` see the change without waiting for the cache listener. |
+| `functions.js` — `decayHeat()` | The clean-challenge cooldown, including Cover Your Tracks. |
+
+Two deliberate departures from the earlier sketch:
+
+- **No penalty tiers, weights, or host flavour in the tuning file yet.** They arrive with
+  the roll that reads them. Dead tuning data reads as shipped behaviour, which is worse
+  than no data at all.
+- **No `recent` planet history on the profile.** §3's model sketched one for flavour and
+  ability checks; the checks resolve live through `bribePerks` and the flavour is stage 4,
+  so nothing would read it. Add it when something does.
+
+A profile that has never been hot has no `heat` node and reads as `0`, so no migration is
+needed for existing players.
+
+### Stage 2 — Accrual and decay, fully dark · **shipped**
+
+| Where | What |
+|---|---|
+| `bribePerks` | Gains `outlander`: a citizenship worn on *another* planet. Holding none carries no surcharge. |
+| `bribeDelta` | Gains `smuggled`, the structured form of "Quiet Routes covered this". `discounts[]` stays display text and is never a control signal. |
+| `functions.js` — `bribeHeat()` | Prices a bribe in heat off `delta.changes`, then applies Quiet Routes → Home Turf / Outlander. |
+| `bribe.js` — submit | Accrues, beside the existing `manageTruguts` call. |
+| `submit.js` — first submission | Decays on a challenge finished unbribed, keyed off `first_submission` so editing a time can't farm cooldowns. |
+
+Every ability that changes the *numbers* is in this stage — Home Turf, Outlander, Quiet
+Routes, Cover Your Tracks — because heat accrued without them is simply wrong data.
+Launderer is not: it needs a shop item to grant `effects.launderer`, so it lands in stage 5
+with the item.
+
+**Nothing reads heat against the player.** Accrual and decay are live and logged (`applyHeat`
+prints every change next to the `manageTruguts` lines), so §3's constants stop being guesses
+before they are allowed to cost anyone anything. §3.3 is already rewritten from what the code
+actually does rather than what the design assumed.
+
+### Stage 3 — Display preview
+
+Gauge on the card (`challengeContainer`), odds on the bribe button (`bribeComponents`) —
+explicitly labelled inactive, with a date. See below for why the multiplier can't come
+along early to make the gauge mean something.
+
+### Stage 4 — The roll
+
+Penalties, danger money (`challengeWinnings`) and Friends in High Places together. One
+structural note: heat lives on the **profile**, but a rolled penalty has to be stamped on
+the **challenge** — `current_challenge.heat_penalty = { type, tier, host }` — because it
+modifies that specific challenge's conditions and payout. `bribe.js` already writes the
+challenge in the same block, so the seam exists.
+
+### Stage 5 — The economy around it
+
+Spice Run, Clean Record, Launderer, Alibi, and un-shelving `free_bribes`.
+
+### Stage 6 — Citizenship as a commitment
+
+The 24-hour switch cooldown and banishment state (`inventory.js:432`), plus the non-heat
+home perks from §7.2.
+
+### Why 3 and 4 can't be swapped
+
+Shipping danger money before penalties looks appealing — players would learn the gauge
+while it is pure upside. It is exploitable by exactly the wrong people. For a paying player
+it is harmless: 10,000 truguts against ~2,500 base earnings stays deeply unprofitable even
+at ×1.8. For a **citizen** bribes cost nothing, so free heat becomes a free earnings
+multiplier with no downside, and the players holding the strongest abilities get an
+unbounded buff — the opposite of the point. Hence stage 3 being a labelled preview.
+
+The same argument runs the other way, which is why stage 4 is one release: heat without
+upside is a nerf, and it will read as one.
 
 ---
-
 ## 11. Cut on purpose
 
 - **Per-planet heat gauges.** Eight numbers the player can't hold in their head. The planet
@@ -492,4 +573,7 @@ resolves the planet, the citizenship and the smuggling flag that §3.1's gain fo
 | Planets, hosts, citizen titles | `src/data/sw_racer/planet.js` |
 | Citizenship equip | `src/interactions/challenge/inventory.js:432` |
 | Shelved shop items | `src/interactions/challenge/functions.js:2277`–`2317` |
+| Heat tuning | `src/data/challenge/heat.js` |
+| Heat read/write | `src/interactions/challenge/functions.js` — `heatValue`, `applyHeat`, `decayHeat` |
+| Heat accrual / decay hooks | `bribe.js` (submit), `submit.js` (first submission) |
 | Tuning-file precedent | `src/game/cube/tuning.js` |
