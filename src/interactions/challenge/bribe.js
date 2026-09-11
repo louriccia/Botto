@@ -82,7 +82,20 @@ exports.bribe = async function ({ current_challenge, current_challenge_ref, inte
         //roll reads the heat the player walked in with, so a first bribe from a cold
         //profile is always clean, and it resolves here rather than at submit time: the
         //player has to see the outcome before deciding whether to race it
-        const penalty = rollHeatPenalty({ user_profile, perks, delta, current_challenge, available })
+        let penalty = rollHeatPenalty({ user_profile, perks, delta, current_challenge, available })
+        //An Alibi spends itself on the first bribe that goes wrong, whatever it was. The
+        //verdict is discarded before anything is charged or written, so the bribe lands
+        //exactly as a clean one -- Running Hot included, because the player did get away
+        //with it. Only the record of the near miss survives, on the challenge.
+        let alibi = null
+        if (penalty && user_profile.effects?.alibi) {
+            alibi = { from: penalty.title, host: penalty.host ?? null }
+            penalty = null
+            profile_ref.child('effects').update({ alibi: null })
+            if (user_profile.effects) {
+                delete user_profile.effects.alibi
+            }
+        }
         //Short Count and The Fine add to the price, so what's charged is not delta.cost
         const charged = delta.cost + (penalty?.extra_cost ?? 0)
 
@@ -97,7 +110,7 @@ exports.bribe = async function ({ current_challenge, current_challenge_ref, inte
             }
         })
         //heat accrues on the bribe itself, whatever it cost -- a free bribe is still a bribe
-        user_profile = applyHeat({ user_profile, profile_ref, amount: bribeHeat({ delta, perks }) })
+        user_profile = applyHeat({ user_profile, profile_ref, amount: bribeHeat({ delta, perks, user_profile }) })
         //Blacklisted is the one penalty that outlives the challenge it was rolled on
         if (penalty?.until) {
             profile_ref.child('effects').update({ bribe_blacklist: penalty.until })
@@ -112,6 +125,9 @@ exports.bribe = async function ({ current_challenge, current_challenge_ref, inte
         const bribe_update = { ...delta.update, ...(penalty?.update ?? {}), predictions: {}, created: Date.now(), bribe_cost: (current_challenge.bribe_cost ?? 0) + charged }
         if (penalty) {
             bribe_update.heat_penalty = penalty
+        }
+        if (alibi) {
+            bribe_update.heat_alibi = alibi
         }
         await current_challenge_ref.update(bribe_update)
 

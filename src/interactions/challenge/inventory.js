@@ -1,4 +1,5 @@
-const { manageTruguts, randomChallengeItem, inventoryComponents, inventoryEmbed, Collections, collectionReward, collectionRewardEmbed, openCoffer, itemString, tradeEmbed, tradeComponents, availableItemsforScrap, availableItemsforCollection, availableItemsforRepairs } = require('./functions.js');
+const { manageTruguts, randomChallengeItem, inventoryComponents, inventoryEmbed, Collections, collectionReward, collectionRewardEmbed, openCoffer, itemString, tradeEmbed, tradeComponents, availableItemsforScrap, availableItemsforCollection, availableItemsforRepairs, heatValue, applyHeat } = require('./functions.js');
+const heat_tuning = require('../../data/challenge/heat.js');
 const { postMessage, editMessage } = require('../../discord.js');
 const { planets } = require('../../data/sw_racer/planet.js')
 const { items } = require('../../data/challenge/item.js')
@@ -47,9 +48,11 @@ exports.inventory = async function ({ interaction, user_profile, profile_ref, db
     const actionmap = {
         coffer: 'collectible_coffer',
         sabotage: 'sabotage_kit',
-        boost: 'trugut_boost'
+        boost: 'trugut_boost',
+        clean: 'clean_record',
+        alibi: 'alibi'
     }
-    if (['coffer', 'sabotage', 'boost'].includes(args[2])) {
+    if (['coffer', 'sabotage', 'boost', 'clean', 'alibi'].includes(args[2])) {
         if (!user_profile.items) {
             NoItems()
             return
@@ -159,6 +162,45 @@ exports.inventory = async function ({ interaction, user_profile, profile_ref, db
                 .setAuthor({ name: botto_name + " activated a ⚡Trugut Boost", iconURL: member_avatar })
                 .setDescription(`They're earning ${user_profile.effects.doubled_powers ? '2×' : '1.5×'} Truguts for the next 24 hours!`)
             postMessage(interaction.client, interaction.channelId, { embeds: [congratsEmbed] })
+            user_profile = db.user[user_key].random
+        } else if (args[2] == 'clean') {
+            const before = Math.round(heatValue(user_profile))
+            if (!before) {
+                const nothing = new EmbedBuilder()
+                    .setTitle("<:WhyNobodyBuy:589481340957753363> Nothing to wipe")
+                    .setDescription("Your record is already clean. Save it for when it isn't.")
+                interaction.reply({ embeds: [nothing], ephemeral: true })
+                return
+            }
+            if (!(await consumeProfileItem(key, { used: Date.now() }))) {
+                NoItems()
+                return
+            }
+            //straight to zero rather than a subtraction -- the item is the clean slate
+            applyHeat({ user_profile, profile_ref, amount: -heat_tuning.MAX })
+            const cleanEmbed = new EmbedBuilder()
+                .setAuthor({ name: botto_name + " bought themselves a 🧽Clean Record", iconURL: member_avatar })
+                .setDescription(`🔥${before} heat, gone. As far as the pit bosses are concerned, they've never done anything wrong.`)
+            postMessage(interaction.client, interaction.channelId, { embeds: [cleanEmbed] })
+            user_profile = db.user[user_key].random
+        } else if (args[2] == 'alibi') {
+            if (user_profile.effects?.alibi) {
+                const already = new EmbedBuilder()
+                    .setTitle("<:WhyNobodyBuy:589481340957753363> You already have a story straight")
+                    .setDescription("One 🪪Alibi is lined up already. It keeps until a bribe goes wrong.")
+                interaction.reply({ embeds: [already], ephemeral: true })
+                return
+            }
+            if (!(await consumeProfileItem(key, { used: Date.now() }))) {
+                NoItems()
+                return
+            }
+            //held on the profile, not a challenge: it waits for whichever bribe goes wrong
+            profile_ref.child('effects').update({ alibi: true })
+            const alibiEmbed = new EmbedBuilder()
+                .setAuthor({ name: botto_name + " lined up an 🪪Alibi", iconURL: member_avatar })
+                .setDescription("The next bribe that goes wrong didn't happen. They were somewhere else entirely.")
+            postMessage(interaction.client, interaction.channelId, { embeds: [alibiEmbed] })
             user_profile = db.user[user_key].random
         }
     }

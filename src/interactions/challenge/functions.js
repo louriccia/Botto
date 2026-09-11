@@ -1959,7 +1959,7 @@ exports.bribePerks = function ({ current_challenge, user_profile, member, db, cl
 //what a bribe adds to the player's heat. Free bribes still run hot -- citizenship and
 //Smuggling Routes discount the cost, and only the modifiers in the tuning touch the heat.
 //Reads delta.smuggled rather than delta.discounts: the latter is display text.
-exports.bribeHeat = function ({ delta, perks } = {}) {
+exports.bribeHeat = function ({ delta, perks, user_profile } = {}) {
     if (!delta?.changes?.length) {
         return 0
     }
@@ -1979,6 +1979,11 @@ exports.bribeHeat = function ({ delta, perks } = {}) {
         heat *= heat_tuning.MODIFIERS.home_turf
     } else if (perks?.outlander) {
         heat *= heat_tuning.MODIFIERS.outlander
+    }
+    //Launderer stacks on top of where you are, because it's about the money rather
+    //than the planet
+    if (user_profile?.effects?.launderer) {
+        heat *= heat_tuning.MODIFIERS.launderer
     }
     return Math.round(heat)
 }
@@ -2052,6 +2057,13 @@ exports.bribeDelta = function ({ current_challenge, user_profile, selection = {}
     //a track change can strand an active skips condition on a track with no skip goal times
     if (delta.update.track !== undefined && !tracks[target_track]?.parskiptimes && (delta.update.conditions ?? c).skips) {
         delta.update.conditions = { ...(delta.update.conditions ?? c), skips: false }
+    }
+
+    //Credits WILL Do Fine: the shop item zeroes every bribe everywhere. It still runs
+    //hot, which is the only reason it can be sold at all -- see docs/heat.md 1.
+    if (user_profile?.effects?.free_bribes && delta.cost) {
+        delta.discounts.push('Credits WILL Do Fine')
+        delta.cost = 0
     }
 
     //Citizenship: free bribes on the citizen planet's tracks while the role is equipped
@@ -2128,7 +2140,7 @@ exports.bribeComponents = function ({ current_challenge, user_profile, selection
     //ability that changed them has to be named. The heat clause is what this bribe
     //will actually add to the gauge -- a real, live number, not a risk percentage,
     //because the roll that would price a risk doesn't exist yet
-    const heat_gain = exports.bribeHeat({ delta, perks })
+    const heat_gain = exports.bribeHeat({ delta, perks, user_profile })
     const label_parts = [delta.cost || !delta.discounts.length
         ? `📀${number_with_commas(delta.cost)}`
         : 'Free']
@@ -2486,16 +2498,47 @@ exports.shopOptions = function ({ user_profile, player, db, selection } = {}) {
         //         name: "🔄"
         //     }
         // },
-        // {
-        //     label: `Credits WILL Do Fine`,
-        //     value: 'bribes',
-        //     price: 384000000,
-        //     description: "Never pay for bribes again",
-        //     info: "You can go to whatever challenge of your choosing at no charge. One-time purchase.",
-        //     emoji: {
-        //         name: "💰"
-        //     }
-        // },
+        //Sellable again now that heat exists: this only removes the cost, and a free bribe
+        //still runs just as hot (docs/heat.md 1). Before heat it removed the only brake
+        //bribing had, which is why it sat commented out for so long.
+        ...(user_profile?.effects?.free_bribes ? [] : [{
+            label: `Credits WILL Do Fine`,
+            value: 'bribes',
+            price: 384000000,
+            description: "Never pay for bribes again",
+            info: "Bribe whatever challenge you like at no charge. Your truguts are no object — but the pit bosses still notice. Bribes cost nothing and generate heat exactly as they always did. One-time purchase.",
+            emoji: {
+                name: "💰"
+            }
+        }]),
+        //Spice Run sells heat rather than buying anything, so it's priced at nothing and
+        //only appears when it can actually be run: the collection, enough heat to be
+        //worth selling, and a day since the last one.
+        ...(user_profile?.effects?.smuggling_routes
+            //rounded, to match what the gauge shows: heatValue decays continuously, so an
+            //instant after reaching 25 the raw float is 24.999 and the option would hide
+            //itself from a player whose card reads 25
+            && Math.round(exports.heatValue(user_profile)) >= heat_tuning.SPICE_RUN.heat
+            && !exports.spiceRunCooldown(user_profile) ? [{
+                label: `Spice Run`,
+                value: 'spice',
+                price: 0,
+                description: `Sell \u{1F525}${heat_tuning.SPICE_RUN.heat} heat for \u{1F4C0}${number_with_commas(heat_tuning.SPICE_RUN.truguts)}`,
+                info: `You know a buyer and you know the back roads. Offload the goods, take the money, and be somewhere else when anyone comes asking — \u{1F525}${heat_tuning.SPICE_RUN.heat} off your record and \u{1F4C0}${number_with_commas(heat_tuning.SPICE_RUN.truguts)} in your pocket. Once a day, and you need the heat to sell.`,
+                emoji: {
+                    name: "🚛"
+                }
+            }] : []),
+        ...(user_profile?.effects?.launderer ? [] : [{
+            label: `Launderer`,
+            value: 'launderer',
+            price: 12000000,
+            description: "Bribes run 25% cooler",
+            info: "Somebody on the payroll keeps your name out of the wrong ledgers. All heat you gain from bribing is reduced by 25%. It shaves rather than halves — truguts can soften heat, never buy their way out of it. One-time purchase.",
+            emoji: {
+                name: "🧼"
+            }
+        }]),
         // {
         //     label: `Peace Treaty`,
         //     value: 'peace',
@@ -2772,6 +2815,22 @@ exports.inventoryComponents = function ({ user_profile, selection, db, interacti
                 .setCustomId("challenge_random_inventory_boost")
                 .setStyle(ButtonStyle.Primary)
                 .setLabel('Use')
+            comp.push(new ActionRowBuilder().addComponents(OpenButton))
+        } else if (selected_usable == 'clean_record') {
+            //the label carries the number, because wiping 0 heat is a wasted item
+            const heat = Math.round(exports.heatValue(user_profile))
+            const OpenButton = new ButtonBuilder()
+                .setCustomId("challenge_random_inventory_clean")
+                .setStyle(ButtonStyle.Primary)
+                .setLabel(heat ? `Wipe 🔥${heat}` : 'Nothing to wipe')
+                .setDisabled(!heat)
+            comp.push(new ActionRowBuilder().addComponents(OpenButton))
+        } else if (selected_usable == 'alibi') {
+            const OpenButton = new ButtonBuilder()
+                .setCustomId("challenge_random_inventory_alibi")
+                .setStyle(ButtonStyle.Primary)
+                .setLabel(user_profile.effects?.alibi ? 'Already lined up' : 'Line one up')
+                .setDisabled(!!user_profile.effects?.alibi)
             comp.push(new ActionRowBuilder().addComponents(OpenButton))
         }
     } else if (selection[1]?.[0] == 'duplicates') {
@@ -4405,6 +4464,11 @@ exports.rollHeatPenalty = function ({ user_profile, perks, delta, current_challe
 exports.penaltyLine = function (current_challenge) {
     const penalty = current_challenge?.heat_penalty
     if (!penalty) {
+        const alibi = current_challenge?.heat_alibi
+        if (alibi) {
+            const whose = alibi.host && alibi.from ? `${alibi.host}'s ${alibi.from}` : 'a shakedown'
+            return `🪪 **Alibi** · *Your story held up. ${whose} didn't stick.*`
+        }
         const fled = current_challenge?.heat_fled
         if (!fled) {
             return ''
@@ -4416,6 +4480,16 @@ exports.penaltyLine = function (current_challenge) {
         ? ` No bribes until <t:${Math.round(penalty.until / 1000)}:t>.`
         : ''
     return `💥 **${penalty.title}** · *${penalty.flavor}${detail}*`
+}
+
+//Spice Run is once a day; returns when the next one is available, or null if it's ready
+exports.spiceRunCooldown = function (user_profile) {
+    const last = user_profile?.effects?.spice_run
+    if (!last) {
+        return null
+    }
+    const until = last + heat_tuning.SPICE_RUN.cooldown_hours * 60 * 60 * 1000
+    return until > Date.now() ? until : null
 }
 
 //a challenge finished without bribing it cools the player off
@@ -4432,7 +4506,7 @@ exports.decayHeat = function ({ user_profile, profile_ref } = {}) {
 exports.randomChallengeItem = function ({ user_profile, current_challenge, db, member_id, coffer, sarlacc } = {}) {
     const challenges_completed = Object.values(db.ch.times).filter(time => time.user == member_id).length
     let item_pool = []
-    let special_items = ['collectible_coffer', 'trugut_boost', 'sabotage_kit'].map(id => items.find(i => i.id == id)).filter(Boolean)
+    let special_items = ['collectible_coffer', 'trugut_boost', 'sabotage_kit', 'clean_record', 'alibi'].map(id => items.find(i => i.id == id)).filter(Boolean)
     items.forEach(item => {
         if (coffer || sarlacc || (item.challenges !== null && challenges_completed > item.challenges) || current_challenge.conditions[item.condition] || item.track.includes(current_challenge.track) || item.racer.includes(current_challenge.racer)) {
             item_pool.push(item)
@@ -4584,7 +4658,7 @@ exports.earnedItem = function ({ current_challenge, member, user_profile, db } =
 
 exports.itemString = function ({ item, user_profile }) {
     //only live copies count as duplicates -- scrapped/fed/used items are gone
-    let dup = (user_profile?.items ? Object.values(user_profile.items).filter(i => i.id == item.id && exports.usableItem({ item: i })).length > 1 : false) && !['collectible_coffer', 'trugut_boost', 'sabotage_kit'].includes(item.id)
+    let dup = (user_profile?.items ? Object.values(user_profile.items).filter(i => i.id == item.id && exports.usableItem({ item: i })).length > 1 : false) && !['collectible_coffer', 'trugut_boost', 'sabotage_kit', 'clean_record', 'alibi'].includes(item.id)
     return `${raritysymbols[item.rarity]} ${item.name}` + (typeof item.health == 'number' ? ` [${Math.round(item.health * 100 / 255)}%]` : '') + (dup ? " (duplicate)" : "")
 }
 
@@ -4698,7 +4772,7 @@ exports.tradeComponents = function ({ trade, db, selection } = {}) {
     traders.forEach(key => {
         let other_player = traders.filter(k => k !== key)[0]
         let other_items = tradables[other_player].items
-        tradables[key].tradable = tradables[key].items.filter(i => !other_items.map(j => j.id).includes(i.id) || (['trugut_boost', 'sabotage_kit', 'collectible_coffer'].includes(i.id)))
+        tradables[key].tradable = tradables[key].items.filter(i => !other_items.map(j => j.id).includes(i.id) || (['trugut_boost', 'sabotage_kit', 'collectible_coffer', 'clean_record', 'alibi'].includes(i.id)))
         let collectible = []
         collections.filter(c => !db.user[key].random.effects?.[c.key]).forEach(c => {
             c.items.forEach(i => {
@@ -4803,7 +4877,7 @@ exports.availableItemsforTrade = function ({ user_profile } = {}) {
 }
 
 exports.availableItemsforScrap = function ({ user_profile } = {}) {
-    return exports.getProfileItems({ user_profile }).filter(i => ![i.locked ? true : false, i.repairing ? true : false].includes(true) && !['trugut_boost', 'sabotage_kit', 'collectible_coffer', 70].includes(i.id))
+    return exports.getProfileItems({ user_profile }).filter(i => ![i.locked ? true : false, i.repairing ? true : false].includes(true) && !['trugut_boost', 'sabotage_kit', 'collectible_coffer', 'clean_record', 'alibi', 70].includes(i.id))
 }
 
 exports.availableItemsforRepairs = function ({ user_profile } = {}) {
@@ -4829,6 +4903,18 @@ exports.getUsables = function ({ user_profile } = {}) {
             value: 'trugut_boost',
             emoji: {
                 name: '⚡'
+            }
+        },
+        {
+            value: 'clean_record',
+            emoji: {
+                name: '🧽'
+            }
+        },
+        {
+            value: 'alibi',
+            emoji: {
+                name: '🪪'
             }
         }
     ]
