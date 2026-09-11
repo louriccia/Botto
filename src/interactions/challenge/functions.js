@@ -1570,7 +1570,9 @@ exports.challengeContainer = async function ({ current_challenge, user_profile, 
         //the citizen role is the one ability with a visible identity, so it gets a
         //badge on the card rather than only surfacing as a discount at bribe time
         const citizen_badge = perks?.citizen ? ` · ${perks.planet.emoji} ${perks.title}` : ''
-        container.addTextDisplayComponents(new TextDisplayBuilder().setContent(`-# Truguts: \`📀${exports.currentTruguts(user_profile)}\`${citizen_badge}`))
+        const heat_line = exports.heatLine({ user_profile, perks })
+        container.addTextDisplayComponents(new TextDisplayBuilder().setContent(`-# Truguts: \`📀${exports.currentTruguts(user_profile)}\`${citizen_badge}${heat_line ? `
+${heat_line}` : ''}`))
     } else if (['cotd', 'cotm'].includes(current_challenge.type)) {
         container.addTextDisplayComponents(new TextDisplayBuilder().setContent(`-# <t:${Math.round(current_challenge.created / 1000)}:f>`))
     }
@@ -2053,14 +2055,21 @@ exports.bribeComponents = function ({ current_challenge, user_profile, selection
     }
 
     const delta = exports.bribeDelta({ current_challenge, user_profile, selection, perks })
-    //the button is where the player reads the final number, so it's also where the
-    //ability that changed it has to be named
-    let bribe_label = `Bribe (📀${number_with_commas(delta.cost)})`
+    //the button is where the player reads the final numbers, so it's also where the
+    //ability that changed them has to be named. The heat clause is what this bribe
+    //will actually add to the gauge -- a real, live number, not a risk percentage,
+    //because the roll that would price a risk doesn't exist yet
+    const heat_gain = exports.bribeHeat({ delta, perks })
+    const label_parts = [delta.cost || !delta.discounts.length
+        ? `📀${number_with_commas(delta.cost)}`
+        : 'Free']
     if (delta.discounts.length) {
-        bribe_label = delta.cost
-            ? `Bribe (📀${number_with_commas(delta.cost)} · ${delta.discounts.join(' · ')})`
-            : `Bribe (Free · ${delta.discounts.join(' · ')})`
+        label_parts.push(...delta.discounts)
     }
+    if (heat_gain > 0) {
+        label_parts.push(`🔥+${heat_gain}`)
+    }
+    const bribe_label = `Bribe (${label_parts.join(' · ')})`
     const BribeButton = new ButtonBuilder()
         .setCustomId('challenge_random_bribe_submit')
         .setStyle(ButtonStyle.Success)
@@ -4184,6 +4193,21 @@ exports.applyHeat = function ({ user_profile, profile_ref, amount } = {}) {
     user_profile.heat = heat
     profile_ref?.child('heat').update(heat)
     return user_profile
+}
+
+//the gauge as it reads on a challenge card. Empty until the player has some heat, so
+//anyone who has never bribed never meets the mechanic at all. The host of the
+//challenge's planet is the one taking an interest -- heat is their patience, not a
+//police meter, so it is always somebody by name doing the watching.
+exports.heatLine = function ({ user_profile, perks } = {}) {
+    const value = Math.round(exports.heatValue(user_profile))
+    if (!value) {
+        return ''
+    }
+    const host = perks?.planet?.host
+    return `-# 🔥 Heat ${value}/${heat_tuning.MAX}`
+        + (host ? ` · ${host} is taking an interest` : '')
+        + (heat_tuning.PREVIEW_NOTE ? ` · ${heat_tuning.PREVIEW_NOTE}` : '')
 }
 
 //a challenge finished without bribing it cools the player off

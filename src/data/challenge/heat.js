@@ -54,3 +54,8 @@ exports.DECAY = {
     // Cover Your Tracks: a smuggler knows how to disappear
     cover_your_tracks: 10
 };
+
+// The gauge ships before the roll does anything, so the card has to say so rather than
+// implying a risk that isn't live yet. Set this to null when penalties go in and the note
+// disappears from every card in one edit -- put a date in it if one is announced.
+exports.PREVIEW_NOTE = 'penalties not yet active';

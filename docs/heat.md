@@ -7,8 +7,8 @@ fee, which means it is a wall for new players and free for rich ones. **Heat** r
 price with a rate — and gives the two most-ignored collection abilities a job.
 
 **Partly shipped.** §10 is the plan of record and says which stages are built: stage 0
-(surfacing the abilities that already existed) and stages 1–2 (heat accrues and decays, but
-nothing reads it against the player) are live. The roll, the penalties and the upside are
+(surfacing the abilities that already existed), stages 1–2 (heat accrues and decays) and
+stage 3 (the player can see it) are live, and nothing yet reads heat against the player. The roll, the penalties and the upside are
 still a design to be argued with — which is the point of shipping accrual dark first, and
 why §3.3 now reports measurements instead of estimates.
 
@@ -363,12 +363,20 @@ rewriting the rules of the race is not something a local fixer can cover for you
 
 Nothing above matters if it's invisible, which is the lesson of §7.1.
 
-**On the bribe button** — the odds go where the price already is
-(`bribeComponents`, `functions.js:1951`):
+**On the bribe button** — the numbers go where the price already is (`bribeComponents`).
+Until the roll exists there are no odds to quote, and a percentage that prices nothing
+would be a lie, so the preview shows **what this bribe will add to the gauge** — a real,
+live number today. Stage 4 adds the risk beside it:
 
 ```
-[ Bribe (📀5,000 · 🔥42%) ]  [ Cancel ]
+[ Bribe (📀5,000 · 🔥+15) ]                      <- plain
+[ Bribe (📀10,000 · 🔥+38) ]                     <- an Outlander, paying for it twice
+[ Bribe (Free · Spice Miner · 🔥+8) ]            <- a citizen on home turf
+[ Bribe (Free · Smuggling Routes) ]              <- in-system: free AND no heat clause at all
 ```
+
+That last line is the whole Smuggling Routes fantasy in one label: the clause is absent
+because the gain is genuinely zero.
 
 **On the selects** — the placeholder carries the baseline price, and individual options
 annotate only the rows that differ from it. A uniform price repeated down 25 rows is
@@ -392,11 +400,23 @@ returning nothing leaves that option's description alone, so the six other calle
 those helpers are untouched. The challenge's own track and racer are annotated
 `Current`, since they're selectable but bribing to them is a no-op.
 
-**On the challenge card** — one line, only when heat is non-zero:
+**On the challenge card** — one subtext line under the truguts balance, and only once the
+player has any heat, so anyone who has never bribed never meets the mechanic:
 
 ```
-🔥 Heat 42 · Groff Zugga is watching you
+-# Truguts: `📀12,000` · <:mongazza:> Spice Miner
+-# 🔥 Heat 42/100 · Groff Zugga is taking an interest · penalties not yet active
 ```
+
+The host names themselves rather than an abstract meter doing the watching (§2). The
+trailing note is `PREVIEW_NOTE` in the tuning file — one edit to date it or remove it.
+
+Two consequences worth knowing. This is the **components v2 card only**; older embed
+messages can't be converted to v2 at all, so they won't carry a gauge. And a private
+challenge's card is a public message, so the owner's heat is visible to the channel —
+exactly as their truguts balance already is on the line above it. That's consistent with
+what the card has always exposed, but it does partly pre-empt §12.2: if heat should be
+private, this line is where to change it.
 
 **On the receipt** — the multiplier, in the existing block:
 
@@ -487,11 +507,26 @@ prints every change next to the `manageTruguts` lines), so §3's constants stop 
 before they are allowed to cost anyone anything. §3.3 is already rewritten from what the code
 actually does rather than what the design assumed.
 
-### Stage 3 — Display preview
+### Stage 3 — Display preview · **shipped**
 
-Gauge on the card (`challengeContainer`), odds on the bribe button (`bribeComponents`) —
-explicitly labelled inactive, with a date. See below for why the multiplier can't come
-along early to make the gauge mean something.
+| Where | What |
+|---|---|
+| `functions.js` — `heatLine()` | The gauge as one subtext line, empty below 1 heat. |
+| `challengeContainer` | Renders it under the truguts balance, private challenges only. |
+| `bribeComponents` | The bribe's heat gain joins the price on the submit button. |
+| `heat.js` — `PREVIEW_NOTE` | The "not yet active" tail, so it dates or disappears in one edit. |
+
+The button shows the **gain**, not the odds §8 originally sketched: there is no roll yet, so a
+percentage would price a risk that doesn't exist. The gain is a real number today, and it is
+the thing a player needs in order to learn what drives the gauge.
+
+Deliberately not done: no progress bar. `progressBar()` would give visual consistency with
+the racer and player levels, but its half-segment glyphs are all tinted to the *Filled*
+colour, so a heat bar drawn with the `error` segment would have mismatched boundaries. That
+needs an `error_half` glyph in `data/discord/emoji.js` before it can look right — cheap, but
+it's art, not code. A plain number in the meantime.
+
+See below for why the multiplier can't come along early to make the gauge mean more.
 
 ### Stage 4 — The roll
 
