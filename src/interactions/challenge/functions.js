@@ -1177,16 +1177,13 @@ exports.updateChallenge = async function ({ client, db, user_profile, current_ch
     //get sponsor/bounties
     current_challenge = exports.getSponsors(current_challenge, db, best)
 
+    //Citizenship and Smuggling Routes price both rerolls and bribes, and the card and
+    //its buttons have to say so -- so they're resolved once here and passed down
+    let perks = null
     if (current_challenge.type == 'private') {
         current_challenge = exports.getBounty(current_challenge, db)
-        //Citizenship: free rerolls on the citizen planet's tracks while its role is equipped.
-        //Read the live member cache first -- db.user[..].discord.roles is only refreshed by
-        //update_users at boot, so a role equipped this session isn't in it yet.
-        const challenge_planet = planets[tracks[current_challenge.track]?.planet]
-        const citizen = challenge_planet
-            && player_profile?.effects?.[challenge_planet.name.toLowerCase().replaceAll(" ", "_")]
-            && exports.hasRole({ client, db, guild: current_challenge.guild, member: player, role: challenge_planet.role })
-        current_challenge.reroll_cost = (player_profile.effects?.free_rerolls || citizen || current_challenge.sponsors?.[player] || record_holder) ? "free" : played ? "discount" : "full price"
+        perks = exports.bribePerks({ current_challenge, user_profile: player_profile, member: player, db, client })
+        current_challenge.reroll_cost = (player_profile.effects?.free_rerolls || perks.citizen || current_challenge.sponsors?.[player] || record_holder) ? "free" : played ? "discount" : "full price"
     }
 
     if (current_challengeref) {
@@ -1198,14 +1195,14 @@ exports.updateChallenge = async function ({ client, db, user_profile, current_ch
     //challenges created with v2: true render as components v2; older messages
     //can't be converted (Discord forbids switching) so they keep the embed
     if (current_challenge.v2) {
-        const container = await exports.challengeContainer({ client, current_challenge, user_profile: player_profile, profile_ref, best, name: player_name, member: player, avatar: player_avatar, db })
+        const container = await exports.challengeContainer({ client, current_challenge, user_profile: player_profile, profile_ref, best, name: player_name, member: player, avatar: player_avatar, db, perks })
         const comps = []
         if (flavor_text && !current_challenge.rerolled) {
             comps.push(new TextDisplayBuilder().setContent(flavor_text))
         }
         comps.push(...container)
         if (!current_challenge.rerolled) {
-            comps.push(exports.challengeComponents(current_challenge, user_profile, db))
+            comps.push(exports.challengeComponents(current_challenge, user_profile, db, perks))
         }
         return {
             components: comps,
@@ -1219,7 +1216,7 @@ exports.updateChallenge = async function ({ client, db, user_profile, current_ch
     let data = {
         content: current_challenge.rerolled ? '' : flavor_text,
         embeds: [cembed],
-        components: current_challenge.rerolled ? [] : [exports.challengeComponents(current_challenge, user_profile, db)],
+        components: current_challenge.rerolled ? [] : [exports.challengeComponents(current_challenge, user_profile, db, perks)],
         withResponse: true
     }
     return data
@@ -1474,7 +1471,7 @@ exports.challengeLeaderboardV2 = function ({ current_challenge, best, member, db
 //thumbnail-forced column squeeze) and the player avatar survives as a section
 //thumbnail accessory. Only challenges created with v2: true render this way --
 //Discord doesn't allow editing a message between embeds and components v2.
-exports.challengeContainer = async function ({ current_challenge, user_profile, profile_ref, best, name, member, avatar, db, client } = {}) {
+exports.challengeContainer = async function ({ current_challenge, user_profile, profile_ref, best, name, member, avatar, db, client, perks = null } = {}) {
     let submitted_time = db.ch.times[current_challenge?.submissions?.[member]?.id] ?? {}
     let achs = current_challenge.type == 'private' ? exports.achievementProgress({ db, player: member }) : null
     let desc = exports.generateChallengeDescription({ current_challenge, db, user_profile }) + (current_challenge.type == 'private' ? "\n" + exports.challengeAchievementProgress({ client, current_challenge, user_profile, profile_ref, achievements: achs, name, avatar, member }) : '')
@@ -1569,7 +1566,10 @@ exports.challengeContainer = async function ({ current_challenge, user_profile, 
     }
 
     if (current_challenge.type == 'private') {
-        container.addTextDisplayComponents(new TextDisplayBuilder().setContent(`-# Truguts: \`📀${exports.currentTruguts(user_profile)}\``))
+        //the citizen role is the one ability with a visible identity, so it gets a
+        //badge on the card rather than only surfacing as a discount at bribe time
+        const citizen_badge = perks?.citizen ? ` · ${perks.planet.emoji} ${perks.title}` : ''
+        container.addTextDisplayComponents(new TextDisplayBuilder().setContent(`-# Truguts: \`📀${exports.currentTruguts(user_profile)}\`${citizen_badge}`))
     } else if (['cotd', 'cotm'].includes(current_challenge.type)) {
         container.addTextDisplayComponents(new TextDisplayBuilder().setContent(`-# <t:${Math.round(current_challenge.created / 1000)}:f>`))
     }
@@ -1657,7 +1657,7 @@ exports.progressionReward = function ({ racer, level }) {
     return reward
 }
 
-exports.challengeComponents = function (current_challenge, user_profile, db) {
+exports.challengeComponents = function (current_challenge, user_profile, db, perks = null) {
     //components
     const row = new ActionRowBuilder()
     let reroll = exports.rerollReceipt(current_challenge, user_profile)
@@ -1693,7 +1693,11 @@ exports.challengeComponents = function (current_challenge, user_profile, db) {
             )
         }
         const bribes_left = !current_challenge.track_bribe || !current_challenge.racer_bribe || (!current_challenge.condition_bribe && user_profile?.effects?.altered_deal)
-        if (bribes_left && (current_truguts >= truguts.bribe_track || current_truguts >= truguts.bribe_racer)) {
+        //a citizen of this planet pays nothing, and a smuggler pays nothing for an
+        //in-system track swap -- hiding the button behind the price left both of them
+        //unable to use an ability they'd finished a whole collection for
+        const free_bribe = !!perks?.citizen || (!!perks?.smuggling && !current_challenge.track_bribe)
+        if (bribes_left && (free_bribe || current_truguts >= truguts.bribe_track || current_truguts >= truguts.bribe_racer)) {
             row.addComponents(
                 new ButtonBuilder()
                     .setCustomId("challenge_random_bribe")
@@ -1758,7 +1762,10 @@ exports.challengeComponents = function (current_challenge, user_profile, db) {
     return row
 }
 
-exports.trackSelector = function ({ customid, placeholder, min, max, descriptions, selected } = {}) {
+//price, when given, is called with the option's value and returns a short string to
+//lead that option's description with, or a falsy value to leave that option alone --
+//it's for the rows that differ from whatever the placeholder already said
+exports.trackSelector = function ({ customid, placeholder, min, max, descriptions, selected, price } = {}) {
     const tracks = getTracks()
     const trackSelectRow = new ActionRowBuilder()
     const track_selector = new StringSelectMenuBuilder()
@@ -1767,10 +1774,11 @@ exports.trackSelector = function ({ customid, placeholder, min, max, description
         .setMinValues(min)
         .setMaxValues(max)
     tracks.sort((a, b) => a.tracknum - b.tracknum).forEach((track, i) => {
+        const prefix = price ? price(i) : null
         track_selector.addOptions({
             label: track.name,
             value: String(i),
-            description: descriptions ? descriptions[i].substring(0, 50) : (track.circuit.name + " Circuit | Race " + track.cirnum + " | " + track.planet.name).substring(0, 50),
+            description: ((prefix ? prefix + " · " : '') + (descriptions ? descriptions[i].substring(0, 50) : (track.circuit.name + " Circuit | Race " + track.cirnum + " | " + track.planet.name).substring(0, 50))).substring(0, 100),
             emoji: {
                 name: track.planet.emoji.split(":")[1],
                 id: track.planet.emoji.split(":")[2].replace(">", "")
@@ -1782,7 +1790,8 @@ exports.trackSelector = function ({ customid, placeholder, min, max, description
     return [trackSelectRow]
 }
 
-exports.racerSelector = function ({ customid, placeholder, min, max, descriptions, selected } = {}) {
+//price behaves as it does in trackSelector above
+exports.racerSelector = function ({ customid, placeholder, min, max, descriptions, selected, price } = {}) {
     const racerSelectRow = new ActionRowBuilder()
     const racer_selector = new StringSelectMenuBuilder()
         .setCustomId(`${customid}`)
@@ -1793,10 +1802,11 @@ exports.racerSelector = function ({ customid, placeholder, min, max, description
     const racersWithSpeed = racers.slice(0, 23).map(racer => ({ ...racer, avgSpeed: avgSpeed(upgradeTopSpeed(racer.max_speed, 5), racer.boost_thrust, racer.heat_rate, upgradeCooling(racer.cool_rate, 5)) }))
     const racersBySpeed = racersWithSpeed.sort((a, b) => b.avgSpeed - a.avgSpeed)
     racersBySpeed.forEach((racer, i) => {
+        const prefix = price ? price(racer.racernum - 1) : null
         racer_selector.addOptions({
             label: racer.name,
             value: String(racer.racernum - 1),
-            description: descriptions ? descriptions[i].substring(0, 50) : racer.pod.substring(0, 50),
+            description: ((prefix ? prefix + " · " : '') + (descriptions ? descriptions[i].substring(0, 50) : racer.pod.substring(0, 50))).substring(0, 100),
             emoji: {
                 name: racer.flag.split(":")[1],
                 id: racer.flag.split(":")[2].replace(">", "")
@@ -1835,13 +1845,45 @@ exports.partSelector = function ({ customid, placeholder, min, max, descriptions
     return [partCategoryRow, partSelectRow]
 }
 
+//which bribe-discounting abilities are live on this challenge, and what they are
+//called. Citizenship and Smuggling Routes both used to zero delta.cost silently,
+//so the player read a 5,000 placeholder next to a free button with nothing saying
+//why -- every caller now has the ability's name to print.
+exports.bribePerks = function ({ current_challenge, user_profile, member, db, client, member_roles } = {}) {
+    //cotm carries an array of tracks and can't be bribed, so there's no planet to read
+    const track = Array.isArray(current_challenge?.track) ? null : current_challenge?.track
+    const planet = track == null ? null : planets[tracks[track]?.planet]
+    const perks = {
+        planet,
+        citizen: false,
+        title: null,
+        smuggling: !!user_profile?.effects?.smuggling_routes
+    }
+    if (!planet) {
+        return perks
+    }
+    const unlocked = !!user_profile?.effects?.[planet.name.toLowerCase().replaceAll(" ", "_")]
+    //an interaction's own member list is fresher than any cache --
+    //db.user[..].discord.roles is only refreshed by update_users at boot, so a role
+    //equipped this session isn't in it yet
+    const equipped = member_roles
+        ? member_roles.some(r => r.id === planet.role)
+        : exports.hasRole({ client, db, guild: current_challenge.guild, member, role: planet.role })
+    perks.citizen = unlocked && equipped
+    perks.title = perks.citizen ? planet.citizen : null
+    return perks
+}
+
 //compute what a staged bribe selection would change and what it costs.
 //selection: { track: ['5']|[], racer: ['2']|[], condition: ['nu','laps_2',...]|null }
 //the condition select uses desired-state semantics (its defaults mirror the
 //challenge's current conditions); null means the select was never rendered
-exports.bribeDelta = function ({ current_challenge, user_profile, selection = {}, citizen = false } = {}) {
+//full_cost is what the bribe would have cost with no abilities in play, and
+//discounts names the ones that brought it down -- both are for display only
+exports.bribeDelta = function ({ current_challenge, user_profile, selection = {}, perks = null } = {}) {
     const c = current_challenge.conditions ?? {}
-    const delta = { cost: 0, changes: [], update: {}, error: null }
+    const delta = { cost: 0, full_cost: 0, changes: [], discounts: [], update: {}, error: null }
+    const is_citizen = !!perks?.citizen
 
     if (selection.track?.length && Number(selection.track[0]) !== current_challenge.track) {
         const t = Number(selection.track[0])
@@ -1849,7 +1891,11 @@ exports.bribeDelta = function ({ current_challenge, user_profile, selection = {}
         delta.update.track_bribe = true
         //Smuggling Routes: same-planet track bribes are free
         const free = user_profile?.effects?.smuggling_routes && tracks[t]?.planet == tracks[current_challenge.track]?.planet
+        delta.full_cost += truguts.bribe_track
         delta.cost += free ? 0 : truguts.bribe_track
+        if (free) {
+            delta.discounts.push('Smuggling Routes')
+        }
         delta.changes.push('track')
     }
     const target_track = delta.update.track ?? current_challenge.track
@@ -1857,6 +1903,7 @@ exports.bribeDelta = function ({ current_challenge, user_profile, selection = {}
     if (selection.racer?.length && Number(selection.racer[0]) !== current_challenge.racer) {
         delta.update.racer = Number(selection.racer[0])
         delta.update.racer_bribe = true
+        delta.full_cost += truguts.bribe_racer
         delta.cost += truguts.bribe_racer
         delta.changes.push('racer')
     }
@@ -1885,6 +1932,7 @@ exports.bribeDelta = function ({ current_challenge, user_profile, selection = {}
             delta.update.conditions = { ...c, ...desired }
             //store which conditions changed (truthy, so the once-per-challenge gate still works)
             delta.update.condition_bribe = changed
+            delta.full_cost += changed.length * truguts.bribe_track
             delta.cost += changed.length * truguts.bribe_track
             delta.changes.push(...changed)
         }
@@ -1896,7 +1944,12 @@ exports.bribeDelta = function ({ current_challenge, user_profile, selection = {}
     }
 
     //Citizenship: free bribes on the citizen planet's tracks while the role is equipped
-    if (citizen) {
+    if (is_citizen) {
+        //only credit citizenship with what it actually saved -- a track bribe already
+        //made free by Smuggling Routes isn't its doing
+        if (delta.cost) {
+            delta.discounts.push(perks?.title ?? 'Citizenship')
+        }
         delta.cost = 0
     }
     return delta
@@ -1904,16 +1957,27 @@ exports.bribeDelta = function ({ current_challenge, user_profile, selection = {}
 
 //staged bribe UI: selections are held in the selects' defaults and only applied
 //when the Bribe button is pressed
-exports.bribeComponents = function ({ current_challenge, user_profile, selection = {}, citizen = false } = {}) {
+exports.bribeComponents = function ({ current_challenge, user_profile, selection = {}, perks = null } = {}) {
     let components = []
     const track_sel = selection.track ?? []
     const racer_sel = selection.racer ?? []
+    const is_citizen = !!perks?.citizen
+
+    //the placeholder carries the baseline price -- citizenship zeroes every bribe on
+    //its planet, so that's uniform and belongs there. Options annotate only the rows
+    //that differ from it: Smuggling Routes frees exactly the in-system track swaps,
+    //which no single placeholder can express, and the challenge's own track and racer
+    //are options that cost nothing because bribing to them is a no-op
+    const free_note = is_citizen ? `Free · ${perks?.title ?? 'Citizenship'}` : null
+    const smuggled = t => !is_citizen && perks?.smuggling && tracks[t]?.planet == tracks[current_challenge.track]?.planet
+    const track_price = t => t === current_challenge.track ? 'Current' : (smuggled(t) ? 'Free · Smuggling Routes' : null)
+    const racer_price = r => r === current_challenge.racer ? 'Current' : null
 
     if (!current_challenge.track_bribe) {
-        components.push(...exports.trackSelector({ customid: 'challenge_random_bribe_track', placeholder: "Bribe Track (📀" + number_with_commas(truguts.bribe_track) + ")", min: 0, max: 1, selected: track_sel }))
+        components.push(...exports.trackSelector({ customid: 'challenge_random_bribe_track', placeholder: `Bribe Track (${free_note ?? `📀${number_with_commas(truguts.bribe_track)}`})`.slice(0, 150), min: 0, max: 1, selected: track_sel, price: track_price }))
     }
     if (!current_challenge.racer_bribe) {
-        components.push(...exports.racerSelector({ customid: 'challenge_random_bribe_racer', placeholder: "Bribe Racer (📀" + number_with_commas(truguts.bribe_racer) + ")", min: 0, max: 1, selected: racer_sel }))
+        components.push(...exports.racerSelector({ customid: 'challenge_random_bribe_racer', placeholder: `Bribe Racer (${free_note ?? `📀${number_with_commas(truguts.bribe_racer)}`})`.slice(0, 150), min: 0, max: 1, selected: racer_sel, price: racer_price }))
     }
     //Altered Deal: multi-select of the challenge's desired conditions
     if (user_profile?.effects?.altered_deal && !current_challenge.condition_bribe) {
@@ -1937,7 +2001,7 @@ exports.bribeComponents = function ({ current_challenge, user_profile, selection
         ].map(o => ({ ...o, default: desired.includes(o.value) }))
         components.push(new ActionRowBuilder().addComponents(new StringSelectMenuBuilder()
             .setCustomId('challenge_random_bribe_condition')
-            .setPlaceholder("Bribe Conditions (📀" + number_with_commas(truguts.bribe_track) + " per change)")
+            .setPlaceholder(`Bribe Conditions (${free_note ?? `📀${number_with_commas(truguts.bribe_track)} per change`})`.slice(0, 150))
             .setMinValues(0)
             .setMaxValues(options.length)
             .addOptions(...options)))
@@ -1948,11 +2012,19 @@ exports.bribeComponents = function ({ current_challenge, user_profile, selection
         return components
     }
 
-    const delta = exports.bribeDelta({ current_challenge, user_profile, selection, citizen })
+    const delta = exports.bribeDelta({ current_challenge, user_profile, selection, perks })
+    //the button is where the player reads the final number, so it's also where the
+    //ability that changed it has to be named
+    let bribe_label = `Bribe (📀${number_with_commas(delta.cost)})`
+    if (delta.discounts.length) {
+        bribe_label = delta.cost
+            ? `Bribe (📀${number_with_commas(delta.cost)} · ${delta.discounts.join(' · ')})`
+            : `Bribe (Free · ${delta.discounts.join(' · ')})`
+    }
     const BribeButton = new ButtonBuilder()
         .setCustomId('challenge_random_bribe_submit')
         .setStyle(ButtonStyle.Success)
-        .setLabel(delta.error ?? `Bribe (📀${number_with_commas(delta.cost)})`)
+        .setLabel((delta.error ?? bribe_label).slice(0, 80))
         .setDisabled(!!delta.error || !delta.changes.length)
     const CancelButton = new ButtonBuilder()
         .setCustomId('challenge_random_bribe_cancel')

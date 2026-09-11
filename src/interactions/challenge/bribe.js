@@ -1,6 +1,4 @@
-const { updateChallenge, bribeComponents, bribeDelta, challengeContainer, getBest, playButton, notYoursEmbed, isActive, expiredEmbed, manageTruguts } = require('./functions.js');
-const { tracks } = require('../../data/sw_racer/track.js')
-const { planets } = require('../../data/sw_racer/planet.js')
+const { updateChallenge, bribeComponents, bribeDelta, bribePerks, challengeContainer, getBest, playButton, notYoursEmbed, isActive, expiredEmbed, manageTruguts } = require('./functions.js');
 const { EmbedBuilder, MessageFlags } = require('discord.js');
 const { number_with_commas, getTracks } = require('../../generic.js');
 exports.bribe = async function ({ current_challenge, current_challenge_ref, interaction, user_profile, args, profile_ref, member_avatar, db, member_id, botto_name } = {}) {
@@ -17,11 +15,9 @@ exports.bribe = async function ({ current_challenge, current_challenge_ref, inte
         return
     }
 
-    //Citizenship: free bribes on the citizen planet's tracks while its role is equipped
-    const challenge_planet = planets[tracks[current_challenge.track]?.planet]
-    const citizen = !!(challenge_planet
-        && user_profile.effects?.[challenge_planet.name.toLowerCase().replaceAll(" ", "_")]
-        && interaction.member.roles.cache.some(r => r.id === challenge_planet.role))
+    //Citizenship and Smuggling Routes both discount this bribe; the interaction's own
+    //member list is the freshest source for a role equipped this session
+    const perks = bribePerks({ current_challenge, user_profile, member: member_id, db, client: interaction.client, member_roles: interaction.member?.roles?.cache })
 
     //read the staged selection out of the message's select defaults, overlaying
     //the values of the select that fired this interaction. condition stays null
@@ -53,7 +49,7 @@ exports.bribe = async function ({ current_challenge, current_challenge_ref, inte
 
     //submit: apply every staged change at once
     if (args[2] == 'submit') {
-        const delta = bribeDelta({ current_challenge, user_profile, selection, citizen })
+        const delta = bribeDelta({ current_challenge, user_profile, selection, perks })
         if (delta.error || !delta.changes.length) {
             const holdUp = new EmbedBuilder()
                 .setTitle("<:WhyNobodyBuy:589481340957753363> You what?")
@@ -74,7 +70,7 @@ exports.bribe = async function ({ current_challenge, current_challenge_ref, inte
             user_profile, profile_ref, transaction: 'w', amount: delta.cost, purchase: {
                 date: Date.now(),
                 purchased_item: 'bribe',
-                selection: delta.changes.join(", ") + (citizen ? ' (citizen)' : '')
+                selection: delta.changes.join(", ") + (delta.discounts.length ? ` (free: ${delta.discounts.join(', ')})` : '')
             }
         })
         const bribe_update = { ...delta.update, predictions: {}, created: Date.now() }
@@ -100,7 +96,7 @@ exports.bribe = async function ({ current_challenge, current_challenge_ref, inte
         interaction.reply({ embeds: [holdUp], ephemeral: true })
         return
     }
-    const components = bribeComponents({ current_challenge, user_profile, selection, citizen })
+    const components = bribeComponents({ current_challenge, user_profile, selection, perks })
     if (!components.length) {
         const holdUp = new EmbedBuilder()
             .setTitle("<:WhyNobodyBuy:589481340957753363> No bribery in the pits!")
@@ -114,7 +110,7 @@ exports.bribe = async function ({ current_challenge, current_challenge_ref, inte
         //the proof thumbnail, which can blow Discord's 3s acknowledgement
         //window -- acknowledge first, then edit
         await interaction.deferUpdate()
-        const container = await challengeContainer({ client: interaction.client, current_challenge, user_profile, profile_ref, best: getBest(db, current_challenge), name: botto_name, member: member_id, avatar: member_avatar, db })
+        const container = await challengeContainer({ client: interaction.client, current_challenge, user_profile, profile_ref, best: getBest(db, current_challenge), name: botto_name, member: member_id, avatar: member_avatar, db, perks })
         await interaction.editReply({ components: [...container, ...components], flags: MessageFlags.IsComponentsV2 })
     } else {
         interaction.update({ components })
