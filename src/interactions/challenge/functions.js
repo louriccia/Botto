@@ -9,13 +9,14 @@ const { track_hints } = require('../../data/flavor/hints/track.js')
 const { mpQuotes } = require('../../data/flavor/multiplayer.js')
 
 const { banners } = require('../../data/discord/banner.js')
-const { number_with_commas, time_fix, capitalize, time_to_seconds, getRacerName, big_number, getTracks } = require('../../generic.js')
+const { number_with_commas, time_fix, capitalize, time_to_seconds, getRacerName, big_number, getTracks, getRandomElement } = require('../../generic.js')
 
 const { winnings_map, flavormap, settings_default } = require('./data.js')
 const { inventorySections } = require('../../data/challenge/inventory.js')
 const { shoplines } = require('../../data/flavor/shop.js')
 const { swe1r_guild } = require('../../data/discord/guild.js')
 const { truguts } = require('../../data/challenge/trugut.js')
+const heat_tuning = require('../../data/challenge/heat.js')
 const { hints } = require('../../data/challenge/hint.js')
 const { tips } = require('../../data/challenge/tip.js')
 const { items } = require('../../data/challenge/item.js')
@@ -335,12 +336,30 @@ exports.isActive = function (current_challenge, user_profile) {
         (!current_challenge.completed && !current_challenge.rerolled)
 }
 
+const condition_names = { nu: 'No Upgrades', skips: 'Skips', mirror: 'Mirror', backwards: 'Backwards', laps: 'Laps' }
+
+//which conditions were bought on this challenge. condition_bribe holds the list of
+//changed keys, but older challenges may carry a bare `true`
+exports.bribedConditions = function (current_challenge) {
+    const bribe = current_challenge?.condition_bribe
+    if (!bribe || typeof bribe !== 'object') {
+        return []
+    }
+    return Object.values(bribe)
+}
+
 exports.generateChallengeTitle = function (current_challenge) {
-    let nutext = current_challenge.conditions.nu ? " with **NO UPGRADES**" : ""
-    let skipstext = current_challenge.conditions.skips ? " with **SKIPS**" : ""
-    let laptext = current_challenge.conditions.laps !== 3 ? " for **" + current_challenge.conditions.laps + " Lap" + (current_challenge.conditions.laps > 1 ? "s" : "") + "**" : ""
-    let mirrortext = current_challenge.conditions.mirror && current_challenge.conditions.backwards ? ", **MIRRORED and BACKWARDS!**" : (current_challenge.conditions.mirror ? ", **MIRRORED!**" : "")
-    let backwardstext = current_challenge.conditions.backwards && !current_challenge.conditions.mirror ? ", **BACKWARDS!**" : ""
+    //a bought condition gets the same moneybag the bought racer and track do
+    const bought = exports.bribedConditions(current_challenge)
+    //the literal emoji, not the :moneybag: shorthand the racer and track use: those
+    //replace a longer custom emoji, while these are pure additions to a title capped
+    //at 255 characters. Both render the same in Discord.
+    const paid = k => bought.includes(k) ? '💰 ' : ''
+    let nutext = current_challenge.conditions.nu ? " with " + paid('nu') + "**NO UPGRADES**" : ""
+    let skipstext = current_challenge.conditions.skips ? " with " + paid('skips') + "**SKIPS**" : ""
+    let laptext = current_challenge.conditions.laps !== 3 ? " for " + paid('laps') + "**" + current_challenge.conditions.laps + " Lap" + (current_challenge.conditions.laps > 1 ? "s" : "") + "**" : ""
+    let mirrortext = current_challenge.conditions.mirror && current_challenge.conditions.backwards ? ", " + (paid('mirror') || paid('backwards')) + "**MIRRORED and BACKWARDS!**" : (current_challenge.conditions.mirror ? ", " + paid('mirror') + "**MIRRORED!**" : "")
+    let backwardstext = current_challenge.conditions.backwards && !current_challenge.conditions.mirror ? ", " + paid('backwards') + "**BACKWARDS!**" : ""
     let bribed_racer = current_challenge.racer_bribe ? "*" : ""
     let bribed_track = current_challenge.track_bribe ? "*" : ""
     let prefix = current_challenge.bounties && current_challenge.bounties.length ? ":dart: Challenge Bounty\n" : ""
@@ -397,17 +416,35 @@ exports.generateChallengeDescription = function ({ current_challenge, db, user_p
             crossout = '~~'
         }
     }
+    //every bribe on this challenge reads as one line, because it was one transaction and
+    //because the verdict rolled against it has to sit directly underneath to look linked
+    const bribed = []
     if (current_challenge.racer_bribe) {
-        desc += crossout + "\n💰 (Racer) `-📀" + number_with_commas(truguts.bribe_racer) + "`" + crossout
+        bribed.push('Racer')
     }
     if (current_challenge.track_bribe) {
-        desc += crossout + "\n💰 (Track) `-📀" + number_with_commas(truguts.bribe_track) + "`" + crossout
+        bribed.push('Track')
     }
+    const bought_conditions = exports.bribedConditions(current_challenge)
     if (current_challenge.condition_bribe) {
-        //condition_bribe holds the list of changed conditions (older challenges may have `true`)
-        const changed = typeof current_challenge.condition_bribe == 'object' ? Object.values(current_challenge.condition_bribe) : []
-        const condition_names = { nu: 'No Upgrades', skips: 'Skips', mirror: 'Mirror', backwards: 'Backwards', laps: 'Laps' }
-        desc += crossout + "\n💰 (" + (changed.length ? changed.map(k => condition_names[k] ?? k).join(", ") : 'Conditions') + ") `-📀" + number_with_commas(Math.max(changed.length, 1) * truguts.bribe_track) + "`" + crossout
+        bribed.push(...(bought_conditions.length ? bought_conditions.map(k => condition_names[k] ?? k) : ['Conditions']))
+    }
+    if (bribed.length) {
+        //what the player was actually charged, which list price no longer tells you: a
+        //citizen or smuggler pays nothing, and Short Count and The Fine add to it. Older
+        //challenges never recorded it, so those fall back to the old list-price sum.
+        const listed = (current_challenge.racer_bribe ? truguts.bribe_racer : 0)
+            + (current_challenge.track_bribe ? truguts.bribe_track : 0)
+            + (current_challenge.condition_bribe ? Math.max(bought_conditions.length, 1) * truguts.bribe_track : 0)
+        const paid = Number.isFinite(current_challenge.bribe_cost) ? current_challenge.bribe_cost : listed
+        const charge = paid > 0 ? "`-📀" + number_with_commas(paid) + "`" : "`free`"
+        desc += crossout + "\n💰 (" + bribed.join(", ") + ") " + charge + crossout
+    }
+    //the verdict goes under the receipt it belongs to. With no bribe line above it this is
+    //a challenge rerolled into after fleeing one, which stands on its own.
+    const heat_note = exports.penaltyLine(current_challenge)
+    if (heat_note) {
+        desc += "\n" + heat_note
     }
     return desc
 }
@@ -891,7 +928,11 @@ exports.hasRole = function ({ client, db, guild, member, role } = {}) {
 //no_rival suppresses the Bitter Rivalry bonus. It's set only on the nested call
 //that prices the rival's own run -- without it two players who rival each other
 //and both hold the collection would recurse into each other's receipt forever.
-exports.challengeWinnings = function ({ current_challenge, submitted_time, user_profile, best, goals, member, no_rival } = {}) {
+exports.challengeWinnings = function ({ current_challenge, submitted_time, user_profile, best, goals, member, no_rival, perks, client } = {}) {
+    //citizenship prices earnings now, so resolve it if the caller didn't. submit.js
+    //passes the version built from the interaction's own member list, which is the
+    //freshest there is; this fallback reads the boot-time role cache instead.
+    perks = perks ?? exports.bribePerks({ current_challenge, user_profile, member, db, client })
     if (!Object.keys(submitted_time).length) {
         return { earnings: 0, receipt: "Sorry, could not calculate earnings." }
     }
@@ -952,8 +993,11 @@ exports.challengeWinnings = function ({ current_challenge, submitted_time, user_
     let challenge_streak = streak.challenge.streak + 1
 
     if (day_streak) {
-        earnings += `\`+📀${number_with_commas(truguts.day_streak * day_streak)}\` ${day_streak}-Day Streak\n`
-        earnings_subtotal += truguts.day_streak * day_streak
+        //showing up on your own planet is worth more of a streak
+        const home_streak = perks?.citizen ? heat_tuning.HOME.day_streak : 1
+        const streak_pay = truguts.day_streak * day_streak * home_streak
+        earnings += `\`+📀${number_with_commas(streak_pay)}\` ${day_streak}-Day Streak${perks?.citizen ? ` (×${home_streak} 🏡${perks.title})` : ''}\n`
+        earnings_subtotal += streak_pay
     }
     if (challenge_streak > 1) {
         earnings += `\`+📀${number_with_commas(truguts.challenge_streak * challenge_streak)}\` ${(challenge_streak)}-Challenge Streak\n`
@@ -1022,7 +1066,9 @@ exports.challengeWinnings = function ({ current_challenge, submitted_time, user_
         let rival_time = beat.find(b => String(b.user) == rival.player)
         let rival_profile = Object.values(db.user).find(u => u.discordID == rival.player)?.random
         let rival_bonus = (!no_rival && user_profile.effects?.bitter_rivalry && rival_time && rival_profile)
-            ? exports.challengeWinnings({ current_challenge, submitted_time: rival_time, user_profile: rival_profile, best, goals, member: rival.player, no_rival: true }).earnings
+            //the rival's own citizenship is beside the point and resolving it would mean a
+            //second role lookup for a different member, so price their run without Home Turf
+            ? exports.challengeWinnings({ current_challenge, submitted_time: rival_time, user_profile: rival_profile, best, goals, member: rival.player, no_rival: true, perks: { planet: perks?.planet, citizen: false, outlander: false, smuggling: false, title: null } }).earnings
             : null
         if (Number.isFinite(rival_bonus)) {
             earnings += "`+📀" + number_with_commas(rival_bonus) + "` *Bitter Rivalry*\n"
@@ -1070,6 +1116,40 @@ exports.challengeWinnings = function ({ current_challenge, submitted_time, user_
     if (exports.anniversaryMonth()) {
         multipliers += "`×2` *<:swr:671547869118988328> Anniversary Month*\n"
         earnings_total *= 2
+    }
+
+    //The Cut and Nothing For You were rolled when the bribe was made and the challenge has
+    //carried the verdict since. Neither touches the time, the PB or the leaderboard.
+    const heat_penalty = current_challenge.heat_penalty
+    const penalty_spec = heat_penalty ? heat_tuning.PENALTIES[heat_penalty.key] : null
+
+    //Home Turf: your own planet pays a little better, which is what makes the role
+    //worth wearing for a player who never bribes at all
+    if (perks?.citizen) {
+        multipliers += `\`×${heat_tuning.HOME.earnings}\` *🏡${perks.title}*\n`
+        earnings_total *= heat_tuning.HOME.earnings
+    }
+
+    //Danger money: heat pays -- but only for getting away with it. A bribe that was caught
+    //forfeits the bonus entirely, and so does a challenge rerolled into after fleeing a
+    //verdict: walking away isn't getting away with it either, and without that a free
+    //reroll loop would launder heat straight into an earnings multiplier.
+    //Caught forfeits because otherwise the two multiply: x1.90 Running Hot
+    //against The Cut's x0.5 lands a 90-heat player within 5% of a cold one, and a penalty
+    //that cancels itself out isn't a penalty. Carrying heat on a challenge you didn't bribe
+    //still pays -- that's risk you're holding, and the whole reason to choose to run hot.
+    //Read live rather than snapshotted: pumping heat by bribing a different challenge costs
+    //far more than the multiplier ever returns.
+    const heat_now = exports.heatValue(user_profile)
+    if (heat_now > 0 && exports.paysRunningHot(current_challenge)) {
+        const running_hot = 1 + heat_now / heat_tuning.MAX
+        multipliers += `\`×${running_hot.toFixed(2)}\` *🔥Running Hot* (heat ${heat_now})\n`
+        earnings_total *= running_hot
+    }
+
+    if (penalty_spec && penalty_spec.earnings !== undefined) {
+        multipliers += `\`×${penalty_spec.earnings}\` *💥${heat_penalty.title}*\n`
+        earnings_total *= penalty_spec.earnings
     }
 
     earnings_total = Math.round(earnings_total)
@@ -1177,16 +1257,13 @@ exports.updateChallenge = async function ({ client, db, user_profile, current_ch
     //get sponsor/bounties
     current_challenge = exports.getSponsors(current_challenge, db, best)
 
+    //Citizenship and Smuggling Routes price both rerolls and bribes, and the card and
+    //its buttons have to say so -- so they're resolved once here and passed down
+    let perks = null
     if (current_challenge.type == 'private') {
         current_challenge = exports.getBounty(current_challenge, db)
-        //Citizenship: free rerolls on the citizen planet's tracks while its role is equipped.
-        //Read the live member cache first -- db.user[..].discord.roles is only refreshed by
-        //update_users at boot, so a role equipped this session isn't in it yet.
-        const challenge_planet = planets[tracks[current_challenge.track]?.planet]
-        const citizen = challenge_planet
-            && player_profile?.effects?.[challenge_planet.name.toLowerCase().replaceAll(" ", "_")]
-            && exports.hasRole({ client, db, guild: current_challenge.guild, member: player, role: challenge_planet.role })
-        current_challenge.reroll_cost = (player_profile.effects?.free_rerolls || citizen || current_challenge.sponsors?.[player] || record_holder) ? "free" : played ? "discount" : "full price"
+        perks = exports.bribePerks({ current_challenge, user_profile: player_profile, member: player, db, client })
+        current_challenge.reroll_cost = (player_profile.effects?.free_rerolls || perks.citizen || current_challenge.sponsors?.[player] || record_holder) ? "free" : played ? "discount" : "full price"
     }
 
     if (current_challengeref) {
@@ -1198,14 +1275,14 @@ exports.updateChallenge = async function ({ client, db, user_profile, current_ch
     //challenges created with v2: true render as components v2; older messages
     //can't be converted (Discord forbids switching) so they keep the embed
     if (current_challenge.v2) {
-        const container = await exports.challengeContainer({ client, current_challenge, user_profile: player_profile, profile_ref, best, name: player_name, member: player, avatar: player_avatar, db })
+        const container = await exports.challengeContainer({ client, current_challenge, user_profile: player_profile, profile_ref, best, name: player_name, member: player, avatar: player_avatar, db, perks })
         const comps = []
         if (flavor_text && !current_challenge.rerolled) {
             comps.push(new TextDisplayBuilder().setContent(flavor_text))
         }
         comps.push(...container)
         if (!current_challenge.rerolled) {
-            comps.push(exports.challengeComponents(current_challenge, user_profile, db))
+            comps.push(exports.challengeComponents(current_challenge, user_profile, db, perks))
         }
         return {
             components: comps,
@@ -1219,7 +1296,7 @@ exports.updateChallenge = async function ({ client, db, user_profile, current_ch
     let data = {
         content: current_challenge.rerolled ? '' : flavor_text,
         embeds: [cembed],
-        components: current_challenge.rerolled ? [] : [exports.challengeComponents(current_challenge, user_profile, db)],
+        components: current_challenge.rerolled ? [] : [exports.challengeComponents(current_challenge, user_profile, db, perks)],
         withResponse: true
     }
     return data
@@ -1354,7 +1431,7 @@ exports.challengeEmbed = async function ({ current_challenge, user_profile, prof
     }
 
     if (current_challenge.completed && ['private', 'abandoned'].includes(current_challenge.type)) {
-        let winnings = exports.challengeWinnings({ current_challenge, user_profile, profile_ref, submitted_time, best, goals, member, db })
+        let winnings = exports.challengeWinnings({ current_challenge, user_profile, profile_ref, submitted_time, best, goals, member, db, client })
         challengeEmbed
             .addFields({ name: "Winnings", value: winnings.receipt.slice(0, 1024), inline: true })
     } else {
@@ -1474,7 +1551,7 @@ exports.challengeLeaderboardV2 = function ({ current_challenge, best, member, db
 //thumbnail-forced column squeeze) and the player avatar survives as a section
 //thumbnail accessory. Only challenges created with v2: true render this way --
 //Discord doesn't allow editing a message between embeds and components v2.
-exports.challengeContainer = async function ({ current_challenge, user_profile, profile_ref, best, name, member, avatar, db, client } = {}) {
+exports.challengeContainer = async function ({ current_challenge, user_profile, profile_ref, best, name, member, avatar, db, client, perks = null } = {}) {
     let submitted_time = db.ch.times[current_challenge?.submissions?.[member]?.id] ?? {}
     let achs = current_challenge.type == 'private' ? exports.achievementProgress({ db, player: member }) : null
     let desc = exports.generateChallengeDescription({ current_challenge, db, user_profile }) + (current_challenge.type == 'private' ? "\n" + exports.challengeAchievementProgress({ client, current_challenge, user_profile, profile_ref, achievements: achs, name, avatar, member }) : '')
@@ -1543,7 +1620,7 @@ exports.challengeContainer = async function ({ current_challenge, user_profile, 
 
     if (completed_view) {
         //each remaining section gets its own separator and heading
-        let winnings = exports.challengeWinnings({ current_challenge, user_profile, profile_ref, submitted_time, best, goals, member, db })
+        let winnings = exports.challengeWinnings({ current_challenge, user_profile, profile_ref, submitted_time, best, goals, member, db, perks, client })
         container.addSeparatorComponents(new SeparatorBuilder())
         container.addTextDisplayComponents(new TextDisplayBuilder().setContent(`**Winnings**\n${winnings.receipt.slice(0, 1000)}`))
 
@@ -1569,7 +1646,17 @@ exports.challengeContainer = async function ({ current_challenge, user_profile, 
     }
 
     if (current_challenge.type == 'private') {
-        container.addTextDisplayComponents(new TextDisplayBuilder().setContent(`-# Truguts: \`📀${exports.currentTruguts(user_profile)}\``))
+        //the citizen role is the one ability with a visible identity, so it gets a
+        //badge on the card rather than only surfacing as a discount at bribe time
+        const citizen_badge = perks?.citizen ? ` · ${perks.planet.emoji} ${perks.title}` : ''
+        //balance, citizen badge and heat all ride one footer line. The verdict is not
+        //here -- it sits under the bribe receipt in the description, so the bribe and
+        //what it cost read as one transaction
+        const subtext = [
+            `Truguts: \`📀${exports.currentTruguts(user_profile)}\`${citizen_badge}`,
+            exports.heatLine({ user_profile })
+        ].filter(Boolean).join(' · ')
+        container.addTextDisplayComponents(new TextDisplayBuilder().setContent(`-# ${subtext}`))
     } else if (['cotd', 'cotm'].includes(current_challenge.type)) {
         container.addTextDisplayComponents(new TextDisplayBuilder().setContent(`-# <t:${Math.round(current_challenge.created / 1000)}:f>`))
     }
@@ -1657,7 +1744,7 @@ exports.progressionReward = function ({ racer, level }) {
     return reward
 }
 
-exports.challengeComponents = function (current_challenge, user_profile, db) {
+exports.challengeComponents = function (current_challenge, user_profile, db, perks = null) {
     //components
     const row = new ActionRowBuilder()
     let reroll = exports.rerollReceipt(current_challenge, user_profile)
@@ -1693,7 +1780,13 @@ exports.challengeComponents = function (current_challenge, user_profile, db) {
             )
         }
         const bribes_left = !current_challenge.track_bribe || !current_challenge.racer_bribe || (!current_challenge.condition_bribe && user_profile?.effects?.altered_deal)
-        if (bribes_left && (current_truguts >= truguts.bribe_track || current_truguts >= truguts.bribe_racer)) {
+        //anyone who bribes for free needs the button regardless of balance -- hiding it
+        //behind the list price left a citizen, a smuggler, or someone holding Credits WILL
+        //Do Fine unable to use an ability they had paid or collected for
+        const free_bribe = exports.freeBribes({ user_profile, perks })
+            || (!!perks?.smuggling && !current_challenge.track_bribe)
+        //Blacklisted: nobody in the pits is taking this player's money for now
+        if (bribes_left && !exports.bribeBlacklist(user_profile) && (free_bribe || current_truguts >= truguts.bribe_track || current_truguts >= truguts.bribe_racer)) {
             row.addComponents(
                 new ButtonBuilder()
                     .setCustomId("challenge_random_bribe")
@@ -1758,7 +1851,10 @@ exports.challengeComponents = function (current_challenge, user_profile, db) {
     return row
 }
 
-exports.trackSelector = function ({ customid, placeholder, min, max, descriptions, selected } = {}) {
+//price, when given, is called with the option's value and returns a short string to
+//lead that option's description with, or a falsy value to leave that option alone --
+//it's for the rows that differ from whatever the placeholder already said
+exports.trackSelector = function ({ customid, placeholder, min, max, descriptions, selected, price } = {}) {
     const tracks = getTracks()
     const trackSelectRow = new ActionRowBuilder()
     const track_selector = new StringSelectMenuBuilder()
@@ -1767,10 +1863,11 @@ exports.trackSelector = function ({ customid, placeholder, min, max, description
         .setMinValues(min)
         .setMaxValues(max)
     tracks.sort((a, b) => a.tracknum - b.tracknum).forEach((track, i) => {
+        const prefix = price ? price(i) : null
         track_selector.addOptions({
             label: track.name,
             value: String(i),
-            description: descriptions ? descriptions[i].substring(0, 50) : (track.circuit.name + " Circuit | Race " + track.cirnum + " | " + track.planet.name).substring(0, 50),
+            description: ((prefix ? prefix + " · " : '') + (descriptions ? descriptions[i].substring(0, 50) : (track.circuit.name + " Circuit | Race " + track.cirnum + " | " + track.planet.name).substring(0, 50))).substring(0, 100),
             emoji: {
                 name: track.planet.emoji.split(":")[1],
                 id: track.planet.emoji.split(":")[2].replace(">", "")
@@ -1782,7 +1879,8 @@ exports.trackSelector = function ({ customid, placeholder, min, max, description
     return [trackSelectRow]
 }
 
-exports.racerSelector = function ({ customid, placeholder, min, max, descriptions, selected } = {}) {
+//price behaves as it does in trackSelector above
+exports.racerSelector = function ({ customid, placeholder, min, max, descriptions, selected, price } = {}) {
     const racerSelectRow = new ActionRowBuilder()
     const racer_selector = new StringSelectMenuBuilder()
         .setCustomId(`${customid}`)
@@ -1793,10 +1891,11 @@ exports.racerSelector = function ({ customid, placeholder, min, max, description
     const racersWithSpeed = racers.slice(0, 23).map(racer => ({ ...racer, avgSpeed: avgSpeed(upgradeTopSpeed(racer.max_speed, 5), racer.boost_thrust, racer.heat_rate, upgradeCooling(racer.cool_rate, 5)) }))
     const racersBySpeed = racersWithSpeed.sort((a, b) => b.avgSpeed - a.avgSpeed)
     racersBySpeed.forEach((racer, i) => {
+        const prefix = price ? price(racer.racernum - 1) : null
         racer_selector.addOptions({
             label: racer.name,
             value: String(racer.racernum - 1),
-            description: descriptions ? descriptions[i].substring(0, 50) : racer.pod.substring(0, 50),
+            description: ((prefix ? prefix + " · " : '') + (descriptions ? descriptions[i].substring(0, 50) : racer.pod.substring(0, 50))).substring(0, 100),
             emoji: {
                 name: racer.flag.split(":")[1],
                 id: racer.flag.split(":")[2].replace(">", "")
@@ -1835,21 +1934,115 @@ exports.partSelector = function ({ customid, placeholder, min, max, descriptions
     return [partCategoryRow, partSelectRow]
 }
 
+//which bribe-discounting abilities are live on this challenge, and what they are
+//called. Citizenship and Smuggling Routes both used to zero delta.cost silently,
+//so the player read a 5,000 placeholder next to a free button with nothing saying
+//why -- every caller now has the ability's name to print.
+exports.bribePerks = function ({ current_challenge, user_profile, member, db, client, member_roles } = {}) {
+    //cotm carries an array of tracks and can't be bribed, so there's no planet to read
+    const track = Array.isArray(current_challenge?.track) ? null : current_challenge?.track
+    const planet_index = track == null ? null : tracks[track]?.planet
+    const planet = planet_index == null ? null : planets[planet_index]
+    const perks = {
+        planet,
+        citizen: false,
+        outlander: false,
+        title: null,
+        smuggling: !!user_profile?.effects?.smuggling_routes
+    }
+    if (!planet) {
+        return perks
+    }
+    //a citizenship counts only while it is both unlocked and actually worn. An
+    //interaction's own member list is fresher than any cache -- db.user[..].discord.roles
+    //is only refreshed by update_users at boot, so a role equipped this session isn't
+    //in it yet
+    const held = p => {
+        if (!user_profile?.effects?.[exports.planetKey(p)]) {
+            return false
+        }
+        return member_roles
+            ? member_roles.some(r => r.id === p.role)
+            : exports.hasRole({ client, db, guild: current_challenge.guild, member, role: p.role })
+    }
+    perks.citizen = held(planet)
+    perks.title = perks.citizen ? planet.citizen : null
+    //Outlander: a citizenship worn somewhere else marks you as the offworlder who turned
+    //up with money. Holding none at all is nobody's problem, so it carries no surcharge
+    perks.outlander = !perks.citizen && planets.some((p, i) => i !== planet_index && held(p))
+    return perks
+}
+
+//the key a planet's collection effect and banishment record are stored under
+exports.planetKey = function (planet) {
+    return planet.name.toLowerCase().replaceAll(" ", "_")
+}
+
+//Everything that zeroes a bribe's price, in one place. Three separate copies of this had
+//drifted apart -- the bribe button's own gate had never learned about free_bribes, so
+//buying the shop's 384,000,000 "Credits WILL Do Fine" and then spending down below the
+//list price took the button away entirely.
+exports.freeBribes = function ({ user_profile, perks } = {}) {
+    return !!perks?.citizen || !!user_profile?.effects?.free_bribes
+}
+
+//Quiet Routes covers a track swap that never leaves the planet the challenge is on
+exports.quietSwap = function ({ current_challenge, user_profile, perks, track } = {}) {
+    const smuggling = perks ? perks.smuggling : !!user_profile?.effects?.smuggling_routes
+    return !!smuggling && tracks[track]?.planet == tracks[current_challenge.track]?.planet
+}
+
+//what a bribe adds to the player's heat. Free bribes still run hot -- citizenship and
+//Smuggling Routes discount the cost, and only the modifiers in the tuning touch the heat.
+//Reads delta.smuggled rather than delta.discounts: the latter is display text.
+exports.bribeHeat = function ({ delta, perks, user_profile } = {}) {
+    if (!delta?.changes?.length) {
+        return 0
+    }
+    let heat = 0
+    delta.changes.forEach(change => {
+        //anything in changes[] that isn't the track or the racer is a condition key
+        //(nu, mirror, laps, ...), so GAIN stays the one place the numbers live
+        const base = heat_tuning.GAIN[change] ?? heat_tuning.GAIN.condition
+        //Quiet Routes: an in-system swap never leaves the planet, so nobody notices
+        heat += base * (change == 'track' && delta.smuggled ? heat_tuning.MODIFIERS.quiet_routes : 1)
+    })
+    if (perks?.citizen) {
+        heat *= heat_tuning.MODIFIERS.home_turf
+    } else if (perks?.outlander) {
+        heat *= heat_tuning.MODIFIERS.outlander
+    }
+    //Launderer stacks on top of where you are, because it's about the money rather
+    //than the planet
+    if (user_profile?.effects?.launderer) {
+        heat *= heat_tuning.MODIFIERS.launderer
+    }
+    return Math.round(heat)
+}
+
 //compute what a staged bribe selection would change and what it costs.
 //selection: { track: ['5']|[], racer: ['2']|[], condition: ['nu','laps_2',...]|null }
 //the condition select uses desired-state semantics (its defaults mirror the
 //challenge's current conditions); null means the select was never rendered
-exports.bribeDelta = function ({ current_challenge, user_profile, selection = {}, citizen = false } = {}) {
+//full_cost is what the bribe would have cost with no abilities in play, and discounts
+//names the ones that brought it down -- both are for display only. smuggled is the
+//structured form of "Quiet Routes covered this", which bribeHeat needs.
+exports.bribeDelta = function ({ current_challenge, user_profile, selection = {}, perks = null } = {}) {
     const c = current_challenge.conditions ?? {}
-    const delta = { cost: 0, changes: [], update: {}, error: null }
+    const delta = { cost: 0, full_cost: 0, changes: [], discounts: [], smuggled: false, update: {}, error: null }
 
     if (selection.track?.length && Number(selection.track[0]) !== current_challenge.track) {
         const t = Number(selection.track[0])
         delta.update.track = t
         delta.update.track_bribe = true
         //Smuggling Routes: same-planet track bribes are free
-        const free = user_profile?.effects?.smuggling_routes && tracks[t]?.planet == tracks[current_challenge.track]?.planet
+        const free = exports.quietSwap({ current_challenge, user_profile, perks, track: t })
+        delta.full_cost += truguts.bribe_track
         delta.cost += free ? 0 : truguts.bribe_track
+        if (free) {
+            delta.smuggled = true
+            delta.discounts.push('Smuggling Routes')
+        }
         delta.changes.push('track')
     }
     const target_track = delta.update.track ?? current_challenge.track
@@ -1857,6 +2050,7 @@ exports.bribeDelta = function ({ current_challenge, user_profile, selection = {}
     if (selection.racer?.length && Number(selection.racer[0]) !== current_challenge.racer) {
         delta.update.racer = Number(selection.racer[0])
         delta.update.racer_bribe = true
+        delta.full_cost += truguts.bribe_racer
         delta.cost += truguts.bribe_racer
         delta.changes.push('racer')
     }
@@ -1885,6 +2079,7 @@ exports.bribeDelta = function ({ current_challenge, user_profile, selection = {}
             delta.update.conditions = { ...c, ...desired }
             //store which conditions changed (truthy, so the once-per-challenge gate still works)
             delta.update.condition_bribe = changed
+            delta.full_cost += changed.length * truguts.bribe_track
             delta.cost += changed.length * truguts.bribe_track
             delta.changes.push(...changed)
         }
@@ -1895,8 +2090,20 @@ exports.bribeDelta = function ({ current_challenge, user_profile, selection = {}
         delta.update.conditions = { ...(delta.update.conditions ?? c), skips: false }
     }
 
-    //Citizenship: free bribes on the citizen planet's tracks while the role is equipped
-    if (citizen) {
+    //Credits WILL Do Fine: the shop item zeroes every bribe everywhere. It still runs
+    //hot, which is the only reason it can be sold at all -- see docs/heat.md 1.
+    if (user_profile?.effects?.free_bribes && delta.cost) {
+        delta.discounts.push('Credits WILL Do Fine')
+        delta.cost = 0
+    }
+
+    //Citizenship: free bribes on the citizen planet's tracks while the role is equipped.
+    //Only credit it with what it actually saved -- a track bribe already made free by
+    //Smuggling Routes isn't its doing
+    if (perks?.citizen) {
+        if (delta.cost) {
+            delta.discounts.push(perks.title ?? 'Citizenship')
+        }
         delta.cost = 0
     }
     return delta
@@ -1904,16 +2111,28 @@ exports.bribeDelta = function ({ current_challenge, user_profile, selection = {}
 
 //staged bribe UI: selections are held in the selects' defaults and only applied
 //when the Bribe button is pressed
-exports.bribeComponents = function ({ current_challenge, user_profile, selection = {}, citizen = false } = {}) {
+exports.bribeComponents = function ({ current_challenge, user_profile, selection = {}, perks = null } = {}) {
     let components = []
     const track_sel = selection.track ?? []
     const racer_sel = selection.racer ?? []
+    const free = exports.freeBribes({ user_profile, perks })
+
+    //the placeholder carries the baseline price -- citizenship zeroes every bribe on
+    //its planet, so that's uniform and belongs there. Options annotate only the rows
+    //that differ from it: Smuggling Routes frees exactly the in-system track swaps,
+    //which no single placeholder can express, and the challenge's own track and racer
+    //are options that cost nothing because bribing to them is a no-op
+    const free_note = free ? `Free · ${perks?.title ?? (user_profile?.effects?.free_bribes ? 'Credits WILL Do Fine' : 'Citizenship')}` : null
+    const track_price = t => t === current_challenge.track
+        ? 'Current'
+        : (!free && exports.quietSwap({ current_challenge, user_profile, perks, track: t }) ? 'Free · Smuggling Routes' : null)
+    const racer_price = r => r === current_challenge.racer ? 'Current' : null
 
     if (!current_challenge.track_bribe) {
-        components.push(...exports.trackSelector({ customid: 'challenge_random_bribe_track', placeholder: "Bribe Track (📀" + number_with_commas(truguts.bribe_track) + ")", min: 0, max: 1, selected: track_sel }))
+        components.push(...exports.trackSelector({ customid: 'challenge_random_bribe_track', placeholder: `Bribe Track (${free_note ?? `📀${number_with_commas(truguts.bribe_track)}`})`.slice(0, 150), min: 0, max: 1, selected: track_sel, price: track_price }))
     }
     if (!current_challenge.racer_bribe) {
-        components.push(...exports.racerSelector({ customid: 'challenge_random_bribe_racer', placeholder: "Bribe Racer (📀" + number_with_commas(truguts.bribe_racer) + ")", min: 0, max: 1, selected: racer_sel }))
+        components.push(...exports.racerSelector({ customid: 'challenge_random_bribe_racer', placeholder: `Bribe Racer (${free_note ?? `📀${number_with_commas(truguts.bribe_racer)}`})`.slice(0, 150), min: 0, max: 1, selected: racer_sel, price: racer_price }))
     }
     //Altered Deal: multi-select of the challenge's desired conditions
     if (user_profile?.effects?.altered_deal && !current_challenge.condition_bribe) {
@@ -1937,7 +2156,7 @@ exports.bribeComponents = function ({ current_challenge, user_profile, selection
         ].map(o => ({ ...o, default: desired.includes(o.value) }))
         components.push(new ActionRowBuilder().addComponents(new StringSelectMenuBuilder()
             .setCustomId('challenge_random_bribe_condition')
-            .setPlaceholder("Bribe Conditions (📀" + number_with_commas(truguts.bribe_track) + " per change)")
+            .setPlaceholder(`Bribe Conditions (${free_note ?? `📀${number_with_commas(truguts.bribe_track)} per change`})`.slice(0, 150))
             .setMinValues(0)
             .setMaxValues(options.length)
             .addOptions(...options)))
@@ -1948,11 +2167,26 @@ exports.bribeComponents = function ({ current_challenge, user_profile, selection
         return components
     }
 
-    const delta = exports.bribeDelta({ current_challenge, user_profile, selection, citizen })
+    const delta = exports.bribeDelta({ current_challenge, user_profile, selection, perks })
+    //the button is where the player reads the final numbers, so it's also where the
+    //ability that changed them has to be named. The heat clause is what this bribe adds to
+    //the gauge rather than the odds it faces: the gauge itself carries the risk, and a
+    //player choosing what to bribe needs to know what it will cost them in heat
+    const heat_gain = exports.bribeHeat({ delta, perks, user_profile })
+    const label_parts = [delta.cost || !delta.discounts.length
+        ? `📀${number_with_commas(delta.cost)}`
+        : 'Free']
+    if (delta.discounts.length) {
+        label_parts.push(...delta.discounts)
+    }
+    if (heat_gain > 0) {
+        label_parts.push(`🔥+${heat_gain}`)
+    }
+    const bribe_label = `Bribe (${label_parts.join(' · ')})`
     const BribeButton = new ButtonBuilder()
         .setCustomId('challenge_random_bribe_submit')
         .setStyle(ButtonStyle.Success)
-        .setLabel(delta.error ?? `Bribe (📀${number_with_commas(delta.cost)})`)
+        .setLabel((delta.error ?? bribe_label).slice(0, 80))
         .setDisabled(!!delta.error || !delta.changes.length)
     const CancelButton = new ButtonBuilder()
         .setCustomId('challenge_random_bribe_cancel')
@@ -2038,6 +2272,7 @@ exports.menuComponents = function () {
 }
 
 exports.shopOptions = function ({ user_profile, player, db, selection } = {}) {
+    const banished = exports.banishment(user_profile)
     return [
         {
             label: `Hint`,
@@ -2296,16 +2531,56 @@ exports.shopOptions = function ({ user_profile, player, db, selection } = {}) {
         //         name: "🔄"
         //     }
         // },
-        // {
-        //     label: `Credits WILL Do Fine`,
-        //     value: 'bribes',
-        //     price: 384000000,
-        //     description: "Never pay for bribes again",
-        //     info: "You can go to whatever challenge of your choosing at no charge. One-time purchase.",
-        //     emoji: {
-        //         name: "💰"
-        //     }
-        // },
+        //Sellable again now that heat exists: this only removes the cost, and a free bribe
+        //still runs just as hot (docs/heat.md 1). Before heat it removed the only brake
+        //bribing had, which is why it sat commented out for so long.
+        ...(user_profile?.effects?.free_bribes ? [] : [{
+            label: `Credits WILL Do Fine`,
+            value: 'bribes',
+            price: 384000000,
+            description: "Never pay for bribes again",
+            info: "Go to whatever challenge of your choosing at no charge. Bribes still raise your heat. One-time purchase.",
+            emoji: {
+                name: "💰"
+            }
+        }]),
+        //Amnesty only exists while there is a banishment to lift, and its price is the
+        //fine the host set rather than a shop number
+        ...(banished ? [{
+            label: `Amnesty`,
+            value: 'amnesty',
+            price: banished.fine ?? heat_tuning.BANISHMENT.fine,
+            description: `Buy back your ${banished.title ?? 'citizen'} role`,
+            info: `Pay off the host and get your citizen role back. You can also earn it back for free by finishing ${banished.clean_needed} more challenge${banished.clean_needed == 1 ? '' : 's'} on that planet without bribing.`,
+            emoji: {
+                name: "🏡"
+            }
+        }] : []),
+        //Spice Run sells heat rather than buying anything, so it's priced at nothing and
+        //only appears when it can actually be run: the collection, enough heat to be
+        //worth selling, and a day since the last one.
+        ...(user_profile?.effects?.smuggling_routes
+            && exports.heatValue(user_profile) >= heat_tuning.SPICE_RUN.heat
+            && !exports.spiceRunCooldown(user_profile) ? [{
+                label: `Spice Run`,
+                value: 'spice',
+                price: 0,
+                description: `Sell \u{1F525}${heat_tuning.SPICE_RUN.heat} heat for \u{1F4C0}${number_with_commas(heat_tuning.SPICE_RUN.truguts)}`,
+                info: `Sell your heat to a buyer who won't ask questions. Removes \u{1F525}${heat_tuning.SPICE_RUN.heat} heat and pays \u{1F4C0}${number_with_commas(heat_tuning.SPICE_RUN.truguts)}. Once per day.`,
+                emoji: {
+                    name: "🚛"
+                }
+            }] : []),
+        ...(user_profile?.effects?.launderer ? [] : [{
+            label: `Launderer`,
+            value: 'launderer',
+            price: 12000000,
+            description: "Bribes raise less heat",
+            info: "Someone on the payroll keeps your name out of the ledgers. All heat from bribing is reduced by 25%. One-time purchase.",
+            emoji: {
+                name: "🧼"
+            }
+        }]),
         // {
         //     label: `Peace Treaty`,
         //     value: 'peace',
@@ -2582,6 +2857,22 @@ exports.inventoryComponents = function ({ user_profile, selection, db, interacti
                 .setCustomId("challenge_random_inventory_boost")
                 .setStyle(ButtonStyle.Primary)
                 .setLabel('Use')
+            comp.push(new ActionRowBuilder().addComponents(OpenButton))
+        } else if (selected_usable == 'clean_record') {
+            //the label carries the number, because wiping 0 heat is a wasted item
+            const heat = exports.heatValue(user_profile)
+            const OpenButton = new ButtonBuilder()
+                .setCustomId("challenge_random_inventory_clean")
+                .setStyle(ButtonStyle.Primary)
+                .setLabel(heat ? `Wipe 🔥${heat}` : 'Nothing to wipe')
+                .setDisabled(!heat)
+            comp.push(new ActionRowBuilder().addComponents(OpenButton))
+        } else if (selected_usable == 'alibi') {
+            const OpenButton = new ButtonBuilder()
+                .setCustomId("challenge_random_inventory_alibi")
+                .setStyle(ButtonStyle.Primary)
+                .setLabel(user_profile.effects?.alibi ? 'Already lined up' : 'Line one up')
+                .setDisabled(!!user_profile.effects?.alibi)
             comp.push(new ActionRowBuilder().addComponents(OpenButton))
         }
     } else if (selection[1]?.[0] == 'duplicates') {
@@ -4042,10 +4333,282 @@ exports.currentTruguts = function (user_profile) {
     return number_with_commas(user_profile.truguts_earned - user_profile.truguts_spent)
 }
 
+//Heat drains continuously, so the stored number is only true as of heat.updated --
+//nothing may use user_profile.heat.value directly, it has to be aged forward first.
+//A profile that has never been hot has no heat node at all and reads as 0, so no
+//migration is needed for existing players.
+exports.heatValue = function (user_profile) {
+    const heat = user_profile?.heat
+    if (!heat?.value) {
+        return 0
+    }
+    const hours = Math.max(0, (Date.now() - (heat.updated ?? Date.now())) / 3600000)
+    //rounded here rather than at every call site. The stored value is always an integer
+    //and the float only exists inside this decay, so nobody downstream wants it -- and a
+    //caller comparing a raw 24.999 against a threshold of 25 was already one shipped bug
+    return Math.round(Math.max(0, Math.min(heat_tuning.MAX, heat.value - hours * heat_tuning.DECAY.per_hour)))
+}
+
+//mirrors manageTruguts: mutate the in-memory profile and write the same values, so a
+//caller holding user_profile sees the change without waiting for the cache listener
+//to echo the write back. Negative amounts cool the player off.
+exports.applyHeat = function ({ user_profile, profile_ref, amount } = {}) {
+    amount = Number(amount)
+    if (!Number.isFinite(amount)) {
+        console.error(`applyHeat received invalid amount for ${user_profile?.name}: ${amount}`)
+        return user_profile
+    }
+    //age the stored value forward before adding to it -- writing on top of a stale
+    //value would silently refund however long the player had been cooling off
+    const value = Math.max(0, Math.min(heat_tuning.MAX, exports.heatValue(user_profile) + amount))
+    const heat = { value, updated: Date.now() }
+    console.log(`${user_profile?.name} heat ${amount > 0 ? '+' : ''}${amount} -> ${value}`)
+    user_profile.heat = heat
+    profile_ref?.child('heat').update(heat)
+    return user_profile
+}
+
+//the gauge as it reads on a challenge card. Empty until the player has some heat, so
+//anyone who has never bribed never meets the mechanic at all. The host of the
+//challenge's planet is the one taking an interest -- heat is their patience, not a
+//police meter, so it is always somebody by name doing the watching.
+exports.heatLine = function ({ user_profile } = {}) {
+    const value = exports.heatValue(user_profile)
+    if (!value) {
+        return ''
+    }
+    return `Heat: 🔥${value}/${heat_tuning.MAX}`
+        + (heat_tuning.PREVIEW_NOTE ? ` · ${heat_tuning.PREVIEW_NOTE}` : '')
+}
+
+//which tier a heat value falls in, as an index into heat_tuning.TIERS, or -1 for none
+exports.heatTier = function (value) {
+    //TIERS is coldest-first, so the last one whose floor we've reached is the one we're in
+    return heat_tuning.TIERS.findLastIndex(t => value >= t.min)
+}
+
+//is the player barred from bribing, and until when? Blacklisted writes a timestamp;
+//anything in the past is spent.
+exports.bribeBlacklist = function (user_profile) {
+    const until = user_profile?.effects?.bribe_blacklist
+    return until && until > Date.now() ? until : null
+}
+
+//Roll a bribe for a penalty. Returns null for a clean bribe, otherwise a descriptor the
+//caller applies: extra_cost is added to what the bribe charges, update is merged into the
+//challenge, and the whole thing is stamped on the challenge as heat_penalty so the card
+//can say what happened and challengeWinnings can price it.
+//
+//The chance is the heat the player walked in with, *before* this bribe's own gain -- a
+//first bribe from a cold profile is always safe. Rolled here rather than at submit time
+//because the player has to see the outcome before deciding whether to race (docs/heat.md 4).
+exports.rollHeatPenalty = function ({ user_profile, perks, delta, current_challenge, available = Infinity } = {}) {
+    const heat = exports.heatValue(user_profile)
+
+    //One chance roll decides whether anything happens at all; what happens is chosen after.
+    //Banished respects this cap like everything else -- docs/heat.md 4.1 promises you are
+    //always getting away with one bribe in five, and the harshest penalty in the game is
+    //the last place to break that promise.
+    if (Math.random() * 100 >= Math.min(heat, heat_tuning.ROLL.cap)) {
+        return null
+    }
+
+    const host = perks?.planet?.host ?? null
+    //every verdict is the same record whichever path built it, including how a host gets
+    //written into its flavour
+    const verdict = (key, tier, extra = {}) => {
+        const spec = heat_tuning.PENALTIES[key]
+        return {
+            key,
+            tier,
+            title: spec.title,
+            host,
+            flavor: getRandomElement(spec.flavor).replace('${host}', host ?? 'Somebody'),
+            extra_cost: 0,
+            update: {},
+            rolled: Date.now(),
+            ...extra
+        }
+    }
+
+    //Banished is a threshold rather than a weighted pick, and it is chosen before the tier
+    //because Friends in High Places below would otherwise make it unreachable: a citizen's
+    //tier is always softened below Busted, so a Tier III entry could never fire. Pushing it
+    //to the cap on your own planet is its own answer -- being a local is exactly why the
+    //host takes it personally, and no favour covers this one.
+    if (perks?.citizen && heat >= heat_tuning.MAX && !exports.banishment(user_profile)) {
+        return verdict('banished', 'Banished', {
+            banish: {
+                planet: exports.planetKey(perks.planet),
+                name: perks.planet.name,
+                role: perks.planet.role,
+                title: perks.planet.citizen,
+                clean_needed: heat_tuning.BANISHMENT.clean_challenges,
+                fine: heat_tuning.BANISHMENT.fine,
+                since: Date.now()
+            }
+        })
+    }
+
+    let tier_index = exports.heatTier(heat)
+    //Friends in High Places: a citizen on their own planet has someone to soften it, and
+    //the softest tier softens into nothing at all
+    if (perks?.citizen) {
+        tier_index -= 1
+    }
+    if (tier_index < 0) {
+        return null
+    }
+    const tier = heat_tuning.TIERS[tier_index]
+
+    //weighted pick within the tier
+    const total = tier.penalties.reduce((sum, p) => sum + p.weight, 0)
+    let draw = Math.random() * total
+    let key = tier.penalties[tier.penalties.length - 1].key
+    for (const p of tier.penalties) {
+        draw -= p.weight
+        if (draw < 0) {
+            key = p.key
+            break
+        }
+    }
+
+    //a penalty that can't apply substitutes the tier's fallback rather than being thrown
+    //away -- a wasted roll is a roll the player would learn to retry for
+    const bribed_picks = ['track', 'racer'].filter(k => delta.changes.includes(k))
+    const staged_conditions = delta.update.conditions ?? current_challenge.conditions ?? {}
+    const open_conditions = (heat_tuning.PENALTIES.handicap.conditions ?? []).filter(k => !staged_conditions[k])
+    //what a cost penalty adds, read straight off the tuning, so the affordability check
+    //and the charge can never disagree about it
+    const surcharge = k => {
+        const spec = heat_tuning.PENALTIES[k]
+        return spec.cost_of ? delta[spec.cost_of] * spec.cost_times : 0
+    }
+    const applies = k => {
+        if (k == 'wrong_guy') {
+            return bribed_picks.length > 0
+        }
+        if (k == 'handicap') {
+            return open_conditions.length > 0
+        }
+        return available >= delta.cost + surcharge(k)
+    }
+    if (!applies(key)) {
+        key = applies(tier.fallback) ? tier.fallback : tier.penalties.map(p => p.key).find(applies)
+    }
+    if (!key) {
+        return null
+    }
+
+    const penalty = verdict(key, tier.name, { extra_cost: surcharge(key) })
+
+    if (key == 'wrong_guy') {
+        //misdeliver exactly one of the things they bribed for, so the bribe isn't wholly
+        //wasted -- this is the coldest tier
+        const swap = getRandomElement(bribed_picks)
+        if (swap == 'track') {
+            const pool = getTracks().map((t, i) => i).filter(i => i !== delta.update.track)
+            penalty.update.track = pool.length ? getRandomElement(pool) : delta.update.track
+            //bribeDelta clears a stranded skips condition when the player changes track,
+            //but this swap happens after that ran -- and 13 of the 25 tracks have no skip
+            //goal times, so a misdelivery would otherwise leave a challenge demanding
+            //skips on a track the bot doesn't believe has any
+            if (!tracks[penalty.update.track]?.parskiptimes) {
+                const conditions = delta.update.conditions ?? current_challenge.conditions ?? {}
+                if (conditions.skips) {
+                    penalty.update.conditions = { ...conditions, skips: false }
+                }
+            }
+        } else {
+            const pool = racers.slice(0, 23).map(r => r.racernum - 1).filter(i => i !== delta.update.racer)
+            penalty.update.racer = pool.length ? getRandomElement(pool) : delta.update.racer
+        }
+        penalty.swapped = swap
+    } else if (key == 'handicap') {
+        penalty.forced = getRandomElement(open_conditions)
+        penalty.update.conditions = { ...staged_conditions, [penalty.forced]: true }
+    } else if (key == 'blacklisted') {
+        penalty.until = Date.now() + heat_tuning.PENALTIES.blacklisted.minutes * 60 * 1000
+    }
+    //cut and nothing_for_you carry no update at all -- challengeWinnings reads the key, and
+    //short_count and fine are already priced by surcharge()
+    return penalty
+}
+
+//what heat did to this challenge, as one subtext line under the gauge -- either the
+//verdict rolled on its bribe, or the fact that it is the replacement for one the player
+//rerolled away from and so pays no Running Hot
+//Running Hot is payment for getting away with it, so a challenge heat has already touched
+//doesn't pay it: a verdict that stuck, or one the player rerolled away from. An Alibi is
+//deliberately not in that list -- it means they *did* get away with it. Kept here beside
+//penaltyLine so a fourth outcome only has to be reasoned about in one place.
+exports.paysRunningHot = function (current_challenge) {
+    return !current_challenge?.heat_penalty && !current_challenge?.heat_fled
+}
+
+exports.penaltyLine = function (current_challenge) {
+    //heat_alibi and heat_fled carry the same { from, host } shape: whose shakedown it was
+    const whose = record => record.host && record.from ? `${record.host}'s ${record.from}` : 'a shakedown'
+    const penalty = current_challenge?.heat_penalty
+    if (!penalty) {
+        if (current_challenge?.heat_alibi) {
+            return `\u{1FAAA} **Alibi** · ${whose(current_challenge.heat_alibi)} didn't stick.`
+        }
+        if (current_challenge?.heat_fled) {
+            return `\u{1F4A8} Rerolled away from ${whose(current_challenge.heat_fled)}. No Running Hot on this challenge.`
+        }
+        return ''
+    }
+    const detail = penalty.key == 'blacklisted' && penalty.until
+        ? ` No bribes until <t:${Math.round(penalty.until / 1000)}:t>.`
+        : penalty.key == 'banished' && penalty.banish
+            ? ` Pay \`\u{1F4C0}${number_with_commas(penalty.banish.fine)}\` at the shop or finish ${penalty.banish.clean_needed} challenges on ${penalty.banish.name ?? penalty.banish.planet.replaceAll('_', ' ')} without bribing to get it back.`
+            : ''
+    return `\u{1F4A5} **${penalty.title}** · *${penalty.flavor}*${detail}`
+}
+
+//when a timestamped effect comes off cooldown, or null if it already has. Returning the
+//expiry rather than a boolean is what lets callers render "<t:...:R>" without repeating
+//the arithmetic to work it out
+exports.effectCooldown = function (since, hours) {
+    if (!since) {
+        return null
+    }
+    const until = since + hours * 60 * 60 * 1000
+    return until > Date.now() ? until : null
+}
+
+//when the player may next claim a citizenship, or null if they may now
+exports.citizenshipCooldown = function (user_profile) {
+    return exports.effectCooldown(user_profile?.citizenship?.switched, heat_tuning.CITIZENSHIP.switch_cooldown_hours)
+}
+
+//the standing banishment, if any. Holds the planet key it applies to and what's left to do
+exports.banishment = function (user_profile) {
+    const b = user_profile?.banishment
+    return b?.planet ? b : null
+}
+
+//Spice Run is once a day; returns when the next one is available, or null if it's ready
+exports.spiceRunCooldown = function (user_profile) {
+    return exports.effectCooldown(user_profile?.effects?.spice_run, heat_tuning.SPICE_RUN.cooldown_hours)
+}
+
+//a challenge finished without bribing it cools the player off
+exports.decayHeat = function ({ user_profile, profile_ref } = {}) {
+    //nothing to cool: skip the write rather than stamping a new timestamp on a zero
+    if (!exports.heatValue(user_profile)) {
+        return user_profile
+    }
+    const amount = heat_tuning.DECAY.per_clean_challenge
+        + (user_profile?.effects?.smuggling_routes ? heat_tuning.DECAY.cover_your_tracks : 0)
+    return exports.applyHeat({ user_profile, profile_ref, amount: -amount })
+}
+
 exports.randomChallengeItem = function ({ user_profile, current_challenge, db, member_id, coffer, sarlacc } = {}) {
     const challenges_completed = Object.values(db.ch.times).filter(time => time.user == member_id).length
     let item_pool = []
-    let special_items = ['collectible_coffer', 'trugut_boost', 'sabotage_kit'].map(id => items.find(i => i.id == id)).filter(Boolean)
+    let special_items = ['collectible_coffer', 'trugut_boost', 'sabotage_kit', 'clean_record', 'alibi'].map(id => items.find(i => i.id == id)).filter(Boolean)
     items.forEach(item => {
         if (coffer || sarlacc || (item.challenges !== null && challenges_completed > item.challenges) || current_challenge.conditions[item.condition] || item.track.includes(current_challenge.track) || item.racer.includes(current_challenge.racer)) {
             item_pool.push(item)
@@ -4197,7 +4760,7 @@ exports.earnedItem = function ({ current_challenge, member, user_profile, db } =
 
 exports.itemString = function ({ item, user_profile }) {
     //only live copies count as duplicates -- scrapped/fed/used items are gone
-    let dup = (user_profile?.items ? Object.values(user_profile.items).filter(i => i.id == item.id && exports.usableItem({ item: i })).length > 1 : false) && !['collectible_coffer', 'trugut_boost', 'sabotage_kit'].includes(item.id)
+    let dup = (user_profile?.items ? Object.values(user_profile.items).filter(i => i.id == item.id && exports.usableItem({ item: i })).length > 1 : false) && !['collectible_coffer', 'trugut_boost', 'sabotage_kit', 'clean_record', 'alibi'].includes(item.id)
     return `${raritysymbols[item.rarity]} ${item.name}` + (typeof item.health == 'number' ? ` [${Math.round(item.health * 100 / 255)}%]` : '') + (dup ? " (duplicate)" : "")
 }
 
@@ -4311,7 +4874,7 @@ exports.tradeComponents = function ({ trade, db, selection } = {}) {
     traders.forEach(key => {
         let other_player = traders.filter(k => k !== key)[0]
         let other_items = tradables[other_player].items
-        tradables[key].tradable = tradables[key].items.filter(i => !other_items.map(j => j.id).includes(i.id) || (['trugut_boost', 'sabotage_kit', 'collectible_coffer'].includes(i.id)))
+        tradables[key].tradable = tradables[key].items.filter(i => !other_items.map(j => j.id).includes(i.id) || (['trugut_boost', 'sabotage_kit', 'collectible_coffer', 'clean_record', 'alibi'].includes(i.id)))
         let collectible = []
         collections.filter(c => !db.user[key].random.effects?.[c.key]).forEach(c => {
             c.items.forEach(i => {
@@ -4416,7 +4979,7 @@ exports.availableItemsforTrade = function ({ user_profile } = {}) {
 }
 
 exports.availableItemsforScrap = function ({ user_profile } = {}) {
-    return exports.getProfileItems({ user_profile }).filter(i => ![i.locked ? true : false, i.repairing ? true : false].includes(true) && !['trugut_boost', 'sabotage_kit', 'collectible_coffer', 70].includes(i.id))
+    return exports.getProfileItems({ user_profile }).filter(i => ![i.locked ? true : false, i.repairing ? true : false].includes(true) && !['trugut_boost', 'sabotage_kit', 'collectible_coffer', 'clean_record', 'alibi', 70].includes(i.id))
 }
 
 exports.availableItemsforRepairs = function ({ user_profile } = {}) {
@@ -4442,6 +5005,18 @@ exports.getUsables = function ({ user_profile } = {}) {
             value: 'trugut_boost',
             emoji: {
                 name: '⚡'
+            }
+        },
+        {
+            value: 'clean_record',
+            emoji: {
+                name: '🧽'
+            }
+        },
+        {
+            value: 'alibi',
+            emoji: {
+                name: '🪪'
             }
         }
     ]

@@ -3680,6 +3680,30 @@ exports.items = [
         "racer": []
     },
     {
+        "id": 'clean_record',
+        "name": "Clean Record",
+        "image": "",
+        "description": "Wipe your heat back to zero",
+        "rarity": "rare",
+        "value": 2500,
+        "condition": "",
+        "challenges": null,
+        "track": [],
+        "racer": []
+    },
+    {
+        "id": 'alibi',
+        "name": "Alibi",
+        "image": "",
+        "description": "Cancel the next bribe penalty",
+        "rarity": "rare",
+        "value": 2500,
+        "condition": "",
+        "challenges": null,
+        "track": [],
+        "racer": []
+    },
+    {
         "id": 219,
         "name": "Modified Radon-Ulzer 620C Racing Engines",
         "image": "",

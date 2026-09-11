@@ -1,4 +1,5 @@
-const { manageTruguts, randomChallengeItem, inventoryComponents, inventoryEmbed, Collections, collectionReward, collectionRewardEmbed, openCoffer, itemString, tradeEmbed, tradeComponents, availableItemsforScrap, availableItemsforCollection, availableItemsforRepairs } = require('./functions.js');
+const { manageTruguts, randomChallengeItem, inventoryComponents, inventoryEmbed, Collections, collectionReward, collectionRewardEmbed, openCoffer, itemString, tradeEmbed, tradeComponents, availableItemsforScrap, availableItemsforCollection, availableItemsforRepairs, heatValue, applyHeat, citizenshipCooldown, banishment, planetKey } = require('./functions.js');
+const heat_tuning = require('../../data/challenge/heat.js');
 const { postMessage, editMessage } = require('../../discord.js');
 const { planets } = require('../../data/sw_racer/planet.js')
 const { items } = require('../../data/challenge/item.js')
@@ -47,9 +48,11 @@ exports.inventory = async function ({ interaction, user_profile, profile_ref, db
     const actionmap = {
         coffer: 'collectible_coffer',
         sabotage: 'sabotage_kit',
-        boost: 'trugut_boost'
+        boost: 'trugut_boost',
+        clean: 'clean_record',
+        alibi: 'alibi'
     }
-    if (['coffer', 'sabotage', 'boost'].includes(args[2])) {
+    if (['coffer', 'sabotage', 'boost', 'clean', 'alibi'].includes(args[2])) {
         if (!user_profile.items) {
             NoItems()
             return
@@ -159,6 +162,45 @@ exports.inventory = async function ({ interaction, user_profile, profile_ref, db
                 .setAuthor({ name: botto_name + " activated a ⚡Trugut Boost", iconURL: member_avatar })
                 .setDescription(`They're earning ${user_profile.effects.doubled_powers ? '2×' : '1.5×'} Truguts for the next 24 hours!`)
             postMessage(interaction.client, interaction.channelId, { embeds: [congratsEmbed] })
+            user_profile = db.user[user_key].random
+        } else if (args[2] == 'clean') {
+            const before = heatValue(user_profile)
+            if (!before) {
+                const nothing = new EmbedBuilder()
+                    .setTitle("<:WhyNobodyBuy:589481340957753363> Nothing to wipe")
+                    .setDescription("Your heat is already `🔥0`. Save it for when it isn't.")
+                interaction.reply({ embeds: [nothing], ephemeral: true })
+                return
+            }
+            if (!(await consumeProfileItem(key, { used: Date.now() }))) {
+                NoItems()
+                return
+            }
+            //straight to zero rather than a subtraction -- the item is the clean slate
+            applyHeat({ user_profile, profile_ref, amount: -heat_tuning.MAX })
+            const cleanEmbed = new EmbedBuilder()
+                .setAuthor({ name: botto_name + " used a 🧽Clean Record", iconURL: member_avatar })
+                .setDescription(`Their heat is back to \`🔥0\` from \`🔥${before}\`.`)
+            postMessage(interaction.client, interaction.channelId, { embeds: [cleanEmbed] })
+            user_profile = db.user[user_key].random
+        } else if (args[2] == 'alibi') {
+            if (user_profile.effects?.alibi) {
+                const already = new EmbedBuilder()
+                    .setTitle("<:WhyNobodyBuy:589481340957753363> You already have an 🪪Alibi")
+                    .setDescription("It keeps until a bribe goes wrong.")
+                interaction.reply({ embeds: [already], ephemeral: true })
+                return
+            }
+            if (!(await consumeProfileItem(key, { used: Date.now() }))) {
+                NoItems()
+                return
+            }
+            //held on the profile, not a challenge: it waits for whichever bribe goes wrong
+            profile_ref.child('effects').update({ alibi: true })
+            const alibiEmbed = new EmbedBuilder()
+                .setAuthor({ name: botto_name + " lined up an 🪪Alibi", iconURL: member_avatar })
+                .setDescription("Their next bribe penalty won't stick.")
+            postMessage(interaction.client, interaction.channelId, { embeds: [alibiEmbed] })
             user_profile = db.user[user_key].random
         }
     }
@@ -432,21 +474,57 @@ exports.inventory = async function ({ interaction, user_profile, profile_ref, db
     } else if (args[2] == 'citizen') {
         if (interaction.guild.id == swe1r_guild) {
             const Member = await interaction.guild.members.fetch(member_id)
+            const claimed = planets.find(p => interaction.values.includes(p.role)) ?? null
+            const claimed_key = claimed ? planetKey(claimed) : null
+            //the player already wears this one, so re-selecting it is not a switch
+            const already = !!claimed && user_profile.citizenship?.planet == claimed_key
+                && Member.roles.cache.some(r => r.id === claimed.role)
+
+            //Every refusal has to be decided before a single role is touched. The loop
+            //below unequips as it goes, so returning from inside it used to strip the
+            //citizenship the player already had and then refuse the new one -- losing them
+            //a role they'd ground a collection for, with the cooldown still running.
+            const refuse = (title, description) => {
+                interaction.reply({ embeds: [new EmbedBuilder().setTitle(title).setDescription(description)], ephemeral: true })
+                return false
+            }
+            const allowed = () => {
+                if (!claimed) {
+                    return true
+                }
+                //citizenship must be unlocked by completing the planet's collection
+                if (!user_profile.effects?.[claimed_key]) {
+                    return refuse("<:WhyNobodyBuy:589481340957753363> Citizenship must be earned!",
+                        `Complete the ${claimed.name} Collection to unlock the ${claimed.citizen} role.`)
+                }
+                //Banished: the host isn't having you back until it's settled
+                const banished = banishment(user_profile)
+                if (banished?.planet == claimed_key) {
+                    return refuse("<:WhyNobodyBuy:589481340957753363> You've been banished!",
+                        `${claimed.name} won't have you back yet. Pay the \`📀${number_with_commas(banished.fine)}\` fine at Botto's shop or finish ${banished.clean_needed} more challenge${banished.clean_needed == 1 ? '' : 's'} on ${claimed.name} without bribing.`)
+                }
+                //a claim has to sit for a day before another will take, so Home Turf can't
+                //be hot-swapped onto whatever planet the challenge landed on
+                const cooldown = citizenshipCooldown(user_profile)
+                if (cooldown && !already) {
+                    return refuse("<:WhyNobodyBuy:589481340957753363> Not so fast",
+                        `Someone has to vouch for you. You can claim a new citizenship <t:${Math.round(cooldown / 1000)}:R>.`)
+                }
+                return true
+            }
+            if (!allowed()) {
+                return
+            }
+
             for (const p of planets) {
-                const planet_key = p.name.toLowerCase().replaceAll(" ", "_")
-                if (interaction.values.includes(p.role)) {
-                    //citizenship must be unlocked by completing the planet's collection
-                    if (!user_profile.effects?.[planet_key]) {
-                        const holdUp = new EmbedBuilder()
-                            .setTitle("<:WhyNobodyBuy:589481340957753363> Citizenship must be earned!")
-                            .setDescription(`Complete the ${p.name} Collection to unlock the ${p.citizen} role.`)
-                        interaction.reply({ embeds: [holdUp], ephemeral: true })
-                        return
-                    }
+                if (claimed && p.role == claimed.role) {
                     await Member.roles.add(p.role).catch(error => console.log(error))
                 } else if (Member.roles.cache.some(r => r.id === p.role)) {
                     await Member.roles.remove(p.role).catch(error => console.log(error))
                 }
+            }
+            if (claimed && !already) {
+                profile_ref.child('citizenship').update({ planet: claimed_key, switched: Date.now() })
             }
         }
     } else if (args[2] == 'icon') {
