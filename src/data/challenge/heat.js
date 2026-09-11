@@ -135,19 +135,17 @@ exports.TIERS = [
 // it is always somebody by name, never an abstract meter.
 exports.PENALTIES = {
     wrong_guy: {
-        title: 'Wrong Guy',
+        title: 'Whoops',
         flavor: [
-            '${host} took your money and sent you to the wrong garage.',
-            '${host} nodded along, pocketed it, and arranged something else entirely.'
+            '${host} took your money but set up the wrong race.',
         ]
     },
     short_count: {
-        title: 'Short Count',
+        title: "The Price Just Went Up",
         // doubles the bribe. You still get exactly what you paid for, at twice the price.
         multiplier: 2,
         flavor: [
-            "${host} counted it twice and decided it was half what you'd agreed.",
-            '${host} raised the price the moment you reached for your truguts.'
+            '${host} says this one costs extra.'
         ]
     },
     handicap: {
@@ -155,8 +153,7 @@ exports.PENALTIES = {
         // forces one condition on. Order is the order they're tried in.
         conditions: ['mirror', 'backwards', 'nu'],
         flavor: [
-            '${host} will allow it -- on one condition.',
-            '${host} wants the crowd to get something out of this too.'
+            '${host} will allow it, on one condition...',
         ]
     },
     cut: {
@@ -164,15 +161,13 @@ exports.PENALTIES = {
         earnings: 0.5,
         flavor: [
             '${host} is taking a cut of this one.',
-            '${host} will be collecting half your purse, for the paperwork.'
         ]
     },
     nothing_for_you: {
         title: 'Nothing For You',
         earnings: 0,
         flavor: [
-            '${host} is keeping the whole purse. Race it anyway.',
-            "${host} says your truguts are no good here. The race stands, the pay doesn't."
+            "${host}'s officials have seized your winnings for this race."
         ]
     },
     fine: {
@@ -182,8 +177,7 @@ exports.PENALTIES = {
         // already softened their tier by the time this can land
         fine_multiplier: 3,
         flavor: [
-            '${host} fined you for it, and kept the bribe.',
-            '${host} made an example of you in front of the pit crews.'
+            '${host} made an example of you and charged you a fine.'
         ]
     },
     blacklisted: {
@@ -191,7 +185,6 @@ exports.PENALTIES = {
         minutes: 30,
         flavor: [
             "${host} put the word out. Nobody's taking your money for a while.",
-            '${host} had you walked out of the pits. Come back later.'
         ]
     }
 };
