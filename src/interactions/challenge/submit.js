@@ -181,7 +181,7 @@ exports.submit = async function ({ current_challenge, current_challenge_ref, int
                 delete user_profile.banishment
                 const welcome = new EmbedBuilder()
                     .setTitle(`🏡 Welcome back to ${challenge_planet.name}`)
-                    .setDescription(`${challenge_planet.host} has seen enough clean racing. Your **${challenge_planet.citizen}** role is yours to wear again — equip it from your inventory.`)
+                    .setDescription(`${challenge_planet.host} has seen enough clean racing. Your **${challenge_planet.citizen}** role is available again. Equip it in your **🎒 Inventory**.`)
                 postMessage(interaction.client, interaction.channelId, { embeds: [welcome] })
             }
         }

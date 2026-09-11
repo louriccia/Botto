@@ -3695,7 +3695,7 @@ exports.items = [
         "id": 'alibi',
         "name": "Alibi",
         "image": "",
-        "description": "Talk your way out of the next bribe that goes wrong",
+        "description": "Cancel the next bribe penalty",
         "rarity": "rare",
         "value": 2500,
         "condition": "",

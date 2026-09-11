@@ -2539,7 +2539,7 @@ exports.shopOptions = function ({ user_profile, player, db, selection } = {}) {
             value: 'bribes',
             price: 384000000,
             description: "Never pay for bribes again",
-            info: "Bribe whatever challenge you like at no charge. Your truguts are no object — but the pit bosses still notice. Bribes cost nothing and generate heat exactly as they always did. One-time purchase.",
+            info: "Go to whatever challenge of your choosing at no charge. Bribes still raise your heat. One-time purchase.",
             emoji: {
                 name: "💰"
             }
@@ -2551,7 +2551,7 @@ exports.shopOptions = function ({ user_profile, player, db, selection } = {}) {
             value: 'amnesty',
             price: banished.fine ?? heat_tuning.BANISHMENT.fine,
             description: `Buy back your ${banished.title ?? 'citizen'} role`,
-            info: `You pushed it too far at home and they took your name off the rolls. Settle the fine and the role is yours to wear again.\n\nThe other way back costs nothing but time: finish ${banished.clean_needed} more challenge${banished.clean_needed == 1 ? '' : 's'} on that planet without bribing, and they will come round on their own.`,
+            info: `Pay off the host and get your citizen role back. You can also earn it back for free by finishing ${banished.clean_needed} more challenge${banished.clean_needed == 1 ? '' : 's'} on that planet without bribing.`,
             emoji: {
                 name: "🏡"
             }
@@ -2566,7 +2566,7 @@ exports.shopOptions = function ({ user_profile, player, db, selection } = {}) {
                 value: 'spice',
                 price: 0,
                 description: `Sell \u{1F525}${heat_tuning.SPICE_RUN.heat} heat for \u{1F4C0}${number_with_commas(heat_tuning.SPICE_RUN.truguts)}`,
-                info: `You know a buyer and you know the back roads. Offload the goods, take the money, and be somewhere else when anyone comes asking — \u{1F525}${heat_tuning.SPICE_RUN.heat} off your record and \u{1F4C0}${number_with_commas(heat_tuning.SPICE_RUN.truguts)} in your pocket. Once a day, and you need the heat to sell.`,
+                info: `Sell your heat to a buyer who won't ask questions. Removes \u{1F525}${heat_tuning.SPICE_RUN.heat} heat and pays \u{1F4C0}${number_with_commas(heat_tuning.SPICE_RUN.truguts)}. Once per day.`,
                 emoji: {
                     name: "🚛"
                 }
@@ -2575,8 +2575,8 @@ exports.shopOptions = function ({ user_profile, player, db, selection } = {}) {
             label: `Launderer`,
             value: 'launderer',
             price: 12000000,
-            description: "Bribes run 25% cooler",
-            info: "Somebody on the payroll keeps your name out of the wrong ledgers. All heat you gain from bribing is reduced by 25%. It shaves rather than halves — truguts can soften heat, never buy their way out of it. One-time purchase.",
+            description: "Bribes raise less heat",
+            info: "Someone on the payroll keeps your name out of the ledgers. All heat from bribing is reduced by 25%. One-time purchase.",
             emoji: {
                 name: "🧼"
             }
@@ -4552,19 +4552,19 @@ exports.penaltyLine = function (current_challenge) {
     const penalty = current_challenge?.heat_penalty
     if (!penalty) {
         if (current_challenge?.heat_alibi) {
-            return `🪪 **Alibi** · *Your story held up. ${whose(current_challenge.heat_alibi)} didn't stick.*`
+            return `\u{1FAAA} **Alibi** · ${whose(current_challenge.heat_alibi)} didn't stick.`
         }
         if (current_challenge?.heat_fled) {
-            return `💨 You rerolled away from ${whose(current_challenge.heat_fled)}. *No Running Hot on this one.*`
+            return `\u{1F4A8} Rerolled away from ${whose(current_challenge.heat_fled)}. No Running Hot on this challenge.`
         }
         return ''
     }
     const detail = penalty.key == 'blacklisted' && penalty.until
         ? ` No bribes until <t:${Math.round(penalty.until / 1000)}:t>.`
         : penalty.key == 'banished' && penalty.banish
-            ? ` Pay \`📀${number_with_commas(penalty.banish.fine)}\` or finish ${penalty.banish.clean_needed} clean challenges on ${penalty.banish.name ?? penalty.banish.planet.replaceAll('_', ' ')} to win them back.`
+            ? ` Pay \`\u{1F4C0}${number_with_commas(penalty.banish.fine)}\` at the shop or finish ${penalty.banish.clean_needed} challenges on ${penalty.banish.name ?? penalty.banish.planet.replaceAll('_', ' ')} without bribing to get it back.`
             : ''
-    return `💥 **${penalty.title}** · *${penalty.flavor}${detail}*`
+    return `\u{1F4A5} **${penalty.title}** · *${penalty.flavor}*${detail}`
 }
 
 //when a timestamped effect comes off cooldown, or null if it already has. Returning the

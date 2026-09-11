@@ -24,7 +24,8 @@ exports.bribe = async function ({ current_challenge, current_challenge_ref, inte
     if (blacklisted && args[2] !== 'cancel') {
         const holdUp = new EmbedBuilder()
             .setTitle("<:WhyNobodyBuy:589481340957753363> Your money's no good here")
-            .setDescription(`Word got around. Nobody in the pits will take your bribe until <t:${Math.round(blacklisted / 1000)}:t>.`)
+            .setDescription(`*Republic credits are no good out here!*
+Nobody will take your bribe until <t:${Math.round(blacklisted / 1000)}:t>.`)
         interaction.reply({ embeds: [holdUp], ephemeral: true })
         return
     }

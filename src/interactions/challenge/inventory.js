@@ -168,7 +168,7 @@ exports.inventory = async function ({ interaction, user_profile, profile_ref, db
             if (!before) {
                 const nothing = new EmbedBuilder()
                     .setTitle("<:WhyNobodyBuy:589481340957753363> Nothing to wipe")
-                    .setDescription("Your record is already clean. Save it for when it isn't.")
+                    .setDescription("Your heat is already `🔥0`. Save it for when it isn't.")
                 interaction.reply({ embeds: [nothing], ephemeral: true })
                 return
             }
@@ -179,15 +179,15 @@ exports.inventory = async function ({ interaction, user_profile, profile_ref, db
             //straight to zero rather than a subtraction -- the item is the clean slate
             applyHeat({ user_profile, profile_ref, amount: -heat_tuning.MAX })
             const cleanEmbed = new EmbedBuilder()
-                .setAuthor({ name: botto_name + " bought themselves a 🧽Clean Record", iconURL: member_avatar })
-                .setDescription(`🔥${before} heat, gone. As far as the pit bosses are concerned, they've never done anything wrong.`)
+                .setAuthor({ name: botto_name + " used a 🧽Clean Record", iconURL: member_avatar })
+                .setDescription(`Their heat is back to \`🔥0\` from \`🔥${before}\`.`)
             postMessage(interaction.client, interaction.channelId, { embeds: [cleanEmbed] })
             user_profile = db.user[user_key].random
         } else if (args[2] == 'alibi') {
             if (user_profile.effects?.alibi) {
                 const already = new EmbedBuilder()
-                    .setTitle("<:WhyNobodyBuy:589481340957753363> You already have a story straight")
-                    .setDescription("One 🪪Alibi is lined up already. It keeps until a bribe goes wrong.")
+                    .setTitle("<:WhyNobodyBuy:589481340957753363> You already have an 🪪Alibi")
+                    .setDescription("It keeps until a bribe goes wrong.")
                 interaction.reply({ embeds: [already], ephemeral: true })
                 return
             }
@@ -199,7 +199,7 @@ exports.inventory = async function ({ interaction, user_profile, profile_ref, db
             profile_ref.child('effects').update({ alibi: true })
             const alibiEmbed = new EmbedBuilder()
                 .setAuthor({ name: botto_name + " lined up an 🪪Alibi", iconURL: member_avatar })
-                .setDescription("The next bribe that goes wrong didn't happen. They were somewhere else entirely.")
+                .setDescription("Their next bribe penalty won't stick.")
             postMessage(interaction.client, interaction.channelId, { embeds: [alibiEmbed] })
             user_profile = db.user[user_key].random
         }
@@ -500,15 +500,15 @@ exports.inventory = async function ({ interaction, user_profile, profile_ref, db
                 //Banished: the host isn't having you back until it's settled
                 const banished = banishment(user_profile)
                 if (banished?.planet == claimed_key) {
-                    return refuse("<:WhyNobodyBuy:589481340957753363> You were banished from here",
-                        `${claimed.name} wants nothing to do with you yet. Pay the \`📀${number_with_commas(banished.fine)}\` fine at the shop, or finish ${banished.clean_needed} more challenge${banished.clean_needed == 1 ? '' : 's'} on ${claimed.name} without bribing ${banished.clean_needed == 1 ? 'it' : 'them'}.`)
+                    return refuse("<:WhyNobodyBuy:589481340957753363> You've been banished!",
+                        `${claimed.name} won't have you back yet. Pay the \`📀${number_with_commas(banished.fine)}\` fine at Botto's shop or finish ${banished.clean_needed} more challenge${banished.clean_needed == 1 ? '' : 's'} on ${claimed.name} without bribing.`)
                 }
                 //a claim has to sit for a day before another will take, so Home Turf can't
                 //be hot-swapped onto whatever planet the challenge landed on
                 const cooldown = citizenshipCooldown(user_profile)
                 if (cooldown && !already) {
-                    return refuse("<:WhyNobodyBuy:589481340957753363> Citizenship takes time",
-                        `Somebody has to vouch for you, and word travels slowly out here. You can claim a new citizenship <t:${Math.round(cooldown / 1000)}:R>.`)
+                    return refuse("<:WhyNobodyBuy:589481340957753363> Not so fast",
+                        `Someone has to vouch for you. You can claim a new citizenship <t:${Math.round(cooldown / 1000)}:R>.`)
                 }
                 return true
             }
