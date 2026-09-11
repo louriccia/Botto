@@ -2,16 +2,15 @@
 
 > *"Yes, I'm a bit short on truguts... but you're not the only one who can make deals, eh?"*
 
-A risk/reward layer on bribes in the random challenge system. Bribing is currently a flat
-fee, which means it is a wall for new players and free for rich ones. **Heat** replaces the
-price with a rate — and gives the two most-ignored collection abilities a job.
+A risk/reward layer on bribes in the random challenge system. Bribing was a flat fee,
+which made it a wall for new players and free for rich ones. **Heat** replaces the price
+with a rate — and gives the two most-ignored collection abilities a job.
 
-**Partly shipped.** §10 is the plan of record and says which stages are built: stage 0
-(surfacing the abilities that already existed) through stage 5 (accrual, decay, the gauge,
-the roll, and the economy around it) are live. Stage 6 — citizenship as a real commitment,
-Banished included — is still a design to be argued with. The roll, the penalties and the upside are
-still a design to be argued with — which is the point of shipping accrual dark first, and
-why §3.3 now reports measurements instead of estimates.
+**Shipped, stages 0 through 6.** §10 is the plan of record and says what each stage did.
+What remains is tuning against real play: every number in §3 and every weight in §5 is a
+default rather than a measurement, and the ones most likely to need moving are called out
+where they appear. §3.3 already reports what the code does rather than what the design
+assumed, which is what shipping accrual dark for a stage was for.
 
 ---
 
@@ -251,9 +250,9 @@ writes straight into the existing `conditions` object, no new plumbing at all.*
 - **The Fine** — an immediate `3×` bribe cost, taken on the spot.
 - **Blacklisted** — no bribes for 30 minutes.
 - **Banished** — only if you hold a citizenship on the challenge's planet: the host strips the
-  role until you pay a fine or complete three clean challenges there. See §7.2. *Not in the
-  shipped table yet — stripping a role and running a recovery is a state machine rather than
-  a payout change, so it lands with the citizenship work in stage 6.*
+  role until you pay a fine or complete three clean challenges there. See §7.2. *Shipped as a
+  threshold rather than a member of this table — it fires at max heat, because Friends in High
+  Places means a citizen never reaches this tier at all. See §10, stage 6.*
 
 The tier is picked by heat; the specific penalty is rolled within the tier. A citizen on
 their home planet rolls one tier lower (§7.2), which is the whole payoff of the ability.
@@ -660,10 +659,51 @@ had. Under heat, free is only free of *truguts*: a free bribe runs exactly as ho
 pays out instead. It re-checks every gate rather than trusting `shopOptions`, since a stale
 shop message can still deliver the press.
 
-### Stage 6 — Citizenship as a commitment
+### Stage 6 — Citizenship as a commitment · **shipped**
 
-The 24-hour switch cooldown and banishment state (`inventory.js:432`), plus the non-heat
-home perks from §7.2.
+| Where | What |
+|---|---|
+| `heat.js` — `CITIZENSHIP`, `BANISHMENT`, `HOME` | The cooldown, the fine and the clean-race count, the home perks. |
+| `functions.js` — `citizenshipCooldown()`, `banishment()` | Whether a claim may be made, and what is standing against the player. |
+| `inventory.js` | Gates the equip on both, and stamps `citizenship.switched` on a claim. |
+| `rollHeatPenalty` | Banished, at the cap, before the tier. |
+| `bribe.js` | Strips the Discord role and records the way back. |
+| `submit.js` | Counts clean races on the banished planet, and lifts it when they're done. |
+| `challengeWinnings` | Home Turf earnings and the doubled day streak. |
+| `shopOptions` + `shop/amnesty.js` | The paid way back, priced at the host's fine. |
+
+**The roll was restructured.** Banished has to be chosen before the tier, because Friends in
+High Places softens a citizen's tier by one — so a citizen can never roll Busted, and a Tier
+III Banished (as §5 describes it) was unreachable by construction. §7.2's framing is the one
+that works: it fires at max heat on your own planet. That resolves the contradiction and says
+the right thing anyway — you pushed it too far in the one place that was supposed to be safe,
+and being a local is why the host takes it personally.
+
+The chance roll now happens once, up front, and *what* happens is chosen after. Banished
+respects the 80% cap like everything else: §4.1 promises you are always getting away with one
+bribe in five, and the harshest penalty in the game is the last place to break that promise.
+
+| citizen at heat | outcome |
+|---|---|
+| 90 | Handicap 52%, Cut 28%, clean 20% — Busted still softened to Shakedown |
+| 100 | **Banished 80%**, clean 20% |
+| 100, already banished | back to Shakedown — there's nothing left to take |
+
+**Two things from §7.2 were changed on contact.**
+
+*Elevated suspicion on a fresh claim was dropped.* It was there to stop citizenship being
+hot-swapped onto whatever planet a challenge landed on, and the 24-hour cooldown already
+closes that completely. All suspicion would have added is a tax on somebody's first ever
+claim — the one moment the feature should feel purely like a reward.
+
+*"Home-planet challenges count double toward the day streak" became a doubled day-streak
+**payout**.* A streak is derived from challenge history, so counting one twice would mean
+rewriting what a streak is. Doubling what it pays lands the same intent in one line.
+
+**Home Turf pays 1.1×** on your own planet's tracks, and the receipt names the role doing it:
+`×1.1 *🏡Spice Miner*`. `challengeWinnings` resolves citizenship itself when a caller
+hasn't, but `submit.js` — the call that actually pays — passes the version built from the
+interaction's own member list, which is fresher than the boot-time role cache.
 
 ### Why 3 and 4 can't be swapped
 

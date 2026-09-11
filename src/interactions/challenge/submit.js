@@ -1,6 +1,8 @@
-const { updateChallenge, playButton, isActive, expiredEmbed, challengeWinnings, getBest, goalTimeList, predictionScore, manageTruguts, decayHeat, currentTruguts, predictionAchievement, bountyAchievement, achievementEmbed, randomChallengeItem, challengeProgression, playerLevel, convertLevel, progressionReward, fitField } = require('./functions.js');
+const { updateChallenge, playButton, isActive, expiredEmbed, challengeWinnings, getBest, goalTimeList, predictionScore, manageTruguts, decayHeat, banishment, bribePerks, currentTruguts, predictionAchievement, bountyAchievement, achievementEmbed, randomChallengeItem, challengeProgression, playerLevel, convertLevel, progressionReward, fitField } = require('./functions.js');
 const { postMessage, editMessage } = require('../../discord.js');
 const { items } = require('../../data/challenge/item.js')
+const { planets } = require('../../data/sw_racer/planet.js')
+const { tracks } = require('../../data/sw_racer/track.js')
 const { raritysymbols } = require('../../data/challenge/rarity.js')
 
 const { EmbedBuilder } = require('discord.js');
@@ -161,13 +163,36 @@ exports.submit = async function ({ current_challenge, current_challenge_ref, int
     const bribed = current_challenge.track_bribe || current_challenge.racer_bribe || current_challenge.condition_bribe
     if (first_submission && !bribed) {
         user_profile = decayHeat({ user_profile, profile_ref })
+
+        //racing a banished planet clean is the way back that doesn't cost truguts. Only
+        //counts on that planet, and only on a challenge you didn't bribe.
+        const banished = banishment(user_profile)
+        const challenge_planet = Array.isArray(current_challenge.track) ? null : planets[tracks[current_challenge.track]?.planet]
+        const planet_key = challenge_planet?.name.toLowerCase().replaceAll(" ", "_")
+        if (banished && planet_key && banished.planet == planet_key) {
+            const left = Math.max(0, (banished.clean_needed ?? 0) - 1)
+            if (left) {
+                profile_ref.child('banishment').update({ clean_needed: left })
+                user_profile.banishment = { ...banished, clean_needed: left }
+            } else {
+                profile_ref.child('banishment').remove()
+                delete user_profile.banishment
+                const welcome = new EmbedBuilder()
+                    .setTitle(`🏡 Welcome back to ${challenge_planet.name}`)
+                    .setDescription(`${challenge_planet.host} has seen enough clean racing. Your **${challenge_planet.citizen}** role is yours to wear again — equip it from your inventory.`)
+                postMessage(interaction.client, interaction.channelId, { embeds: [welcome] })
+            }
+        }
     }
 
     let total_revenue = 0
 
     //award winnings for this submission
     let goals = goalTimeList(current_challenge, user_profile)
-    let winnings = challengeWinnings({ current_challenge, submitted_time: submissiondata, user_profile, best: getBest(db, current_challenge), goals, member: member_id, db })
+    //the interaction's member list is fresher than any cache, and this is the call that
+    //actually pays, so Home Turf is resolved from it rather than from boot-time roles
+    const winnings_perks = bribePerks({ current_challenge, user_profile, member: member_id, db, client: interaction.client, member_roles: interaction.member?.roles?.cache })
+    let winnings = challengeWinnings({ current_challenge, submitted_time: submissiondata, user_profile, best: getBest(db, current_challenge), goals, member: member_id, db, perks: winnings_perks })
 
     //award saboteur cut
     if (winnings.sabotage) {

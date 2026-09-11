@@ -928,7 +928,11 @@ exports.hasRole = function ({ client, db, guild, member, role } = {}) {
 //no_rival suppresses the Bitter Rivalry bonus. It's set only on the nested call
 //that prices the rival's own run -- without it two players who rival each other
 //and both hold the collection would recurse into each other's receipt forever.
-exports.challengeWinnings = function ({ current_challenge, submitted_time, user_profile, best, goals, member, no_rival } = {}) {
+exports.challengeWinnings = function ({ current_challenge, submitted_time, user_profile, best, goals, member, no_rival, perks } = {}) {
+    //citizenship prices earnings now, so resolve it if the caller didn't. submit.js
+    //passes the version built from the interaction's own member list, which is the
+    //freshest there is; this fallback reads the boot-time role cache instead.
+    perks = perks ?? exports.bribePerks({ current_challenge, user_profile, member, db })
     if (!Object.keys(submitted_time).length) {
         return { earnings: 0, receipt: "Sorry, could not calculate earnings." }
     }
@@ -989,8 +993,11 @@ exports.challengeWinnings = function ({ current_challenge, submitted_time, user_
     let challenge_streak = streak.challenge.streak + 1
 
     if (day_streak) {
-        earnings += `\`+📀${number_with_commas(truguts.day_streak * day_streak)}\` ${day_streak}-Day Streak\n`
-        earnings_subtotal += truguts.day_streak * day_streak
+        //showing up on your own planet is worth more of a streak
+        const home_streak = perks?.citizen ? heat_tuning.HOME.day_streak : 1
+        const streak_pay = truguts.day_streak * day_streak * home_streak
+        earnings += `\`+📀${number_with_commas(streak_pay)}\` ${day_streak}-Day Streak${perks?.citizen ? ` (×${home_streak} 🏡${perks.title})` : ''}\n`
+        earnings_subtotal += streak_pay
     }
     if (challenge_streak > 1) {
         earnings += `\`+📀${number_with_commas(truguts.challenge_streak * challenge_streak)}\` ${(challenge_streak)}-Challenge Streak\n`
@@ -1113,6 +1120,13 @@ exports.challengeWinnings = function ({ current_challenge, submitted_time, user_
     //carried the verdict since. Neither touches the time, the PB or the leaderboard.
     const heat_penalty = current_challenge.heat_penalty
     const penalty_spec = heat_penalty ? heat_tuning.PENALTIES[heat_penalty.key] : null
+
+    //Home Turf: your own planet pays a little better, which is what makes the role
+    //worth wearing for a player who never bribes at all
+    if (perks?.citizen) {
+        multipliers += `\`×${heat_tuning.HOME.earnings}\` *🏡${perks.title}*\n`
+        earnings_total *= heat_tuning.HOME.earnings
+    }
 
     //Danger money: heat pays -- but only for getting away with it. A bribe that was caught
     //forfeits the bonus entirely, and so does a challenge rerolled into after fleeing a
@@ -2511,6 +2525,20 @@ exports.shopOptions = function ({ user_profile, player, db, selection } = {}) {
                 name: "💰"
             }
         }]),
+        //Amnesty only exists while there is a banishment to lift, and its price is the
+        //fine the host set rather than a shop number
+        ...(exports.banishment(user_profile) ? [{
+            label: `Amnesty`,
+            value: 'amnesty',
+            price: exports.banishment(user_profile).fine ?? heat_tuning.BANISHMENT.fine,
+            description: `Buy back your ${exports.banishment(user_profile).title ?? 'citizen'} role`,
+            info: `You pushed it too far at home and they took your name off the rolls. Settle the fine and the role is yours to wear again.
+
+The other way back costs nothing but time: finish ${exports.banishment(user_profile).clean_needed} more challenge${exports.banishment(user_profile).clean_needed == 1 ? '' : 's'} on that planet without bribing, and they will come round on their own.`,
+            emoji: {
+                name: "🏡"
+            }
+        }] : []),
         //Spice Run sells heat rather than buying anything, so it's priced at nothing and
         //only appears when it can actually be run: the collection, enough heat to be
         //worth selling, and a day since the last one.
@@ -4364,6 +4392,44 @@ exports.bribeBlacklist = function (user_profile) {
 //because the player has to see the outcome before deciding whether to race (docs/heat.md 4).
 exports.rollHeatPenalty = function ({ user_profile, perks, delta, current_challenge, available } = {}) {
     const heat = Math.round(exports.heatValue(user_profile))
+
+    //One chance roll decides whether anything happens at all; what happens is chosen after.
+    //Banished respects this cap like everything else -- docs/heat.md 4.1 promises you are
+    //always getting away with one bribe in five, and the harshest penalty in the game is
+    //the last place to break that promise.
+    if (Math.random() * 100 >= Math.min(heat, heat_tuning.ROLL.cap)) {
+        return null
+    }
+
+    //Banished is a threshold rather than a weighted pick, and it is chosen before the tier
+    //because Friends in High Places below would otherwise make it unreachable: a citizen's
+    //tier is always softened below Busted, so a Tier III entry could never fire. Pushing it
+    //to the cap on your own planet is its own answer -- being a local is exactly why the
+    //host takes it personally, and no favour covers this one.
+    if (perks?.citizen && heat >= heat_tuning.MAX && !exports.banishment(user_profile)) {
+        const spec = heat_tuning.PENALTIES.banished
+        const host = perks?.planet?.host ?? null
+        return {
+            key: 'banished',
+            tier: 'Banished',
+            title: spec.title,
+            host,
+            flavor: spec.flavor[Math.floor(Math.random() * spec.flavor.length)].replace('${host}', host ?? 'Somebody'),
+            extra_cost: 0,
+            update: {},
+            banish: {
+                planet: perks.planet.name.toLowerCase().replaceAll(" ", "_"),
+                name: perks.planet.name,
+                role: perks.planet.role,
+                title: perks.planet.citizen,
+                clean_needed: heat_tuning.BANISHMENT.clean_challenges,
+                fine: heat_tuning.BANISHMENT.fine,
+                since: Date.now()
+            },
+            rolled: Date.now()
+        }
+    }
+
     let tier_index = exports.heatTier(heat)
     //Friends in High Places: a citizen on their own planet has someone to soften it, and
     //the softest tier softens into nothing at all
@@ -4371,9 +4437,6 @@ exports.rollHeatPenalty = function ({ user_profile, perks, delta, current_challe
         tier_index -= 1
     }
     if (tier_index < 0) {
-        return null
-    }
-    if (Math.random() * 100 >= Math.min(heat, heat_tuning.ROLL.cap)) {
         return null
     }
     const tier = heat_tuning.TIERS[tier_index]
@@ -4478,8 +4541,26 @@ exports.penaltyLine = function (current_challenge) {
     }
     const detail = penalty.key == 'blacklisted' && penalty.until
         ? ` No bribes until <t:${Math.round(penalty.until / 1000)}:t>.`
-        : ''
+        : penalty.key == 'banished' && penalty.banish
+            ? ` Pay \`📀${number_with_commas(penalty.banish.fine)}\` or finish ${penalty.banish.clean_needed} clean challenges on ${penalty.banish.name ?? penalty.banish.planet.replaceAll('_', ' ')} to win them back.`
+            : ''
     return `💥 **${penalty.title}** · *${penalty.flavor}${detail}*`
+}
+
+//when the player may next claim a citizenship, or null if they may now
+exports.citizenshipCooldown = function (user_profile) {
+    const switched = user_profile?.citizenship?.switched
+    if (!switched) {
+        return null
+    }
+    const until = switched + heat_tuning.CITIZENSHIP.switch_cooldown_hours * 60 * 60 * 1000
+    return until > Date.now() ? until : null
+}
+
+//the standing banishment, if any. Holds the planet key it applies to and what's left to do
+exports.banishment = function (user_profile) {
+    const b = user_profile?.banishment
+    return b?.planet ? b : null
 }
 
 //Spice Run is once a day; returns when the next one is available, or null if it's ready

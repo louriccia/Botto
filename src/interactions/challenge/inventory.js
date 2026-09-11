@@ -1,4 +1,4 @@
-const { manageTruguts, randomChallengeItem, inventoryComponents, inventoryEmbed, Collections, collectionReward, collectionRewardEmbed, openCoffer, itemString, tradeEmbed, tradeComponents, availableItemsforScrap, availableItemsforCollection, availableItemsforRepairs, heatValue, applyHeat } = require('./functions.js');
+const { manageTruguts, randomChallengeItem, inventoryComponents, inventoryEmbed, Collections, collectionReward, collectionRewardEmbed, openCoffer, itemString, tradeEmbed, tradeComponents, availableItemsforScrap, availableItemsforCollection, availableItemsforRepairs, heatValue, applyHeat, citizenshipCooldown, banishment } = require('./functions.js');
 const heat_tuning = require('../../data/challenge/heat.js');
 const { postMessage, editMessage } = require('../../discord.js');
 const { planets } = require('../../data/sw_racer/planet.js')
@@ -485,7 +485,31 @@ exports.inventory = async function ({ interaction, user_profile, profile_ref, db
                         interaction.reply({ embeds: [holdUp], ephemeral: true })
                         return
                     }
+                    //Banished: the host isn't having you back until it's settled
+                    const banished = banishment(user_profile)
+                    if (banished?.planet == planet_key) {
+                        const holdUp = new EmbedBuilder()
+                            .setTitle("<:WhyNobodyBuy:589481340957753363> You were banished from here")
+                            .setDescription(`${p.name} wants nothing to do with you yet. Pay the \`📀${number_with_commas(banished.fine)}\` fine at the shop, or finish ${banished.clean_needed} more challenge${banished.clean_needed == 1 ? '' : 's'} on ${p.name} without bribing ${banished.clean_needed == 1 ? 'it' : 'them'}.`)
+                        interaction.reply({ embeds: [holdUp], ephemeral: true })
+                        return
+                    }
+                    //a claim has to sit for a day before another will take, so Home Turf
+                    //can't be hot-swapped onto whatever planet the challenge landed on
+                    const already = user_profile.citizenship?.planet == planet_key
+                        && Member.roles.cache.some(r => r.id === p.role)
+                    const cooldown = citizenshipCooldown(user_profile)
+                    if (cooldown && !already) {
+                        const holdUp = new EmbedBuilder()
+                            .setTitle("<:WhyNobodyBuy:589481340957753363> Citizenship takes time")
+                            .setDescription(`Somebody has to vouch for you, and word travels slowly out here. You can claim a new citizenship <t:${Math.round(cooldown / 1000)}:R>.`)
+                        interaction.reply({ embeds: [holdUp], ephemeral: true })
+                        return
+                    }
                     await Member.roles.add(p.role).catch(error => console.log(error))
+                    if (!already) {
+                        profile_ref.child('citizenship').update({ planet: planet_key, switched: Date.now() })
+                    }
                 } else if (Member.roles.cache.some(r => r.id === p.role)) {
                     await Member.roles.remove(p.role).catch(error => console.log(error))
                 }

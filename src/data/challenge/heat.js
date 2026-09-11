@@ -185,6 +185,13 @@ exports.PENALTIES = {
             '${host} made an example of you and charged you a fine.'
         ]
     },
+    banished: {
+        title: 'Banished',
+        flavor: [
+            '${host} revoked your citizenship on the spot.',
+            '${host} told the whole planet you are no longer one of them.'
+        ]
+    },
     blacklisted: {
         title: 'Blacklisted',
         minutes: 30,
@@ -221,4 +228,48 @@ exports.SPICE_RUN = {
     heat: 25,
     truguts: 5000,
     cooldown_hours: 24
+};
+
+// ---------------------------------------------------------------------------
+// Citizenship
+// ---------------------------------------------------------------------------
+
+// Home Turf halves heat and Friends in High Places softens a verdict, both of which would
+// be worth hot-swapping citizenship for if you could do it per challenge. You can't: a
+// claim has to sit for a day before another one will take.
+//
+// The design also wanted a freshly claimed citizenship to start under suspicion, with the
+// perks withheld for its first few challenges. Dropped: the cooldown already closes the
+// hot-swap it was aimed at, so all suspicion would add is a tax on somebody's first ever
+// claim, which is the one moment the feature should feel like a reward.
+exports.CITIZENSHIP = {
+    switch_cooldown_hours: 24
+};
+
+// Banished. The harshest thing in the system, and the only one that takes something the
+// player ground a whole collection for.
+//
+// It is a *threshold*, not a weighted tier entry, which resolves a contradiction in the
+// design: Friends in High Places softens a citizen's tier by one, so a citizen can never
+// roll Busted at all, and a Tier III Banished would have been unreachable by construction.
+// Firing it at max heat on your own planet instead says the right thing anyway -- you
+// pushed it too far in the one place that was supposed to be safe, and being a local is
+// exactly why the host takes it personally.
+//
+// Two independent ways back, so nobody is ever stuck and neither route is strictly better:
+// pay the host off, or race clean on their planet until they come round.
+//
+// ** My defaults. The fine is roughly ten bribes.
+exports.BANISHMENT = {
+    fine: 50000,
+    clean_challenges: 3
+};
+
+// What citizenship is worth beyond heat, so the role is worth wearing for players who
+// never bribe at all.
+exports.HOME = {
+    // earnings multiplier on your own planet's tracks
+    earnings: 1.1,
+    // your day streak pays double for showing up at home
+    day_streak: 2
 };
