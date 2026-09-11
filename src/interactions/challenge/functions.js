@@ -354,12 +354,12 @@ exports.generateChallengeTitle = function (current_challenge) {
     //the literal emoji, not the :moneybag: shorthand the racer and track use: those
     //replace a longer custom emoji, while these are pure additions to a title capped
     //at 255 characters. Both render the same in Discord.
-    const paid = k => bought.includes(k) ? '💰' : ''
-    let nutext = current_challenge.conditions.nu ? " with **NO UPGRADES**" + paid('nu') : ""
-    let skipstext = current_challenge.conditions.skips ? " with **SKIPS**" + paid('skips') : ""
-    let laptext = current_challenge.conditions.laps !== 3 ? " for **" + current_challenge.conditions.laps + " Lap" + (current_challenge.conditions.laps > 1 ? "s" : "") + "**" + paid('laps') : ""
-    let mirrortext = current_challenge.conditions.mirror && current_challenge.conditions.backwards ? ", **MIRRORED and BACKWARDS!**" + (paid('mirror') || paid('backwards')) : (current_challenge.conditions.mirror ? ", **MIRRORED!**" + paid('mirror') : "")
-    let backwardstext = current_challenge.conditions.backwards && !current_challenge.conditions.mirror ? ", **BACKWARDS!**" + paid('backwards') : ""
+    const paid = k => bought.includes(k) ? '💰 ' : ''
+    let nutext = current_challenge.conditions.nu ? " with " + paid('nu') + "**NO UPGRADES**" : ""
+    let skipstext = current_challenge.conditions.skips ? " with " + paid('skips') + "**SKIPS**" : ""
+    let laptext = current_challenge.conditions.laps !== 3 ? " for " + paid('laps') + "**" + current_challenge.conditions.laps + " Lap" + (current_challenge.conditions.laps > 1 ? "s" : "") + "**" : ""
+    let mirrortext = current_challenge.conditions.mirror && current_challenge.conditions.backwards ? ", " + (paid('mirror') || paid('backwards')) + "**MIRRORED and BACKWARDS!**" : (current_challenge.conditions.mirror ? ", " + paid('mirror') + "**MIRRORED!**" : "")
+    let backwardstext = current_challenge.conditions.backwards && !current_challenge.conditions.mirror ? ", " + paid('backwards') + "**BACKWARDS!**" : ""
     let bribed_racer = current_challenge.racer_bribe ? "*" : ""
     let bribed_track = current_challenge.track_bribe ? "*" : ""
     let prefix = current_challenge.bounties && current_challenge.bounties.length ? ":dart: Challenge Bounty\n" : ""
