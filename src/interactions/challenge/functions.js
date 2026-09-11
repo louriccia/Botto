@@ -4402,7 +4402,7 @@ exports.bribeBlacklist = function (user_profile) {
 //The chance is the heat the player walked in with, *before* this bribe's own gain -- a
 //first bribe from a cold profile is always safe. Rolled here rather than at submit time
 //because the player has to see the outcome before deciding whether to race (docs/heat.md 4).
-exports.rollHeatPenalty = function ({ user_profile, perks, delta, current_challenge, available } = {}) {
+exports.rollHeatPenalty = function ({ user_profile, perks, delta, current_challenge, available = Infinity } = {}) {
     const heat = exports.heatValue(user_profile)
 
     //One chance roll decides whether anything happens at all; what happens is chosen after.
@@ -4509,6 +4509,16 @@ exports.rollHeatPenalty = function ({ user_profile, perks, delta, current_challe
         if (swap == 'track') {
             const pool = getTracks().map((t, i) => i).filter(i => i !== delta.update.track)
             penalty.update.track = pool.length ? getRandomElement(pool) : delta.update.track
+            //bribeDelta clears a stranded skips condition when the player changes track,
+            //but this swap happens after that ran -- and 13 of the 25 tracks have no skip
+            //goal times, so a misdelivery would otherwise leave a challenge demanding
+            //skips on a track the bot doesn't believe has any
+            if (!tracks[penalty.update.track]?.parskiptimes) {
+                const conditions = delta.update.conditions ?? current_challenge.conditions ?? {}
+                if (conditions.skips) {
+                    penalty.update.conditions = { ...conditions, skips: false }
+                }
+            }
         } else {
             const pool = racers.slice(0, 23).map(r => r.racernum - 1).filter(i => i !== delta.update.racer)
             penalty.update.racer = pool.length ? getRandomElement(pool) : delta.update.racer

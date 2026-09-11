@@ -17,9 +17,11 @@ exports.bribe = async function ({ current_challenge, current_challenge_ref, inte
 
     //Blacklisted: a previous roll had the player walked out of the pits. This is the
     //authoritative check -- challengeComponents also hides the button, but a stale message
-    //can still deliver the press
+    //can still deliver the press. Cancel is deliberately exempt: it only puts the card
+    //back, and refusing it would leave a blacklisted player stuck on a staged bribe UI
+    //with no way out of it.
     const blacklisted = bribeBlacklist(user_profile)
-    if (blacklisted) {
+    if (blacklisted && args[2] !== 'cancel') {
         const holdUp = new EmbedBuilder()
             .setTitle("<:WhyNobodyBuy:589481340957753363> Your money's no good here")
             .setDescription(`Word got around. Nobody in the pits will take your bribe until <t:${Math.round(blacklisted / 1000)}:t>.`)
@@ -117,11 +119,11 @@ exports.bribe = async function ({ current_challenge, current_challenge_ref, inte
             user_profile.effects = { ...(user_profile.effects ?? {}), bribe_blacklist: penalty.until }
         }
 
-        //the penalty's own changes land on top of the staged ones -- Wrong Guy overwrites
-        //the pick the player made, and The Handicap adds a condition they didn't ask for
-        //the receipt shows what was charged, not list price -- a citizen pays nothing and
-        //Short Count and The Fine add to it. Accumulates, because track and racer can be
-        //bought in separate presses on the same challenge
+        //The penalty's own changes land on top of the staged ones: Wrong Guy overwrites the
+        //pick the player made, and The Handicap adds a condition they didn't ask for.
+        //bribe_cost records what was actually charged rather than list price -- a citizen
+        //pays nothing, and Short Count and The Fine add to it -- and accumulates, because
+        //track and racer can be bought in separate presses on the same challenge.
         const bribe_update = { ...delta.update, ...(penalty?.update ?? {}), predictions: {}, created: Date.now(), bribe_cost: (current_challenge.bribe_cost ?? 0) + charged }
         if (penalty) {
             bribe_update.heat_penalty = penalty

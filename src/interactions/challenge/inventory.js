@@ -474,45 +474,57 @@ exports.inventory = async function ({ interaction, user_profile, profile_ref, db
     } else if (args[2] == 'citizen') {
         if (interaction.guild.id == swe1r_guild) {
             const Member = await interaction.guild.members.fetch(member_id)
+            const claimed = planets.find(p => interaction.values.includes(p.role)) ?? null
+            const claimed_key = claimed ? planetKey(claimed) : null
+            //the player already wears this one, so re-selecting it is not a switch
+            const already = !!claimed && user_profile.citizenship?.planet == claimed_key
+                && Member.roles.cache.some(r => r.id === claimed.role)
+
+            //Every refusal has to be decided before a single role is touched. The loop
+            //below unequips as it goes, so returning from inside it used to strip the
+            //citizenship the player already had and then refuse the new one -- losing them
+            //a role they'd ground a collection for, with the cooldown still running.
+            const refuse = (title, description) => {
+                interaction.reply({ embeds: [new EmbedBuilder().setTitle(title).setDescription(description)], ephemeral: true })
+                return false
+            }
+            const allowed = () => {
+                if (!claimed) {
+                    return true
+                }
+                //citizenship must be unlocked by completing the planet's collection
+                if (!user_profile.effects?.[claimed_key]) {
+                    return refuse("<:WhyNobodyBuy:589481340957753363> Citizenship must be earned!",
+                        `Complete the ${claimed.name} Collection to unlock the ${claimed.citizen} role.`)
+                }
+                //Banished: the host isn't having you back until it's settled
+                const banished = banishment(user_profile)
+                if (banished?.planet == claimed_key) {
+                    return refuse("<:WhyNobodyBuy:589481340957753363> You were banished from here",
+                        `${claimed.name} wants nothing to do with you yet. Pay the \`📀${number_with_commas(banished.fine)}\` fine at the shop, or finish ${banished.clean_needed} more challenge${banished.clean_needed == 1 ? '' : 's'} on ${claimed.name} without bribing ${banished.clean_needed == 1 ? 'it' : 'them'}.`)
+                }
+                //a claim has to sit for a day before another will take, so Home Turf can't
+                //be hot-swapped onto whatever planet the challenge landed on
+                const cooldown = citizenshipCooldown(user_profile)
+                if (cooldown && !already) {
+                    return refuse("<:WhyNobodyBuy:589481340957753363> Citizenship takes time",
+                        `Somebody has to vouch for you, and word travels slowly out here. You can claim a new citizenship <t:${Math.round(cooldown / 1000)}:R>.`)
+                }
+                return true
+            }
+            if (!allowed()) {
+                return
+            }
+
             for (const p of planets) {
-                const planet_key = planetKey(p)
-                if (interaction.values.includes(p.role)) {
-                    //citizenship must be unlocked by completing the planet's collection
-                    if (!user_profile.effects?.[planet_key]) {
-                        const holdUp = new EmbedBuilder()
-                            .setTitle("<:WhyNobodyBuy:589481340957753363> Citizenship must be earned!")
-                            .setDescription(`Complete the ${p.name} Collection to unlock the ${p.citizen} role.`)
-                        interaction.reply({ embeds: [holdUp], ephemeral: true })
-                        return
-                    }
-                    //Banished: the host isn't having you back until it's settled
-                    const banished = banishment(user_profile)
-                    if (banished?.planet == planet_key) {
-                        const holdUp = new EmbedBuilder()
-                            .setTitle("<:WhyNobodyBuy:589481340957753363> You were banished from here")
-                            .setDescription(`${p.name} wants nothing to do with you yet. Pay the \`📀${number_with_commas(banished.fine)}\` fine at the shop, or finish ${banished.clean_needed} more challenge${banished.clean_needed == 1 ? '' : 's'} on ${p.name} without bribing ${banished.clean_needed == 1 ? 'it' : 'them'}.`)
-                        interaction.reply({ embeds: [holdUp], ephemeral: true })
-                        return
-                    }
-                    //a claim has to sit for a day before another will take, so Home Turf
-                    //can't be hot-swapped onto whatever planet the challenge landed on
-                    const already = user_profile.citizenship?.planet == planet_key
-                        && Member.roles.cache.some(r => r.id === p.role)
-                    const cooldown = citizenshipCooldown(user_profile)
-                    if (cooldown && !already) {
-                        const holdUp = new EmbedBuilder()
-                            .setTitle("<:WhyNobodyBuy:589481340957753363> Citizenship takes time")
-                            .setDescription(`Somebody has to vouch for you, and word travels slowly out here. You can claim a new citizenship <t:${Math.round(cooldown / 1000)}:R>.`)
-                        interaction.reply({ embeds: [holdUp], ephemeral: true })
-                        return
-                    }
+                if (claimed && p.role == claimed.role) {
                     await Member.roles.add(p.role).catch(error => console.log(error))
-                    if (!already) {
-                        profile_ref.child('citizenship').update({ planet: planet_key, switched: Date.now() })
-                    }
                 } else if (Member.roles.cache.some(r => r.id === p.role)) {
                     await Member.roles.remove(p.role).catch(error => console.log(error))
                 }
+            }
+            if (claimed && !already) {
+                profile_ref.child('citizenship').update({ planet: claimed_key, switched: Date.now() })
             }
         }
     } else if (args[2] == 'icon') {
