@@ -1633,13 +1633,14 @@ exports.challengeContainer = async function ({ current_challenge, user_profile, 
         //the citizen role is the one ability with a visible identity, so it gets a
         //badge on the card rather than only surfacing as a discount at bribe time
         const citizen_badge = perks?.citizen ? ` · ${perks.planet.emoji} ${perks.title}` : ''
-        //balance, then the gauge. The verdict is not here -- it sits under the bribe
-        //receipt in the description, so the two read as one transaction
+        //balance, citizen badge and heat all ride one footer line. The verdict is not
+        //here -- it sits under the bribe receipt in the description, so the bribe and
+        //what it cost read as one transaction
         const subtext = [
-            `-# Truguts: \`📀${exports.currentTruguts(user_profile)}\`${citizen_badge}`,
-            exports.heatLine({ user_profile, perks })
-        ].filter(Boolean).join('\n')
-        container.addTextDisplayComponents(new TextDisplayBuilder().setContent(subtext))
+            `Truguts: \`📀${exports.currentTruguts(user_profile)}\`${citizen_badge}`,
+            exports.heatLine({ user_profile })
+        ].filter(Boolean).join(' · ')
+        container.addTextDisplayComponents(new TextDisplayBuilder().setContent(`-# ${subtext}`))
     } else if (['cotd', 'cotm'].includes(current_challenge.type)) {
         container.addTextDisplayComponents(new TextDisplayBuilder().setContent(`-# <t:${Math.round(current_challenge.created / 1000)}:f>`))
     }
@@ -4267,13 +4268,12 @@ exports.applyHeat = function ({ user_profile, profile_ref, amount } = {}) {
 //anyone who has never bribed never meets the mechanic at all. The host of the
 //challenge's planet is the one taking an interest -- heat is their patience, not a
 //police meter, so it is always somebody by name doing the watching.
-exports.heatLine = function ({ user_profile, perks } = {}) {
+exports.heatLine = function ({ user_profile } = {}) {
     const value = Math.round(exports.heatValue(user_profile))
     if (!value) {
         return ''
     }
-    const host = perks?.planet?.host
-    return `-# Heat: 🔥${value}/${heat_tuning.MAX}`
+    return `Heat: 🔥${value}/${heat_tuning.MAX}`
         + (heat_tuning.PREVIEW_NOTE ? ` · ${heat_tuning.PREVIEW_NOTE}` : '')
 }
 
