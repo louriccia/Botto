@@ -1073,6 +1073,30 @@ exports.challengeWinnings = function ({ current_challenge, submitted_time, user_
         earnings_total *= 2
     }
 
+    //The Cut and Nothing For You were rolled when the bribe was made and the challenge has
+    //carried the verdict since. Neither touches the time, the PB or the leaderboard.
+    const heat_penalty = current_challenge.heat_penalty
+    const penalty_spec = heat_penalty ? heat_tuning.PENALTIES[heat_penalty.key] : null
+
+    //Danger money: heat pays -- but only for getting away with it. A bribe that was caught
+    //forfeits the bonus entirely, because otherwise the two multiply: x1.90 Running Hot
+    //against The Cut's x0.5 lands a 90-heat player within 5% of a cold one, and a penalty
+    //that cancels itself out isn't a penalty. Carrying heat on a challenge you didn't bribe
+    //still pays -- that's risk you're holding, and the whole reason to choose to run hot.
+    //Read live rather than snapshotted: pumping heat by bribing a different challenge costs
+    //far more than the multiplier ever returns.
+    const heat_now = Math.round(exports.heatValue(user_profile))
+    if (heat_now > 0 && !heat_penalty) {
+        const running_hot = 1 + heat_now / heat_tuning.MAX
+        multipliers += `\`×${running_hot.toFixed(2)}\` *🔥Running Hot* (heat ${heat_now})\n`
+        earnings_total *= running_hot
+    }
+
+    if (penalty_spec && penalty_spec.earnings !== undefined) {
+        multipliers += `\`×${penalty_spec.earnings}\` *💥${heat_penalty.title}*\n`
+        earnings_total *= penalty_spec.earnings
+    }
+
     earnings_total = Math.round(earnings_total)
 
     //sabotage, only one can be triggered
@@ -1570,9 +1594,13 @@ exports.challengeContainer = async function ({ current_challenge, user_profile, 
         //the citizen role is the one ability with a visible identity, so it gets a
         //badge on the card rather than only surfacing as a discount at bribe time
         const citizen_badge = perks?.citizen ? ` · ${perks.planet.emoji} ${perks.title}` : ''
-        const heat_line = exports.heatLine({ user_profile, perks })
-        container.addTextDisplayComponents(new TextDisplayBuilder().setContent(`-# Truguts: \`📀${exports.currentTruguts(user_profile)}\`${citizen_badge}${heat_line ? `
-${heat_line}` : ''}`))
+        //balance, then the gauge, then what the last bribe's roll did to this challenge
+        const subtext = [
+            `-# Truguts: \`📀${exports.currentTruguts(user_profile)}\`${citizen_badge}`,
+            exports.heatLine({ user_profile, perks }),
+            exports.penaltyLine(current_challenge)
+        ].filter(Boolean).join('\n')
+        container.addTextDisplayComponents(new TextDisplayBuilder().setContent(subtext))
     } else if (['cotd', 'cotm'].includes(current_challenge.type)) {
         container.addTextDisplayComponents(new TextDisplayBuilder().setContent(`-# <t:${Math.round(current_challenge.created / 1000)}:f>`))
     }
@@ -1700,7 +1728,8 @@ exports.challengeComponents = function (current_challenge, user_profile, db, per
         //in-system track swap -- hiding the button behind the price left both of them
         //unable to use an ability they'd finished a whole collection for
         const free_bribe = !!perks?.citizen || (!!perks?.smuggling && !current_challenge.track_bribe)
-        if (bribes_left && (free_bribe || current_truguts >= truguts.bribe_track || current_truguts >= truguts.bribe_racer)) {
+        //Blacklisted: nobody in the pits is taking this player's money for now
+        if (bribes_left && !exports.bribeBlacklist(user_profile) && (free_bribe || current_truguts >= truguts.bribe_track || current_truguts >= truguts.bribe_racer)) {
             row.addComponents(
                 new ButtonBuilder()
                     .setCustomId("challenge_random_bribe")
@@ -4208,6 +4237,140 @@ exports.heatLine = function ({ user_profile, perks } = {}) {
     return `-# 🔥 Heat ${value}/${heat_tuning.MAX}`
         + (host ? ` · ${host} is taking an interest` : '')
         + (heat_tuning.PREVIEW_NOTE ? ` · ${heat_tuning.PREVIEW_NOTE}` : '')
+}
+
+//which tier a heat value falls in, as an index into heat_tuning.TIERS, or -1 for none
+exports.heatTier = function (value) {
+    let tier = -1
+    heat_tuning.TIERS.forEach((t, i) => {
+        if (value >= t.min) {
+            tier = i
+        }
+    })
+    return tier
+}
+
+//is the player barred from bribing, and until when? Blacklisted writes a timestamp;
+//anything in the past is spent.
+exports.bribeBlacklist = function (user_profile) {
+    const until = user_profile?.effects?.bribe_blacklist
+    return until && until > Date.now() ? until : null
+}
+
+//Roll a bribe for a penalty. Returns null for a clean bribe, otherwise a descriptor the
+//caller applies: extra_cost is added to what the bribe charges, update is merged into the
+//challenge, and the whole thing is stamped on the challenge as heat_penalty so the card
+//can say what happened and challengeWinnings can price it.
+//
+//The chance is the heat the player walked in with, *before* this bribe's own gain -- a
+//first bribe from a cold profile is always safe. Rolled here rather than at submit time
+//because the player has to see the outcome before deciding whether to race (docs/heat.md 4).
+exports.rollHeatPenalty = function ({ user_profile, perks, delta, current_challenge, available } = {}) {
+    const heat = Math.round(exports.heatValue(user_profile))
+    let tier_index = exports.heatTier(heat)
+    //Friends in High Places: a citizen on their own planet has someone to soften it, and
+    //the softest tier softens into nothing at all
+    if (perks?.citizen) {
+        tier_index -= 1
+    }
+    if (tier_index < 0) {
+        return null
+    }
+    if (Math.random() * 100 >= Math.min(heat, heat_tuning.ROLL.cap)) {
+        return null
+    }
+    const tier = heat_tuning.TIERS[tier_index]
+
+    //weighted pick within the tier
+    const total = tier.penalties.reduce((sum, p) => sum + p.weight, 0)
+    let draw = Math.random() * total
+    let key = tier.penalties[tier.penalties.length - 1].key
+    for (const p of tier.penalties) {
+        draw -= p.weight
+        if (draw < 0) {
+            key = p.key
+            break
+        }
+    }
+
+    //a penalty that can't apply substitutes the tier's fallback rather than being thrown
+    //away -- a wasted roll is a roll the player would learn to retry for
+    const bribed_picks = ['track', 'racer'].filter(k => delta.changes.includes(k))
+    const staged_conditions = delta.update.conditions ?? current_challenge.conditions ?? {}
+    const open_conditions = (heat_tuning.PENALTIES.handicap.conditions ?? []).filter(k => !staged_conditions[k])
+    const applies = k => {
+        if (k == 'wrong_guy') {
+            return bribed_picks.length > 0
+        }
+        if (k == 'handicap') {
+            return open_conditions.length > 0
+        }
+        if (k == 'short_count') {
+            return available >= delta.cost * heat_tuning.PENALTIES.short_count.multiplier
+        }
+        if (k == 'fine') {
+            return available >= delta.cost + delta.full_cost * heat_tuning.PENALTIES.fine.fine_multiplier
+        }
+        return true
+    }
+    if (!applies(key)) {
+        key = applies(tier.fallback) ? tier.fallback : tier.penalties.map(p => p.key).find(applies)
+    }
+    if (!key) {
+        return null
+    }
+
+    const spec = heat_tuning.PENALTIES[key]
+    const penalty = {
+        key,
+        tier: tier.name,
+        title: spec.title,
+        host: perks?.planet?.host ?? null,
+        extra_cost: 0,
+        update: {},
+        rolled: Date.now()
+    }
+    const flavor = spec.flavor[Math.floor(Math.random() * spec.flavor.length)]
+    penalty.flavor = flavor.replace('${host}', penalty.host ?? 'Somebody')
+
+    if (key == 'wrong_guy') {
+        //misdeliver exactly one of the things they bribed for, so the bribe isn't wholly
+        //wasted -- this is the coldest tier
+        const swap = bribed_picks[Math.floor(Math.random() * bribed_picks.length)]
+        if (swap == 'track') {
+            const pool = getTracks().map((t, i) => i).filter(i => i !== delta.update.track)
+            penalty.update.track = pool.length ? pool[Math.floor(Math.random() * pool.length)] : delta.update.track
+        } else {
+            const pool = racers.slice(0, 23).map(r => r.racernum - 1).filter(i => i !== delta.update.racer)
+            penalty.update.racer = pool.length ? pool[Math.floor(Math.random() * pool.length)] : delta.update.racer
+        }
+        penalty.swapped = swap
+    } else if (key == 'short_count') {
+        penalty.extra_cost = delta.cost * (spec.multiplier - 1)
+    } else if (key == 'handicap') {
+        const forced = open_conditions[Math.floor(Math.random() * open_conditions.length)]
+        penalty.update.conditions = { ...staged_conditions, [forced]: true }
+        penalty.forced = forced
+    } else if (key == 'fine') {
+        //billed off full_cost, so being local doesn't make a fine free
+        penalty.extra_cost = delta.full_cost * spec.fine_multiplier
+    } else if (key == 'blacklisted') {
+        penalty.until = Date.now() + spec.minutes * 60 * 1000
+    }
+    //cut and nothing_for_you carry no update at all -- challengeWinnings reads the key
+    return penalty
+}
+
+//what a stamped penalty did, as one subtext line under the gauge
+exports.penaltyLine = function (current_challenge) {
+    const penalty = current_challenge?.heat_penalty
+    if (!penalty) {
+        return ''
+    }
+    const detail = penalty.key == 'blacklisted' && penalty.until
+        ? ` No bribes until <t:${Math.round(penalty.until / 1000)}:t>.`
+        : ''
+    return `-# 💥 **${penalty.title}** · ${penalty.flavor}${detail}`
 }
 
 //a challenge finished without bribing it cools the player off

@@ -7,8 +7,9 @@ fee, which means it is a wall for new players and free for rich ones. **Heat** r
 price with a rate — and gives the two most-ignored collection abilities a job.
 
 **Partly shipped.** §10 is the plan of record and says which stages are built: stage 0
-(surfacing the abilities that already existed), stages 1–2 (heat accrues and decays) and
-stage 3 (the player can see it) are live, and nothing yet reads heat against the player. The roll, the penalties and the upside are
+(surfacing the abilities that already existed) through stage 4 (accrual, decay, the gauge,
+and the roll) are live. Stages 5 and 6 — the items and shop around heat, and citizenship as a
+real commitment, Banished included — are still a design to be argued with. The roll, the penalties and the upside are
 still a design to be argued with — which is the point of shipping accrual dark first, and
 why §3.3 now reports measurements instead of estimates.
 
@@ -219,7 +220,9 @@ writes straight into the existing `conditions` object, no new plumbing at all.*
 - **The Fine** — an immediate `3×` bribe cost, taken on the spot.
 - **Blacklisted** — no bribes for 30 minutes.
 - **Banished** — only if you hold a citizenship on the challenge's planet: the host strips the
-  role until you pay a fine or complete three clean challenges there. See §7.2.
+  role until you pay a fine or complete three clean challenges there. See §7.2. *Not in the
+  shipped table yet — stripping a role and running a recovery is a state machine rather than
+  a payout change, so it lands with the citizenship work in stage 6.*
 
 The tier is picked by heat; the specific penalty is rolled within the tier. A citizen on
 their home planet rolls one tier lower (§7.2), which is the whole payoff of the ability.
@@ -252,9 +255,19 @@ Trugut Boost, Fame and Fortune and the rest, and reads on the receipt the same w
 `×1.6` *🔥Running Hot*
 ```
 
-Sizing note: this is the number most likely to need tuning after launch. If bribing becomes
-strictly profitable at high heat, drop the coefficient to `heat/200` before touching
-anything else.
+**A caught bribe forfeits it entirely.** Danger money is payment for *getting away with it*,
+so a challenge carrying a `heat_penalty` pays no multiplier at all. This was not in the
+original design and the first build of it was wrong: ×1.90 Running Hot against The Cut's
+×0.5 landed a 90-heat player on 570 truguts where a cold player got 600 — the penalty
+cancelled itself out and stopped being one. Forfeiting also means every penalty, not just the
+two that touch earnings, gets quietly worse the hotter you were, which is the right direction:
+without it only the *tier* scaled with heat.
+
+Carrying heat on a challenge you didn't bribe still pays. That's risk you're holding, and it
+is the whole reason to choose to run hot.
+
+Sizing note: the coefficient is the number most likely to need tuning after launch. If bribing
+becomes strictly profitable at high heat, drop it to `heat/200` before touching anything else.
 
 ---
 
@@ -528,13 +541,44 @@ it's art, not code. A plain number in the meantime.
 
 See below for why the multiplier can't come along early to make the gauge mean more.
 
-### Stage 4 — The roll
+### Stage 4 — The roll · **shipped**
 
-Penalties, danger money (`challengeWinnings`) and Friends in High Places together. One
-structural note: heat lives on the **profile**, but a rolled penalty has to be stamped on
-the **challenge** — `current_challenge.heat_penalty = { type, tier, host }` — because it
-modifies that specific challenge's conditions and payout. `bribe.js` already writes the
-challenge in the same block, so the seam exists.
+| Where | What |
+|---|---|
+| `heat.js` — `ROLL`, `TIERS`, `PENALTIES` | The cap, the tier boundaries, the weights, and what each host says. |
+| `functions.js` — `heatTier()` | Heat → tier index, or −1 for none. |
+| `functions.js` — `rollHeatPenalty()` | The roll, the weighted pick, the fallback substitution, and each penalty's effect. |
+| `functions.js` — `penaltyLine()`, `bribeBlacklist()` | The verdict on the card; whether the player is barred. |
+| `bribe.js` — submit | Rolls *before* charging, since two penalties change the price. Stamps `heat_penalty` on the challenge. |
+| `challengeWinnings` | Running Hot, The Cut, Nothing For You. |
+| `challengeComponents` | Hides the button while Blacklisted. |
+
+Heat lives on the **profile**, but a rolled penalty is stamped on the **challenge** —
+`heat_penalty = { key, tier, title, host, flavor, extra_cost, update }` — because it modifies
+that one challenge's conditions and payout. Blacklisted is the single exception: it outlives
+its challenge, so it also writes `effects.bribe_blacklist`.
+
+Measured over 4,000 rolls per row:
+
+| | clean | outcomes |
+|---|---|---|
+| heat 0 | **100%** | — |
+| heat 20 (Skimmed) | 79% | Wrong Guy 12%, Short Count 9% |
+| heat 50 (Shakedown) | 50% | The Handicap 33%, The Cut 17% |
+| heat 90 (Busted) | 19% | Nothing For You 31%, The Fine 29%, Blacklisted 21% |
+| heat 20, citizen | **100%** | Friends in High Places softens Skimmed into nothing |
+| heat 90, citizen | 20% | The Handicap 51%, The Cut 29% — Busted softened to Shakedown |
+
+Two things the build added to the design:
+
+**No dead rolls.** A penalty that can't apply — Wrong Guy with no pick to misdeliver, The
+Handicap with every condition already on, a cost penalty the player can't cover —
+substitutes the tier's fallback instead of being discarded. A wasted roll is a roll players
+would learn to retry for.
+
+**The roll reads the heat the player walked in with**, before this bribe's own gain. A first
+bribe from a cold profile is therefore always clean, which is the promise the whole design
+rests on: with no heat, the bribe is fine.
 
 ### Stage 5 — The economy around it
 

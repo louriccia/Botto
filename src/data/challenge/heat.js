@@ -8,10 +8,10 @@
 // anything.
 //
 // ---------------------------------------------------------------------------
-// This file carries no presentation and no behaviour -- only the numbers, so there is one
-// place to argue with them. The penalty tiers, the roll, and the host flavour text arrive
-// with the roll itself rather than sitting here unused: dead tuning data reads as shipped
-// behaviour and it is worse than no data at all.
+// This file carries no presentation and no behaviour -- only the numbers and the strings,
+// so there is one place to argue with them. What a penalty *does* lives in
+// interactions/challenge/functions.js; this file only says which ones exist, how often,
+// and what the host says while doing it.
 // ---------------------------------------------------------------------------
 
 exports.MAX = 100;
@@ -59,3 +59,139 @@ exports.DECAY = {
 // implying a risk that isn't live yet. Set this to null when penalties go in and the note
 // disappears from every card in one edit -- put a date in it if one is announced.
 exports.PREVIEW_NOTE = 'penalties not yet active';
+
+// ---------------------------------------------------------------------------
+// The roll
+// ---------------------------------------------------------------------------
+
+// The chance a bribe goes wrong is the player's heat, as a percentage, capped here.
+// Never 100: at the top of the gauge you still get away with one bribe in five, and that
+// survivor's high is most of what makes the mechanic fun rather than punitive.
+//
+// The roll reads the heat the player walked in *with*, before this bribe's own gain. A
+// first bribe from a cold profile is therefore always safe, which is the promise the
+// design was built on: with no heat, the bribe is fine.
+exports.ROLL = {
+    cap: 80
+};
+
+// Penalty tiers, coldest first. `min` is the heat at which a tier takes over; the tier a
+// roll lands in is the last one whose min it has reached.
+//
+// ** The weights below are the single most tuneable set of numbers in the system and they
+// ** are my defaults, not measured ones. Nothing downstream cares what they are: they are
+// ** a weighted pick inside the tier, so any of them can move without touching behaviour.
+// ** Within a tier the weights are relative, not percentages, and need not sum to 100.
+//
+// Each tier keeps a `fallback` that costs the player nothing up front and always applies.
+// A roll that lands on a penalty which can't apply -- Wrong Guy when there's no pick to
+// misdeliver, a cost penalty the player can't cover -- substitutes the fallback rather
+// than being thrown away, so there are no dead rolls and nothing to retry for.
+//
+// Banished is deliberately absent. It belongs to Tier III by design (docs/heat.md 5), but
+// stripping a role and running a recovery -- pay the fine, or three clean challenges on
+// the planet -- is a state machine, not a payout change, so it lands with the rest of the
+// citizenship work in stage 6 and joins this table then.
+exports.TIERS = [
+    {
+        key: 'skimmed',
+        name: 'Skimmed',
+        min: 1,
+        fallback: 'short_count',
+        penalties: [
+            // the characterful one, so it's the common case: you paid, something changed,
+            // it just wasn't your call. Costs nothing you can't absorb.
+            { key: 'wrong_guy', weight: 60 },
+            { key: 'short_count', weight: 40 }
+        ]
+    },
+    {
+        key: 'shakedown',
+        name: 'Shakedown',
+        min: 34,
+        fallback: 'cut',
+        penalties: [
+            // the mechanical heart of the system -- the run stays completely valid, you
+            // just have to earn it -- so it stays dominant here
+            { key: 'handicap', weight: 65 },
+            { key: 'cut', weight: 35 }
+        ]
+    },
+    {
+        key: 'busted',
+        name: 'Busted',
+        min: 67,
+        fallback: 'nothing_for_you',
+        penalties: [
+            { key: 'nothing_for_you', weight: 40 },
+            { key: 'fine', weight: 35 },
+            { key: 'blacklisted', weight: 25 }
+        ]
+    }
+];
+
+// What each penalty is called and what the host says while doing it. ${host} is the
+// planet's own host from data/sw_racer/planet.js -- heat is their patience running out, so
+// it is always somebody by name, never an abstract meter.
+exports.PENALTIES = {
+    wrong_guy: {
+        title: 'Wrong Guy',
+        flavor: [
+            '${host} took your money and sent you to the wrong garage.',
+            '${host} nodded along, pocketed it, and arranged something else entirely.'
+        ]
+    },
+    short_count: {
+        title: 'Short Count',
+        // doubles the bribe. You still get exactly what you paid for, at twice the price.
+        multiplier: 2,
+        flavor: [
+            "${host} counted it twice and decided it was half what you'd agreed.",
+            '${host} raised the price the moment you reached for your truguts.'
+        ]
+    },
+    handicap: {
+        title: 'The Handicap',
+        // forces one condition on. Order is the order they're tried in.
+        conditions: ['mirror', 'backwards', 'nu'],
+        flavor: [
+            '${host} will allow it -- on one condition.',
+            '${host} wants the crowd to get something out of this too.'
+        ]
+    },
+    cut: {
+        title: 'The Cut',
+        earnings: 0.5,
+        flavor: [
+            '${host} is taking a cut of this one.',
+            '${host} will be collecting half your purse, for the paperwork.'
+        ]
+    },
+    nothing_for_you: {
+        title: 'Nothing For You',
+        earnings: 0,
+        flavor: [
+            '${host} is keeping the whole purse. Race it anyway.',
+            "${host} says your truguts are no good here. The race stands, the pay doesn't."
+        ]
+    },
+    fine: {
+        title: 'The Fine',
+        // three times what the bribe would have cost undiscounted -- a citizen is not
+        // exempt from a fine just because they're local, and Friends in High Places has
+        // already softened their tier by the time this can land
+        fine_multiplier: 3,
+        flavor: [
+            '${host} fined you for it, and kept the bribe.',
+            '${host} made an example of you in front of the pit crews.'
+        ]
+    },
+    blacklisted: {
+        title: 'Blacklisted',
+        minutes: 30,
+        flavor: [
+            "${host} put the word out. Nobody's taking your money for a while.",
+            '${host} had you walked out of the pits. Come back later.'
+        ]
+    }
+};

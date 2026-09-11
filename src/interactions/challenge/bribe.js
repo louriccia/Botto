@@ -57,7 +57,8 @@ exports.bribe = async function ({ current_challenge, current_challenge_ref, inte
             interaction.reply({ embeds: [holdUp], ephemeral: true })
             return
         }
-        if (user_profile.truguts_earned - user_profile.truguts_spent < delta.cost) { //can't afford bribe
+        const available = user_profile.truguts_earned - user_profile.truguts_spent
+        if (available < delta.cost) { //can't afford bribe
             let noMoney = new EmbedBuilder()
                 .setTitle("<:WhyNobodyBuy:589481340957753363> Insufficient Truguts")
                 .setDescription("*'No money, no bribe!'*\nYou do not have enough truguts to make this bribe.\n\nBribe cost: `" + number_with_commas(delta.cost) + "`")
@@ -65,21 +66,36 @@ exports.bribe = async function ({ current_challenge, current_challenge_ref, inte
             return
         }
 
+        //Roll for a penalty before charging, because two of them change the price. The
+        //roll reads the heat the player walked in with, so a first bribe from a cold
+        //profile is always clean, and it resolves here rather than at submit time: the
+        //player has to see the outcome before deciding whether to race it
+        const penalty = rollHeatPenalty({ user_profile, perks, delta, current_challenge, available })
+
         //process purchase
         manageTruguts({
-            user_profile, profile_ref, transaction: 'w', amount: delta.cost, purchase: {
+            user_profile, profile_ref, transaction: 'w', amount: delta.cost + (penalty?.extra_cost ?? 0), purchase: {
                 date: Date.now(),
                 purchased_item: 'bribe',
-                selection: delta.changes.join(", ") + (delta.discounts.length ? ` (free: ${delta.discounts.join(', ')})` : '')
+                selection: delta.changes.join(", ")
+                    + (delta.discounts.length ? ` (free: ${delta.discounts.join(', ')})` : '')
+                    + (penalty ? ` [${penalty.title}]` : '')
             }
         })
-        //heat accrues on the bribe itself, whatever it cost -- a free bribe is still a
-        //bribe. Nothing reads it against the player yet (see docs/heat.md stages 1-2);
-        //this is here to gather real numbers before it is allowed to cost anybody
-        //anything
+        //heat accrues on the bribe itself, whatever it cost -- a free bribe is still a bribe
         user_profile = applyHeat({ user_profile, profile_ref, amount: bribeHeat({ delta, perks }) })
+        //Blacklisted is the one penalty that outlives the challenge it was rolled on
+        if (penalty?.until) {
+            profile_ref.child('effects').update({ bribe_blacklist: penalty.until })
+            user_profile.effects = { ...(user_profile.effects ?? {}), bribe_blacklist: penalty.until }
+        }
 
-        const bribe_update = { ...delta.update, predictions: {}, created: Date.now() }
+        //the penalty's own changes land on top of the staged ones -- Wrong Guy overwrites
+        //the pick the player made, and The Handicap adds a condition they didn't ask for
+        const bribe_update = { ...delta.update, ...(penalty?.update ?? {}), predictions: {}, created: Date.now() }
+        if (penalty) {
+            bribe_update.heat_penalty = penalty
+        }
         await current_challenge_ref.update(bribe_update)
 
         //merge locally rather than re-reading db.ch.challenges -- the cache
