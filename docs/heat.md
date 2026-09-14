@@ -247,7 +247,7 @@ writes straight into the existing `conditions` object, no new plumbing at all.*
 ### Tier III — Busted (heat 67+)
 
 - **Nothing For You** — the challenge earns `0` truguts. Time still counts, PB still counts.
-- **The Fine** — an immediate `3×` bribe cost, taken on the spot.
+- **The Fine** — the bribe costs double, billed off the undiscounted price.
 - **Blacklisted** — no bribes for 30 minutes.
 - **Banished** — only if you hold a citizenship on the challenge's planet: the host strips the
   role until you pay a fine or complete three clean challenges there. See §7.2. *Shipped as a
@@ -303,6 +303,39 @@ that heat has already touched — caught, or fled into.
 
 Sizing note: the coefficient is the number most likely to need tuning after launch. If bribing
 becomes strictly profitable at high heat, drop it to `heat/200` before touching anything else.
+
+### 6.1 Does running hot actually pay?
+
+Simulated against the real roll, modelling an unbribed challenge at 2,500 truguts and a bribe
+that secures +9,000 (locking in a Fan Service ×2, say). Absolute numbers move with those
+assumptions; the shape doesn't.
+
+| bribe rate | avg heat | truguts per challenge |
+|---|---|---|
+| never | 0 | 2,500 |
+| 1 in 6 | 20 | 2,738 |
+| **1 in 4** | **38** | **2,878** |
+| 1 in 3 | 61 | 2,762 |
+| 1 in 2 | 84 | 1,864 |
+| every challenge | 98 | −1,438 |
+
+That is the curve the design wanted: a peak in Shakedown territory about 15% above racing
+cold, a gentle falloff, and bribing every single challenge firmly unprofitable.
+
+**It did not look like that at first.** The Fine was `3×` the bribe, which cost roughly three
+times what Nothing For You cost in the same tier — not a tier member, an outlier. It alone
+made every heat level above ~45 worse than never bribing at all, so the peak sat at 1-in-6
+and barely beat racing cold by 7%. There was no dial, just a narrow warm band and a cliff.
+Cut to `1×`, the numbers above are what came out.
+
+**Rerolling away from bad verdicts does not rescue a heavy briber** — it moves bribing every
+challenge from −1,438 to −1,135. The replacement pays no Running Hot (§4.2), so they spend
+1,200 truguts and 15 heat to escape into a challenge that earns base.
+
+**And the bonus is mostly collected on the challenges they don't bribe.** At 1-in-3, average
+heat 61, so the other 66% of their challenges each pay ×1.61. The real loop is *bribe to get
+hot, then cash in by racing clean* — which is a better mechanic than the one that was
+designed, and players will not find it unless it is pointed out to them.
 
 ---
 
@@ -602,7 +635,7 @@ Measured over 4,000 rolls per row:
 | heat 0 | **100%** | — |
 | heat 20 (Skimmed) | 79% | Wrong Guy 12%, Short Count 9% |
 | heat 50 (Shakedown) | 50% | The Handicap 33%, The Cut 17% |
-| heat 90 (Busted) | 19% | Nothing For You 31%, The Fine 29%, Blacklisted 21% |
+| heat 90 (Busted) | 19% | Nothing For You 32%, The Fine 28%, Blacklisted 20% |
 | heat 20, citizen | **100%** | Friends in High Places softens Skimmed into nothing |
 | heat 90, citizen | 20% | The Handicap 51%, The Cut 29% — Busted softened to Shakedown |
 

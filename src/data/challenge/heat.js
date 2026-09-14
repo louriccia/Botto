@@ -181,11 +181,17 @@ exports.PENALTIES = {
     },
     fine: {
         title: 'The Fine',
-        // three times what the bribe would have cost undiscounted -- a citizen is not
-        // exempt from a fine just because they're local, and Friends in High Places has
-        // already softened their tier by the time this can land
+        // Doubles the bribe, billed off the undiscounted price -- a citizen is not exempt
+        // from a fine just because they're local, and Friends in High Places has already
+        // softened their tier by the time this can land.
+        //
+        // Was 3x, and that single number made every heat level above ~45 worse than never
+        // bribing at all: it cost three times what Nothing For You did in the same tier,
+        // so it wasn't a tier member, it was an outlier. At 1x there is an actual
+        // risk/reward curve -- best around heat 40, falling off gently, with bribing every
+        // challenge still firmly punished. See docs/heat.md 6.
         cost_of: 'full_cost',
-        cost_times: 3,
+        cost_times: 1,
         flavor: [
             '${host} made an example of you and charged you a fine.'
         ]
