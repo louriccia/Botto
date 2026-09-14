@@ -400,7 +400,7 @@ Non-heat perks, so the role is worth equipping for players who never bribe at al
 
 - **+10% earnings** on home-planet tracks
 - Your citizen title rendered on your challenge cards
-- Home-planet challenges count double toward the day streak
+- ~~Home-planet challenges count double toward the day streak~~ — *cut, see §10 stage 6*
 
 ### 7.3 Smuggling Routes
 
@@ -735,7 +735,7 @@ message can still deliver the press.
 | `rollHeatPenalty` | Banished, at the cap, before the tier. |
 | `bribe.js` | Strips the Discord role and records the way back. |
 | `submit.js` | Counts clean races on the banished planet, and lifts it when they're done. |
-| `challengeWinnings` | Home Turf earnings and the doubled day streak. |
+| `challengeWinnings` | Home Turf earnings. |
 | `shopOptions` + `shop/amnesty.js` | The paid way back, priced at the host's fine. |
 
 **The roll was restructured.** Banished has to be chosen before the tier, because Friends in
@@ -762,9 +762,21 @@ hot-swapped onto whatever planet a challenge landed on, and the 24-hour cooldown
 closes that completely. All suspicion would have added is a tax on somebody's first ever
 claim — the one moment the feature should feel purely like a reward.
 
-*"Home-planet challenges count double toward the day streak" became a doubled day-streak
-**payout**.* A streak is derived from challenge history, so counting one twice would mean
-rewriting what a streak is. Doubling what it pays lands the same intent in one line.
+*"Home-planet challenges count double toward the day streak" was built as a doubled
+day-streak **payout**, then cut before release.* A streak is derived from challenge history,
+so counting one twice would have meant rewriting what a streak is — but doubling what it pays
+turned out to be worse. `truguts.day_streak` is 25 per day of an unbroken streak with **no
+ceiling**: a 90-day streak pays 2,250 and a year pays 9,125, against a base challenge of
+around 2,500. Doubling that adds more in one line than the rest of the receipt, and it scales
+with a number this feature neither designed nor bounds.
+
+It was also worth more than it looked. `bribePerks` reads the challenge's *current* track, so
+bribing home from another planet costs full price and counts as Outlander — no free farming
+— but at a long streak, 5,000 truguts to gain 9,125 is a trade worth making every time, which
+left the whole thing resting on heat as its only brake.
+
+`HOME.earnings` already says "your own tracks pay better" as a bounded fraction of the total.
+The day-streak line is now byte-identical to what it was before this branch.
 
 **Home Turf pays 1.1×** on your own planet's tracks, and the receipt names the role doing it:
 `×1.1 *🏡Spice Miner*`. `challengeWinnings` resolves citizenship itself when a caller

@@ -993,11 +993,8 @@ exports.challengeWinnings = function ({ current_challenge, submitted_time, user_
     let challenge_streak = streak.challenge.streak + 1
 
     if (day_streak) {
-        //showing up on your own planet is worth more of a streak
-        const home_streak = perks?.citizen ? heat_tuning.HOME.day_streak : 1
-        const streak_pay = truguts.day_streak * day_streak * home_streak
-        earnings += `\`+📀${number_with_commas(streak_pay)}\` ${day_streak}-Day Streak${perks?.citizen ? ` (×${home_streak} 🏡${perks.title})` : ''}\n`
-        earnings_subtotal += streak_pay
+        earnings += `\`+📀${number_with_commas(truguts.day_streak * day_streak)}\` ${day_streak}-Day Streak\n`
+        earnings_subtotal += truguts.day_streak * day_streak
     }
     if (challenge_streak > 1) {
         earnings += `\`+📀${number_with_commas(truguts.challenge_streak * challenge_streak)}\` ${(challenge_streak)}-Challenge Streak\n`

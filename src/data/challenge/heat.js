@@ -262,9 +262,13 @@ exports.BANISHMENT = {
 
 // What citizenship is worth beyond heat, so the role is worth wearing for players who
 // never bribe at all.
+//
+// A day-streak doubler was here too and was cut before release. truguts.day_streak is
+// 25 per day of an unbroken streak with no ceiling, so at a year it pays 9,125 on its own
+// -- several times a whole challenge -- and doubling an unbounded number that predates
+// this feature is not something to do on a hunch. The earnings multiplier says the same
+// thing ("your own tracks pay better") as a bounded fraction of the total.
 exports.HOME = {
     // earnings multiplier on your own planet's tracks
-    earnings: 1.1,
-    // your day streak pays double for showing up at home
-    day_streak: 2
+    earnings: 1.1
 };
