@@ -1,6 +1,4 @@
-const { updateChallenge, bribeComponents, bribeDelta, challengeContainer, getBest, playButton, notYoursEmbed, isActive, expiredEmbed, manageTruguts } = require('./functions.js');
-const { tracks } = require('../../data/sw_racer/track.js')
-const { planets } = require('../../data/sw_racer/planet.js')
+const { updateChallenge, bribeComponents, bribeDelta, bribePerks, bribeHeat, applyHeat, rollHeatPenalty, bribeBlacklist, challengeContainer, getBest, playButton, notYoursEmbed, isActive, expiredEmbed, manageTruguts } = require('./functions.js');
 const { EmbedBuilder, MessageFlags } = require('discord.js');
 const { number_with_commas, getTracks } = require('../../generic.js');
 exports.bribe = async function ({ current_challenge, current_challenge_ref, interaction, user_profile, args, profile_ref, member_avatar, db, member_id, botto_name } = {}) {
@@ -17,11 +15,24 @@ exports.bribe = async function ({ current_challenge, current_challenge_ref, inte
         return
     }
 
-    //Citizenship: free bribes on the citizen planet's tracks while its role is equipped
-    const challenge_planet = planets[tracks[current_challenge.track]?.planet]
-    const citizen = !!(challenge_planet
-        && user_profile.effects?.[challenge_planet.name.toLowerCase().replaceAll(" ", "_")]
-        && interaction.member.roles.cache.some(r => r.id === challenge_planet.role))
+    //Blacklisted: a previous roll had the player walked out of the pits. This is the
+    //authoritative check -- challengeComponents also hides the button, but a stale message
+    //can still deliver the press. Cancel is deliberately exempt: it only puts the card
+    //back, and refusing it would leave a blacklisted player stuck on a staged bribe UI
+    //with no way out of it.
+    const blacklisted = bribeBlacklist(user_profile)
+    if (blacklisted && args[2] !== 'cancel') {
+        const holdUp = new EmbedBuilder()
+            .setTitle("<:WhyNobodyBuy:589481340957753363> Your money's no good here")
+            .setDescription(`*Republic credits are no good out here!*
+Nobody will take your bribe until <t:${Math.round(blacklisted / 1000)}:t>.`)
+        interaction.reply({ embeds: [holdUp], ephemeral: true })
+        return
+    }
+
+    //Citizenship and Smuggling Routes both discount this bribe; the interaction's own
+    //member list is the freshest source for a role equipped this session
+    const perks = bribePerks({ current_challenge, user_profile, member: member_id, db, client: interaction.client, member_roles: interaction.member?.roles?.cache })
 
     //read the staged selection out of the message's select defaults, overlaying
     //the values of the select that fired this interaction. condition stays null
@@ -53,7 +64,7 @@ exports.bribe = async function ({ current_challenge, current_challenge_ref, inte
 
     //submit: apply every staged change at once
     if (args[2] == 'submit') {
-        const delta = bribeDelta({ current_challenge, user_profile, selection, citizen })
+        const delta = bribeDelta({ current_challenge, user_profile, selection, perks })
         if (delta.error || !delta.changes.length) {
             const holdUp = new EmbedBuilder()
                 .setTitle("<:WhyNobodyBuy:589481340957753363> You what?")
@@ -61,7 +72,8 @@ exports.bribe = async function ({ current_challenge, current_challenge_ref, inte
             interaction.reply({ embeds: [holdUp], ephemeral: true })
             return
         }
-        if (user_profile.truguts_earned - user_profile.truguts_spent < delta.cost) { //can't afford bribe
+        const available = user_profile.truguts_earned - user_profile.truguts_spent
+        if (available < delta.cost) { //can't afford bribe
             let noMoney = new EmbedBuilder()
                 .setTitle("<:WhyNobodyBuy:589481340957753363> Insufficient Truguts")
                 .setDescription("*'No money, no bribe!'*\nYou do not have enough truguts to make this bribe.\n\nBribe cost: `" + number_with_commas(delta.cost) + "`")
@@ -69,16 +81,71 @@ exports.bribe = async function ({ current_challenge, current_challenge_ref, inte
             return
         }
 
+        //Roll for a penalty before charging, because two of them change the price. The
+        //roll reads the heat the player walked in with, so a first bribe from a cold
+        //profile is always clean, and it resolves here rather than at submit time: the
+        //player has to see the outcome before deciding whether to race it
+        let penalty = rollHeatPenalty({ user_profile, perks, delta, current_challenge, available })
+        //An Alibi spends itself on the first bribe that goes wrong, whatever it was. The
+        //verdict is discarded before anything is charged or written, so the bribe lands
+        //exactly as a clean one -- Running Hot included, because the player did get away
+        //with it. Only the record of the near miss survives, on the challenge.
+        let alibi = null
+        if (penalty && user_profile.effects?.alibi) {
+            alibi = { from: penalty.title, host: penalty.host ?? null }
+            penalty = null
+            profile_ref.child('effects').update({ alibi: null })
+            if (user_profile.effects) {
+                delete user_profile.effects.alibi
+            }
+        }
+        //Short Count and The Fine add to the price, so what's charged is not delta.cost
+        const charged = delta.cost + (penalty?.extra_cost ?? 0)
+
         //process purchase
         manageTruguts({
-            user_profile, profile_ref, transaction: 'w', amount: delta.cost, purchase: {
+            user_profile, profile_ref, transaction: 'w', amount: charged, purchase: {
                 date: Date.now(),
                 purchased_item: 'bribe',
-                selection: delta.changes.join(", ") + (citizen ? ' (citizen)' : '')
+                selection: delta.changes.join(", ")
+                    + (delta.discounts.length ? ` (free: ${delta.discounts.join(', ')})` : '')
+                    + (penalty ? ` [${penalty.title}]` : '')
             }
         })
-        const bribe_update = { ...delta.update, predictions: {}, created: Date.now() }
-        await current_challenge_ref.update(bribe_update)
+        //heat accrues on the bribe itself, whatever it cost -- a free bribe is still a bribe
+        user_profile = applyHeat({ user_profile, profile_ref, amount: bribeHeat({ delta, perks, user_profile }) })
+        //Blacklisted is the one penalty that outlives the challenge it was rolled on
+        if (penalty?.until) {
+            profile_ref.child('effects').update({ bribe_blacklist: penalty.until })
+            user_profile.effects = { ...(user_profile.effects ?? {}), bribe_blacklist: penalty.until }
+        }
+
+        //The penalty's own changes land on top of the staged ones: Wrong Guy overwrites the
+        //pick the player made, and The Handicap adds a condition they didn't ask for.
+        //bribe_cost records what was actually charged rather than list price -- a citizen
+        //pays nothing, and Short Count and The Fine add to it -- and accumulates, because
+        //track and racer can be bought in separate presses on the same challenge.
+        const bribe_update = { ...delta.update, ...(penalty?.update ?? {}), predictions: {}, created: Date.now(), bribe_cost: (current_challenge.bribe_cost ?? 0) + charged }
+        if (penalty) {
+            bribe_update.heat_penalty = penalty
+        }
+        if (alibi) {
+            bribe_update.heat_alibi = alibi
+        }
+        //Banished takes the role off the player, so unlike every other verdict it reaches
+        //out of the challenge and into Discord. Recorded on the profile too, because the
+        //way back is a fine or clean races and both outlive this challenge.
+        let strip_role = null
+        if (penalty?.banish) {
+            profile_ref.child('banishment').update(penalty.banish)
+            user_profile.banishment = penalty.banish
+            strip_role = interaction.guild?.members.fetch(member_id)
+                .then(m => m.roles.remove(penalty.banish.role))
+                .catch(error => console.log('banishment role removal failed:', error?.message ?? error))
+        }
+        //the role removal is a Discord round-trip and the challenge write an RTDB one, and
+        //this path never defers, so both have to fit inside the 3s acknowledgement window
+        await Promise.all([current_challenge_ref.update(bribe_update), strip_role])
 
         //merge locally rather than re-reading db.ch.challenges -- the cache
         //listener may not have echoed the write yet, and rendering the stale
@@ -100,7 +167,7 @@ exports.bribe = async function ({ current_challenge, current_challenge_ref, inte
         interaction.reply({ embeds: [holdUp], ephemeral: true })
         return
     }
-    const components = bribeComponents({ current_challenge, user_profile, selection, citizen })
+    const components = bribeComponents({ current_challenge, user_profile, selection, perks })
     if (!components.length) {
         const holdUp = new EmbedBuilder()
             .setTitle("<:WhyNobodyBuy:589481340957753363> No bribery in the pits!")
@@ -114,7 +181,7 @@ exports.bribe = async function ({ current_challenge, current_challenge_ref, inte
         //the proof thumbnail, which can blow Discord's 3s acknowledgement
         //window -- acknowledge first, then edit
         await interaction.deferUpdate()
-        const container = await challengeContainer({ client: interaction.client, current_challenge, user_profile, profile_ref, best: getBest(db, current_challenge), name: botto_name, member: member_id, avatar: member_avatar, db })
+        const container = await challengeContainer({ client: interaction.client, current_challenge, user_profile, profile_ref, best: getBest(db, current_challenge), name: botto_name, member: member_id, avatar: member_avatar, db, perks })
         await interaction.editReply({ components: [...container, ...components], flags: MessageFlags.IsComponentsV2 })
     } else {
         interaction.update({ components })

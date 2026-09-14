@@ -1,4 +1,4 @@
-const { updateChallenge, playButton, isActive, expiredEmbed, challengeWinnings, getBest, goalTimeList, predictionScore, manageTruguts, currentTruguts, predictionAchievement, bountyAchievement, achievementEmbed, randomChallengeItem, challengeProgression, playerLevel, convertLevel, progressionReward, fitField } = require('./functions.js');
+const { updateChallenge, playButton, isActive, expiredEmbed, challengeWinnings, getBest, goalTimeList, predictionScore, manageTruguts, decayHeat, banishment, bribePerks, planetKey, currentTruguts, predictionAchievement, bountyAchievement, achievementEmbed, randomChallengeItem, challengeProgression, playerLevel, convertLevel, progressionReward, fitField } = require('./functions.js');
 const { postMessage, editMessage } = require('../../discord.js');
 const { items } = require('../../data/challenge/item.js')
 const { raritysymbols } = require('../../data/challenge/rarity.js')
@@ -145,17 +145,53 @@ exports.submit = async function ({ current_challenge, current_challenge_ref, int
     //configuration before the new submission is logged
     const already_played = getBest(db, current_challenge).some(b => b.user == member_id)
 
+    //a resubmission overwrites the player's existing time, so the heat decay below has
+    //to be keyed off the first one or a player could cool off by editing a time repeatedly
+    const first_submission = !current_challenge.submissions?.[member_id]
+
     var newPostRef = challengetimeref.push(submissiondata);
     await current_challenge_ref.child("submissions").child(member_id).set({ id: newPostRef.key, player: member_id, time })
     if (['abandoned', 'private'].includes(current_challenge.type)) {
         await current_challenge_ref.update({ completed: true })
     }
 
+    //finishing a challenge without bribing it cools the player off. The daily and the
+    //monthly can't be bribed at all, so they always count as clean -- a hot player who
+    //shows up for the cotd is still racing something they didn't pick
+    //the interaction's member list is fresher than any cache, and the payout below is the
+    //call that actually pays, so citizenship is resolved from it once and reused
+    const winnings_perks = bribePerks({ current_challenge, user_profile, member: member_id, db, client: interaction.client, member_roles: interaction.member?.roles?.cache })
+
+    const bribed = current_challenge.track_bribe || current_challenge.racer_bribe || current_challenge.condition_bribe
+    if (first_submission && !bribed) {
+        user_profile = decayHeat({ user_profile, profile_ref })
+
+        //racing a banished planet clean is the way back that doesn't cost truguts. Only
+        //counts on that planet, and only on a challenge you didn't bribe.
+        const banished = banishment(user_profile)
+        const challenge_planet = winnings_perks.planet
+        const planet_key = challenge_planet ? planetKey(challenge_planet) : null
+        if (banished && planet_key && banished.planet == planet_key) {
+            const left = Math.max(0, (banished.clean_needed ?? 0) - 1)
+            if (left) {
+                profile_ref.child('banishment').update({ clean_needed: left })
+                user_profile.banishment = { ...banished, clean_needed: left }
+            } else {
+                profile_ref.child('banishment').remove()
+                delete user_profile.banishment
+                const welcome = new EmbedBuilder()
+                    .setTitle(`🏡 Welcome back to ${challenge_planet.name}`)
+                    .setDescription(`${challenge_planet.host} has seen enough clean racing. Your **${challenge_planet.citizen}** role is available again. Equip it in your **🎒 Inventory**.`)
+                postMessage(interaction.client, interaction.channelId, { embeds: [welcome] })
+            }
+        }
+    }
+
     let total_revenue = 0
 
     //award winnings for this submission
     let goals = goalTimeList(current_challenge, user_profile)
-    let winnings = challengeWinnings({ current_challenge, submitted_time: submissiondata, user_profile, best: getBest(db, current_challenge), goals, member: member_id, db })
+    let winnings = challengeWinnings({ current_challenge, submitted_time: submissiondata, user_profile, best: getBest(db, current_challenge), goals, member: member_id, db, perks: winnings_perks })
 
     //award saboteur cut
     if (winnings.sabotage) {
