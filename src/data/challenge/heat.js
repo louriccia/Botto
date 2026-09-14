@@ -39,12 +39,7 @@ exports.MODIFIERS = {
     // turned up with money. Someone holding no citizenship at all pays no surcharge.
     outlander: 1.25,
     // Quiet Routes: a track swap that never leaves the system is nobody's business
-    quiet_routes: 0,
-    // Launderer: a shop purchase, so unlike the others this one is bought rather than
-    // earned. Deliberately a shaving rather than a halving -- truguts should be able to
-    // soften heat a little and never buy their way out of it, which is the whole reason
-    // the mechanic exists.
-    launderer: 0.75
+    quiet_routes: 0
 };
 
 // Heat drains two ways at once, and both matter. Time-only decay would let a player
@@ -229,26 +224,6 @@ exports.FLEE = {
     heat: 15
 };
 
-// Spice Run, from Smuggling Routes: sell the heat instead of waiting it out. Once a day,
-// gated behind a finished collection, and it needs heat to sell in the first place.
-//
-// It clears a *fraction* of what the player is carrying rather than a flat amount, so it
-// is worth most exactly when they are deepest in it -- a flat 25 was barely one day of
-// idle decay and made the whole thing an afterthought at high heat. The minimum keeps it
-// from being worse than that flat amount at the bottom of the range.
-//
-// The payout stays flat on purpose, and must. Heat is buyable: a bribe costs 5,000 truguts
-// for 15 heat, so paying per point sold at any rate above ~333 would be a straight loop --
-// and for anyone holding free bribes (a citizen at home, or Credits WILL Do Fine) the heat
-// costs nothing at all, so *any* per-point rate would print truguts out of thin air.
-//
-// ** My defaults. The payout is roughly one bribe's worth.
-exports.SPICE_RUN = {
-    fraction: 0.5,
-    minimum: 25,
-    truguts: 5000,
-    cooldown_hours: 24
-};
 
 // ---------------------------------------------------------------------------
 // Citizenship

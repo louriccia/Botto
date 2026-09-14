@@ -2019,11 +2019,6 @@ exports.bribeHeat = function ({ delta, perks, user_profile } = {}) {
     } else if (perks?.outlander) {
         heat *= heat_tuning.MODIFIERS.outlander
     }
-    //Launderer stacks on top of where you are, because it's about the money rather
-    //than the planet
-    if (user_profile?.effects?.launderer) {
-        heat *= heat_tuning.MODIFIERS.launderer
-    }
     return Math.round(heat)
 }
 
@@ -2538,19 +2533,22 @@ exports.shopOptions = function ({ user_profile, player, db, selection } = {}) {
         //         name: "🔄"
         //     }
         // },
-        //Sellable again now that heat exists: this only removes the cost, and a free bribe
-        //still runs just as hot (docs/heat.md 1). Before heat it removed the only brake
-        //bribing had, which is why it sat commented out for so long.
-        ...(user_profile?.effects?.free_bribes ? [] : [{
-            label: `Credits WILL Do Fine`,
-            value: 'bribes',
-            price: 384000000,
-            description: "Never pay for bribes again",
-            info: "Go to whatever challenge of your choosing at no charge. Bribes still raise your heat. One-time purchase.",
-            emoji: {
-                name: "💰"
-            }
-        }]),
+        //Credits WILL Do Fine stays shelved. Heat made it sellable in principle -- a free
+        //bribe still runs just as hot -- but free bribes are worth about 10,000 truguts a
+        //challenge, which no penalty tuning can tax back: the best play with it is to bribe
+        //every single challenge at max heat for roughly 2.4x what anyone else earns.
+        //bribeDelta still honours effects.free_bribes, so anyone already holding the flag
+        //gets what it promised. It just isn't on the shelf.
+        // {
+        //     label: `Credits WILL Do Fine`,
+        //     value: 'bribes',
+        //     price: 384000000,
+        //     description: "Never pay for bribes again",
+        //     info: "Go to whatever challenge of your choosing at no charge. Bribes still raise your heat. One-time purchase.",
+        //     emoji: {
+        //         name: "💰"
+        //     }
+        // },
         //Amnesty only exists while there is a banishment to lift, and its price is the
         //fine the host set rather than a shop number
         ...(banished ? [{
@@ -2563,31 +2561,6 @@ exports.shopOptions = function ({ user_profile, player, db, selection } = {}) {
                 name: "🏡"
             }
         }] : []),
-        //Spice Run sells heat rather than buying anything, so it's priced at nothing and
-        //only appears when it can actually be run: the collection, enough heat to be
-        //worth selling, and a day since the last one.
-        ...(user_profile?.effects?.smuggling_routes
-            && exports.heatValue(user_profile) >= heat_tuning.SPICE_RUN.minimum
-            && !exports.spiceRunCooldown(user_profile) ? [{
-                label: `Spice Run`,
-                value: 'spice',
-                price: 0,
-                description: `Sell \u{1F525}${exports.spiceRunAmount(user_profile)} heat for \u{1F4C0}${number_with_commas(heat_tuning.SPICE_RUN.truguts)}`,
-                info: `Sell half your heat to a buyer who won't ask questions. Clears \u{1F525}${exports.spiceRunAmount(user_profile)} heat and pays \u{1F4C0}${number_with_commas(heat_tuning.SPICE_RUN.truguts)}. Once per day.`,
-                emoji: {
-                    name: "🚛"
-                }
-            }] : []),
-        ...(user_profile?.effects?.launderer ? [] : [{
-            label: `Launderer`,
-            value: 'launderer',
-            price: 12000000,
-            description: "Bribes raise less heat",
-            info: "Someone on the payroll keeps your name out of the ledgers. All heat from bribing is reduced by 25%. One-time purchase.",
-            emoji: {
-                name: "🧼"
-            }
-        }]),
         // {
         //     label: `Peace Treaty`,
         //     value: 'peace',
@@ -4594,19 +4567,6 @@ exports.citizenshipCooldown = function (user_profile) {
 exports.banishment = function (user_profile) {
     const b = user_profile?.banishment
     return b?.planet ? b : null
-}
-
-//how much heat a spice run clears: half of what the player is carrying, never below the
-//minimum, and never more than they actually have. The shop label and the handler both read
-//this, so what the option promises and what the run does cannot drift apart.
-exports.spiceRunAmount = function (user_profile) {
-    const heat = exports.heatValue(user_profile)
-    return Math.min(heat, Math.max(heat_tuning.SPICE_RUN.minimum, Math.round(heat * heat_tuning.SPICE_RUN.fraction)))
-}
-
-//Spice Run is once a day; returns when the next one is available, or null if it's ready
-exports.spiceRunCooldown = function (user_profile) {
-    return exports.effectCooldown(user_profile?.effects?.spice_run, heat_tuning.SPICE_RUN.cooldown_hours)
 }
 
 //a challenge finished without bribing it cools the player off

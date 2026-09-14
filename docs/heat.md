@@ -412,16 +412,15 @@ same-planet track bribes. Rather than widen it, lean into the narrowness: it bec
 |---|---|
 | **Quiet Routes** | Same-planet track bribes generate **zero heat** (and stay free) |
 | **Cover Your Tracks** | Heat decays roughly 2× as fast — an extra **−10** per clean challenge |
-| **Spice Run** | Once per day, dump **25 heat** for truguts. You sold the goods and skipped town. |
+| ~~**Spice Run**~~ | *Cut before release — see §9.* |
 
 Quiet Routes turns a trivia condition into a tactic: want a different track? Staying
 in-system is the quiet option, going off-world is the loud one. Players will learn which
 tracks share a planet, which is a pleasant side effect. Racer bribes and cross-planet swaps
 stay fully hot, so Smuggling specialises rather than trivialises.
 
-**Spice Run is the one to push hardest for.** It makes heat a resource with a market price
-rather than a pure debuff, gives hot players an off-ramp they have to pay for, and creates
-a natural pre-bribe ritual: dump heat, then make the big play.
+*Spice Run was built and then cut — §9 has the reasoning. Quiet Routes and Cover Your
+Tracks are both strong enough that the collection reward doesn't need a third perk.*
 
 ### 7.4 The combo
 
@@ -520,13 +519,58 @@ the same shape as `src/data/flavor/`:
 All of these fit the existing `effects` flag pattern and the shop item shape at
 `functions.js:2320`.
 
+Six of these were built. Three ship.
+
 | Item | Kind | Effect |
 |---|---|---|
-| **Clean Record** | Consumable · *shipped* | Wipe heat to 0. A drop, never a purchase — see §10. |
-| **Alibi** | Consumable · *shipped* | Discard the next verdict, and keep Running Hot |
-| **Launderer** | Shop, one-time · *shipped* | Heat gains −25% |
-| **Spice Run** | Smuggling Routes · *shipped* | Sell 25 heat for truguts, once a day |
-| **Credits WILL Do Fine** | Shop, one-time · *shipped* | `free_bribes`: bribes cost nothing, still run hot |
+| **Alibi** | Drop, from 120 challenges | Discard the next verdict, and keep Running Hot |
+| **Clean Record** | Drop, from 160 challenges | Wipe heat to 0 |
+| **Amnesty** | Shop, only while banished | Pay the host off and get the role back |
+
+### 9.1 Why the other three were cut
+
+Each was simulated against the personas bribes actually serve. The results are in §6.1's
+model: an unbribed challenge pays 2,500, a bribe secures +9,000, and the baseline best play
+is to bribe 1 in 4 for 2,870 a challenge.
+
+**Launderer was a trap.** At 12,000,000 truguts it made its owner *poorer* — 2,694 a
+challenge against 2,870 without it, and still worse after re-optimising the bribe rate. The
+cause is structural and worth remembering: **Running Hot makes heat an asset**, so anything
+that reduces heat costs you the multiplier on every challenge while only helping on the
+fraction you bribe. Rebuilt as a *risk* reducer instead — −25% on the roll rather than on
+the gain, which is what its own flavour text always described — it measured 3,391 and was
+clearly worth buying. That is the version to build if it ever comes back; it was cut because
+it is a different mechanic needing its own balance pass, not because the idea is bad.
+
+**Spice Run served nobody.** Gated behind a finished collection, so its 5,000 truguts are
+noise to anyone who can use it; and clearing heat fights Running Hot the same way Launderer
+did. Smuggling Routes keeps Quiet Routes and Cover Your Tracks, which is enough.
+
+**Credits WILL Do Fine breaks the curve and no tuning fixes it.** With free bribes the best
+play becomes bribing *every* challenge at heat 98 for 6,872 — 2.4× baseline. Billing the cost
+penalties off the undiscounted price recovers 33 truguts, because at that heat the tier is
+Busted, which holds no cost-doubling penalty at all. The gap is simply that a free bribe is
+worth ~10,000 truguts a challenge and heat cannot tax that back. It returns to the shelf it
+sat on before this branch.
+
+`bribeDelta` still honours `effects.free_bribes`. Anyone holding the flag gets what it
+promised — that it did nothing at all was a real bug (§1). It just isn't sold.
+
+### 9.2 What each of the three is for
+
+**Alibi** is the only one of the six with a clear owner among the *intended* players. Someone
+bribing for a bounty, an achievement or a Bingo tile is hurt most by Whoops and The Handicap,
+which fail the objective rather than merely costing money — and an Alibi is the one tool that
+answers them. It is also the only item that doesn't fight the system, since it keeps the heat
+and skips the consequence.
+
+**Clean Record** is the counterplay to Banished. Heat decays on its own — eight clean
+challenges or four idle days from the cap — so an instant wipe is a convenience most of the
+time. What earns it a slot is the moment a citizen sits at 92 on their own planet with one
+in the bag: burn it, or push on and risk the role.
+
+**Amnesty** is not really a feature. Banished needs two independent exits or the harshest
+penalty in the game becomes "wait, no choice." Money or time, with neither strictly better.
 
 That last row is the point worth repeating: the item was shelved because free bribes broke
 the economy. Under heat, "free" only removes the cost — the risk is untouched — so it can
@@ -581,8 +625,8 @@ needed for existing players.
 
 Every ability that changes the *numbers* is in this stage — Home Turf, Outlander, Quiet
 Routes, Cover Your Tracks — because heat accrued without them is simply wrong data.
-Launderer is not: it needs a shop item to grant `effects.launderer`, so it lands in stage 5
-with the item.
+Launderer would have been the exception — it needed a shop item to grant its flag — but it
+was cut before release (§9.1).
 
 **Nothing reads heat against the player.** Accrual and decay are live and logged (`applyHeat`
 prints every change next to the `manageTruguts` lines), so §3's constants stop being guesses
@@ -657,40 +701,29 @@ rests on: with no heat, the bribe is fine.
 | `item.js` — `clean_record`, `alibi` | Two consumables, shaped like the existing specials, so they drop and trade the same way. |
 | `inventory.js` | Use handlers. Clean Record's button carries the number it would wipe and disables at zero; Alibi disables when one is already lined up. |
 | `bribe.js` | Spends an Alibi on the first bribe that goes wrong. |
-| `shopOptions` + `shop/launderer.js` | Launderer, 12,000,000, one-time. |
-| `shopOptions` + `shop/spice.js` | Spice Run, gated on the collection, the heat, and a daily cooldown. |
-| `shopOptions` + `shop/bribes.js` | Credits WILL Do Fine, un-shelved. |
+| `shopOptions` + `shop/amnesty.js` | Amnesty, priced at the host's fine, visible only while banished. |
 | `bribeDelta` | Finally honours `free_bribes`, which nothing had ever read. |
 
-**Clean Record is a drop, not a purchase.** That's the load-bearing decision in this stage.
-A heat wipe on the shop shelf would let a full wallet buy its way out of heat on demand,
-which is precisely the thing the feature exists to prevent (§1). Scarcity is the control,
-so it arrives the way Trugut Boosts and Sabotage Kits do.
+**Clean Record is a drop, not a purchase.** A heat wipe on the shop shelf would let a full
+wallet buy its way out of heat on demand, which is precisely the thing the feature exists to
+prevent (§1). Scarcity is the control. Both it and Alibi unlock into the normal drop pool on
+the existing 40-step ladder — Alibi at 120 challenges, Clean Record at 160 — which puts each
+at roughly 1 in 43 challenges mid-game, thinning toward 1 in 113 as a veteran's rare pool
+fills out. With `challenges: null` they had been reachable only from a Collectible Coffer,
+at under 1%.
 
-**Launderer shaves rather than halves** for the same reason. 25% is a build choice; 50%
-would start to be an exemption. It is the only gain modifier bought rather than earned, and
-it stacks on top of wherever the player is standing:
-
-| | track+racer bribe |
-|---|---|
-| plain | 30 🔥 |
-| Launderer | 23 🔥 |
-| citizen on home turf | 15 🔥 |
-| citizen + Launderer | 11 🔥 |
 
 **An Alibi keeps Running Hot.** It discards the verdict before anything is charged or
 written, so the bribe lands exactly as a clean one — the player *did* get away with it,
 which is what the bonus is for (§6). Only the near miss is recorded, on the challenge:
 `🪪 **Alibi** · Your story held up. Groff Zugga's Nothing For You didn't stick.`
 
-**`free_bribes` can finally be sold**, and un-shelving it was a one-line change to
-`bribeDelta` plus deleting a comment. The shop item has existed since long before heat, with
-a working handler, commented out because removing the cost removed the only brake bribing
-had. Under heat, free is only free of *truguts*: a free bribe runs exactly as hot.
+**`free_bribes` was honoured for the first time** — a one-line change to `bribeDelta`, which
+had never read the effect the shop was selling. It was briefly put back on sale and then
+shelved again (§9.1); the fix stands either way.
 
-**Spice Run is priced at 0** so the shop's own machinery charges nothing and the handler
-pays out instead. It re-checks every gate rather than trusting `shopOptions`, since a stale
-shop message can still deliver the press.
+**Amnesty re-checks its own gate** rather than trusting `shopOptions`, since a stale shop
+message can still deliver the press.
 
 ### Stage 6 — Citizenship as a commitment · **shipped**
 
