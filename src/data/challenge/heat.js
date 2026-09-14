@@ -142,21 +142,18 @@ exports.PENALTIES = {
     },
     short_count: {
         title: "The Price Just Went Up",
-        // half again on top of the bribe: you get exactly what you paid for, dearer.
+        // doubles the bribe: you get exactly what you paid for, at twice the price.
         //
         // cost_of names which of bribeDelta's numbers the surcharge is billed against and
         // cost_times how many extra multiples of it to charge. One rule then serves both
         // the can-the-player-cover-this check and the charge itself.
         //
-        // Was a full extra multiple, which made this identical to The Fine for anyone
-        // paying list price -- the same penalty under two names, one in the cheapest tier
-        // and one in the harshest. Skimmed is meant to be the mild tier, and it is where
-        // the occasional briber chasing a bounty spends all of their time, so the cheap
-        // tier should not cost as much as the expensive one. Billed off `cost` rather than
-        // `full_cost` on purpose: doubling a free bribe is still free, which keeps the
-        // promise citizenship and Smuggling Routes make.
+        // Billed off `cost` rather than `full_cost` on purpose: doubling a free bribe is
+        // still free, which keeps the promise citizenship and Smuggling Routes make. The
+        // Fine below bills off the list price instead, which is the real difference
+        // between the two.
         cost_of: 'cost',
-        cost_times: 0.5,
+        cost_times: 1,
         flavor: [
             '${host} says this one costs extra.'
         ]
@@ -185,17 +182,29 @@ exports.PENALTIES = {
     },
     fine: {
         title: 'The Fine',
-        // Doubles the bribe, billed off the undiscounted price -- a citizen is not exempt
+        // Triples the bribe, billed off the undiscounted price -- a citizen is not exempt
         // from a fine just because they're local, and Friends in High Places has already
         // softened their tier by the time this can land.
         //
-        // Was 3x, and that single number made every heat level above ~45 worse than never
-        // bribing at all: it cost three times what Nothing For You did in the same tier,
-        // so it wasn't a tier member, it was an outlier. At 1x there is an actual
-        // risk/reward curve -- best around heat 40, falling off gently, with bribing every
-        // challenge still firmly punished. See docs/heat.md 6.
+        // The size of this one number decides whether heat is a dial or a wall. Measured
+        // against the personas in docs/heat.md 6.1, with the peak reward over never
+        // bribing at all in brackets:
+        //
+        //   +1x (2x total)  peak at heat 37  (+15%)
+        //   +2x (3x total)  peak at heat 37  (+9%)   <- here
+        //   +3x (4x total)  peak at heat 18  (+7%)
+        //   +4x (5x total)  peak at heat 18  (+6%)
+        //
+        // At +3x and above the peak falls back into Skimmed and the whole Shakedown band
+        // stops being worth playing, which is the cliff this started on. There is also a
+        // quieter problem up there: the affordability check substitutes a fine the player
+        // can't cover, so a 5x fine simply never fires for anyone holding under 50,000 and
+        // the tier's composition silently changes with wealth.
+        //
+        // If Busted needs to feel worse, the lever is something that isn't money --
+        // Blacklisted's 30 minutes is the model -- not a bigger multiple.
         cost_of: 'full_cost',
-        cost_times: 1,
+        cost_times: 2,
         flavor: [
             '${host} made an example of you and charged you a fine.'
         ]

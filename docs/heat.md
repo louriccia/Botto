@@ -227,7 +227,7 @@ one of them by name.
 
 ### Tier I — Skimmed (heat 1–33)
 
-- **Short Count** — the bribe costs half again on top. You still get what you paid for.
+- **Short Count** — the bribe costs double. You still get what you paid for.
 - **Wrong Guy** — the fixer delivers a *random* track or racer instead of the one you picked.
   You paid, something changed, it just wasn't your call.
 
@@ -247,15 +247,14 @@ writes straight into the existing `conditions` object, no new plumbing at all.*
 ### Tier III — Busted (heat 67+)
 
 - **Nothing For You** — the challenge earns `0` truguts. Time still counts, PB still counts.
-- **The Fine** — the bribe costs double, billed off the *undiscounted* price, so being local
+- **The Fine** — the bribe costs triple, billed off the *undiscounted* price, so being local
   is no exemption.
 
-The two cost penalties are deliberately different sizes and bill against different numbers.
-They were briefly the same thing: cutting The Fine from `3×` to `1×` (§6.1) left it identical
-to Short Count for anyone paying list price — one penalty under two names, in the cheapest
-tier and the harshest. Short Count dropped to `+50%` to fix it, which also makes Skimmed
-properly mild: it is where the occasional briber chasing a bounty spends all of their time,
-so the cheap tier should not cost what the expensive one does.
+The two cost penalties differ in size and in what they bill against, and both halves matter.
+They were briefly the same thing: cutting The Fine to `+1×` (§6.1) left it identical to Short
+Count for anyone paying list price — one penalty under two names, in the cheapest tier and
+the harshest. Short Count doubles what the bribe *actually* cost, so a free bribe stays free
+and citizenship's promise holds; The Fine bills the list price at `+2×` regardless.
 - **Blacklisted** — no bribes for 30 minutes.
 - **Banished** — only if you hold a citizenship on the challenge's planet: the host strips the
   role until you pay a fine or complete three clean challenges there. See §7.2. *Shipped as a
@@ -330,11 +329,25 @@ assumptions; the shape doesn't.
 That is the curve the design wanted: a peak in Shakedown territory about 15% above racing
 cold, a gentle falloff, and bribing every single challenge firmly unprofitable.
 
-**It did not look like that at first.** The Fine was `3×` the bribe, which cost roughly three
-times what Nothing For You cost in the same tier — not a tier member, an outlier. It alone
-made every heat level above ~45 worse than never bribing at all, so the peak sat at 1-in-6
-and barely beat racing cold by 7%. There was no dial, just a narrow warm band and a cliff.
-Cut to `1×`, the numbers above are what came out.
+**It did not look like that at first.** The Fine's surcharge alone decides whether heat is a
+dial or a wall, and the table is steep:
+
+| The Fine | total paid | peak lands at | reward over never bribing |
+|---|---|---|---|
+| `+1×` | 2× | heat 37 | +15% |
+| **`+2×`** | **3×** | **heat 37** | **+9%** ← shipped |
+| `+3×` | 4× | heat 18 | +7% |
+| `+4×` | 5× | heat 18 | +6% |
+
+At `+3×` and above the peak falls back into Skimmed and the entire Shakedown band stops being
+worth playing — which is the cliff this started on, when The Fine shipped at `+3×` and every
+heat level above ~45 was worse than never bribing at all. `+2×` keeps the peak in Shakedown
+while leaving The Fine clearly the harsher of the two cost penalties.
+
+There is a quieter problem in the bottom rows too: `applies()` substitutes a fine the player
+cannot cover, so a 5× fine never fires at all for anyone holding under 50,000 truguts, and
+the tier's composition silently changes with wealth. If Busted needs more teeth, the lever is
+something that isn't money — Blacklisted's 30 minutes is the model — not a bigger multiple.
 
 **Rerolling away from bad verdicts does not rescue a heavy briber** — it moves bribing every
 challenge from −1,438 to −1,135. The replacement pays no Running Hot (§4.2), so they spend
