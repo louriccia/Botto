@@ -28,6 +28,11 @@ module.exports = {
         )
         .addSubcommand(subcommand =>
             subcommand
+                .setName('settings')
+                .setDescription('Customize your random challenge odds, winnings, and display options')
+        )
+        .addSubcommand(subcommand =>
+            subcommand
                 .setName('leaderboard')
                 .setDescription('Browse the best random challenge times by track, conditions, and pod')
         )

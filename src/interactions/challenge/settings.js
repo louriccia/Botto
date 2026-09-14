@@ -3,7 +3,9 @@ const { settingsEmbed, settingsComponents } = require('./functions.js');
 const { ActionRowBuilder, ModalBuilder, TextInputBuilder, TextInputStyle } = require('discord.js');
 
 exports.settings = async function ({ interaction, db, botto_name, user_profile, member_avatar, profile_ref, user_key, args } = {}) {
-    if (args[2] == 'initial') {
+    //`/challenge settings` arrives with no action segment, so treat it the same as
+    //the Settings button on the profile panel
+    if (args[2] == 'initial' || interaction.isChatInputCommand()) {
         user_profile = db.user[user_key].random
         interaction.reply({ embeds: [settingsEmbed({ user_profile, name: botto_name, avatar: member_avatar })], components: settingsComponents(user_profile), ephemeral: true })
         return
