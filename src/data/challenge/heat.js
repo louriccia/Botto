@@ -224,13 +224,22 @@ exports.FLEE = {
 };
 
 // Spice Run, from Smuggling Routes: sell the heat instead of waiting it out. Once a day,
-// and it requires having earned the heat in the first place. This is the one place heat
-// converts to truguts rather than the other way round -- gated behind a finished
-// collection and a daily cooldown so it stays a ritual rather than an income.
+// gated behind a finished collection, and it needs heat to sell in the first place.
+//
+// It clears a *fraction* of what the player is carrying rather than a flat amount, so it
+// is worth most exactly when they are deepest in it -- a flat 25 was barely one day of
+// idle decay and made the whole thing an afterthought at high heat. The minimum keeps it
+// from being worse than that flat amount at the bottom of the range.
+//
+// The payout stays flat on purpose, and must. Heat is buyable: a bribe costs 5,000 truguts
+// for 15 heat, so paying per point sold at any rate above ~333 would be a straight loop --
+// and for anyone holding free bribes (a citizen at home, or Credits WILL Do Fine) the heat
+// costs nothing at all, so *any* per-point rate would print truguts out of thin air.
 //
 // ** My defaults. The payout is roughly one bribe's worth.
 exports.SPICE_RUN = {
-    heat: 25,
+    fraction: 0.5,
+    minimum: 25,
     truguts: 5000,
     cooldown_hours: 24
 };

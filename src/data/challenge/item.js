@@ -3687,7 +3687,7 @@ exports.items = [
         "rarity": "rare",
         "value": 2500,
         "condition": "",
-        "challenges": null,
+        "challenges": 160,
         "track": [],
         "racer": []
     },
@@ -3699,7 +3699,7 @@ exports.items = [
         "rarity": "rare",
         "value": 2500,
         "condition": "",
-        "challenges": null,
+        "challenges": 120,
         "track": [],
         "racer": []
     },

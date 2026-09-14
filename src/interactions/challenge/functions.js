@@ -2567,13 +2567,13 @@ exports.shopOptions = function ({ user_profile, player, db, selection } = {}) {
         //only appears when it can actually be run: the collection, enough heat to be
         //worth selling, and a day since the last one.
         ...(user_profile?.effects?.smuggling_routes
-            && exports.heatValue(user_profile) >= heat_tuning.SPICE_RUN.heat
+            && exports.heatValue(user_profile) >= heat_tuning.SPICE_RUN.minimum
             && !exports.spiceRunCooldown(user_profile) ? [{
                 label: `Spice Run`,
                 value: 'spice',
                 price: 0,
-                description: `Sell \u{1F525}${heat_tuning.SPICE_RUN.heat} heat for \u{1F4C0}${number_with_commas(heat_tuning.SPICE_RUN.truguts)}`,
-                info: `Sell your heat to a buyer who won't ask questions. Removes \u{1F525}${heat_tuning.SPICE_RUN.heat} heat and pays \u{1F4C0}${number_with_commas(heat_tuning.SPICE_RUN.truguts)}. Once per day.`,
+                description: `Sell \u{1F525}${exports.spiceRunAmount(user_profile)} heat for \u{1F4C0}${number_with_commas(heat_tuning.SPICE_RUN.truguts)}`,
+                info: `Sell half your heat to a buyer who won't ask questions. Clears \u{1F525}${exports.spiceRunAmount(user_profile)} heat and pays \u{1F4C0}${number_with_commas(heat_tuning.SPICE_RUN.truguts)}. Once per day.`,
                 emoji: {
                     name: "🚛"
                 }
@@ -4594,6 +4594,14 @@ exports.citizenshipCooldown = function (user_profile) {
 exports.banishment = function (user_profile) {
     const b = user_profile?.banishment
     return b?.planet ? b : null
+}
+
+//how much heat a spice run clears: half of what the player is carrying, never below the
+//minimum, and never more than they actually have. The shop label and the handler both read
+//this, so what the option promises and what the run does cannot drift apart.
+exports.spiceRunAmount = function (user_profile) {
+    const heat = exports.heatValue(user_profile)
+    return Math.min(heat, Math.max(heat_tuning.SPICE_RUN.minimum, Math.round(heat * heat_tuning.SPICE_RUN.fraction)))
 }
 
 //Spice Run is once a day; returns when the next one is available, or null if it's ready

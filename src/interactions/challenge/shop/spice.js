@@ -1,4 +1,4 @@
-const { heatValue, applyHeat, spiceRunCooldown, manageTruguts } = require('../functions.js');
+const { heatValue, applyHeat, spiceRunCooldown, spiceRunAmount, manageTruguts } = require('../functions.js');
 const heat_tuning = require('../../../data/challenge/heat.js');
 const { number_with_commas } = require('../../../generic.js');
 
@@ -23,18 +23,21 @@ exports.spice = function ({ interaction, user_profile, profile_ref } = {}) {
             `Your buyer is back <t:${Math.round(until / 1000)}:R>. One run per day.`)
     }
     const heat = heatValue(user_profile)
-    if (heat < heat_tuning.SPICE_RUN.heat) {
+    if (heat < heat_tuning.SPICE_RUN.minimum) {
         return refuse("<:WhyNobodyBuy:589481340957753363> Nothing to sell",
-            `A spice run needs \`🔥${heat_tuning.SPICE_RUN.heat}\` heat. You have \`🔥${heat}\`.`)
+            `A spice run needs \`🔥${heat_tuning.SPICE_RUN.minimum}\` heat. You have \`🔥${heat}\`.`)
     }
 
-    applyHeat({ user_profile, profile_ref, amount: -heat_tuning.SPICE_RUN.heat })
+    //half of what they're carrying, floored at the minimum -- the shop label read the
+    //same helper, so what was advertised is what gets cleared
+    const sold = spiceRunAmount(user_profile)
+    applyHeat({ user_profile, profile_ref, amount: -sold })
     manageTruguts({ user_profile, profile_ref, transaction: 'd', amount: heat_tuning.SPICE_RUN.truguts })
     profile_ref.child('effects').update({ spice_run: Date.now() })
 
     const done = new EmbedBuilder()
         .setTitle("🚛 Spice Run")
-        .setDescription(`\`-🔥${heat_tuning.SPICE_RUN.heat}\` heat\n\`+📀${number_with_commas(heat_tuning.SPICE_RUN.truguts)}\`\n\nYour heat is now \`🔥${Math.max(0, heat - heat_tuning.SPICE_RUN.heat)}\`. Come back tomorrow.`)
+        .setDescription(`\`-🔥${sold}\` heat\n\`+📀${number_with_commas(heat_tuning.SPICE_RUN.truguts)}\`\n\nYour heat is now \`🔥${Math.max(0, heat - sold)}\`. Come back tomorrow.`)
     interaction.reply({ embeds: [done], ephemeral: true })
     //the shop charges `price` on a true return, and Spice Run is priced at 0
     return true
