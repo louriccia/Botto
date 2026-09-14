@@ -1770,11 +1770,18 @@ exports.challengeComponents = function (current_challenge, user_profile, db, per
     }
     if (current_challenge.type == "private" && !current_challenge.completed) {
         let current_truguts = user_profile.truguts_earned - user_profile.truguts_spent
+        //Rerolling out from under a verdict costs heat, so the button says so before it
+        //is pressed, the same way the bribe button carries its own heat clause. A clean
+        //challenge costs nothing to reroll, so the usual label is untouched. The
+        //forfeited Running Hot is left off and explained by the line on the replacement
+        //card instead -- there is no room on a button for both.
+        const flee_heat = current_challenge.heat_penalty ? heat_tuning.FLEE.heat : 0
         if (current_truguts >= reroll.cost) {
             row.addComponents(
                 new ButtonBuilder()
                     .setCustomId("challenge_random_reroll")
-                    .setLabel(reroll.cost == 0 ? '(Free)' : "📀" + number_with_commas(reroll.cost))
+                    .setLabel(((reroll.cost == 0 ? '(Free)' : "📀" + number_with_commas(reroll.cost))
+                        + (flee_heat ? ` · 🔥+${flee_heat}` : '')).slice(0, 80))
                     .setStyle(ButtonStyle.Secondary)
                     .setEmoji("854097998357987418")
             )
