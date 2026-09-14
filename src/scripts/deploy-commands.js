@@ -19,7 +19,7 @@
 
 require('dotenv').config({ path: __dirname + '/../../.env' })
 
-const { REST, Routes } = require('discord.js');
+const { REST, Routes, ApplicationCommandType } = require('discord.js');
 const fs = require('node:fs');
 const path = require('node:path');
 
@@ -118,7 +118,16 @@ async function show(label, route) {
 
 		if (mode === '--guild') {
 			if (!arg) return console.error('--guild needs a guild id.');
-			const data = await rest.put(Routes.applicationGuildCommands(clientID, arg), { body: commands });
+			// A PRIMARY_ENTRY_POINT command (type 4) is global-only -- Discord 400s the whole PUT
+			// rather than the one command. Since --guild carries the held-back commands and /launch
+			// is one of them, leaving it in meant --guild deployed nothing at all.
+			const entry_points = commands.filter(c => c.type === ApplicationCommandType.PrimaryEntryPoint);
+			const guild_commands = commands.filter(c => c.type !== ApplicationCommandType.PrimaryEntryPoint);
+			if (entry_points.length) {
+				console.log(`  skipping ${names(entry_points)} — entry point commands can only be deployed globally
+`);
+			}
+			const data = await rest.put(Routes.applicationGuildCommands(clientID, arg), { body: guild_commands });
 			console.log(`Deployed ${data.length} command(s) to guild ${arg} (instant).`);
 			console.log('Note: a guild copy sits alongside the global set - expect duplicates for any shared name.');
 			return;
