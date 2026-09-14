@@ -142,12 +142,21 @@ exports.PENALTIES = {
     },
     short_count: {
         title: "The Price Just Went Up",
-        // doubles the bribe: you get exactly what you paid for, at twice the price.
+        // half again on top of the bribe: you get exactly what you paid for, dearer.
+        //
         // cost_of names which of bribeDelta's numbers the surcharge is billed against and
         // cost_times how many extra multiples of it to charge. One rule then serves both
         // the can-the-player-cover-this check and the charge itself.
+        //
+        // Was a full extra multiple, which made this identical to The Fine for anyone
+        // paying list price -- the same penalty under two names, one in the cheapest tier
+        // and one in the harshest. Skimmed is meant to be the mild tier, and it is where
+        // the occasional briber chasing a bounty spends all of their time, so the cheap
+        // tier should not cost as much as the expensive one. Billed off `cost` rather than
+        // `full_cost` on purpose: doubling a free bribe is still free, which keeps the
+        // promise citizenship and Smuggling Routes make.
         cost_of: 'cost',
-        cost_times: 1,
+        cost_times: 0.5,
         flavor: [
             '${host} says this one costs extra.'
         ]

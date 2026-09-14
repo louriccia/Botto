@@ -4459,7 +4459,9 @@ exports.rollHeatPenalty = function ({ user_profile, perks, delta, current_challe
     //and the charge can never disagree about it
     const surcharge = k => {
         const spec = heat_tuning.PENALTIES[k]
-        return spec.cost_of ? delta[spec.cost_of] * spec.cost_times : 0
+        //rounded: cost_times can be fractional and manageTruguts writes whatever it is
+        //given, so an odd bribe price would otherwise put decimals in the ledger
+        return spec.cost_of ? Math.round(delta[spec.cost_of] * spec.cost_times) : 0
     }
     const applies = k => {
         if (k == 'wrong_guy') {

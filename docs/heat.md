@@ -227,7 +227,7 @@ one of them by name.
 
 ### Tier I — Skimmed (heat 1–33)
 
-- **Short Count** — the bribe costs 2× what the button said. You still get what you paid for.
+- **Short Count** — the bribe costs half again on top. You still get what you paid for.
 - **Wrong Guy** — the fixer delivers a *random* track or racer instead of the one you picked.
   You paid, something changed, it just wasn't your call.
 
@@ -247,7 +247,15 @@ writes straight into the existing `conditions` object, no new plumbing at all.*
 ### Tier III — Busted (heat 67+)
 
 - **Nothing For You** — the challenge earns `0` truguts. Time still counts, PB still counts.
-- **The Fine** — the bribe costs double, billed off the undiscounted price.
+- **The Fine** — the bribe costs double, billed off the *undiscounted* price, so being local
+  is no exemption.
+
+The two cost penalties are deliberately different sizes and bill against different numbers.
+They were briefly the same thing: cutting The Fine from `3×` to `1×` (§6.1) left it identical
+to Short Count for anyone paying list price — one penalty under two names, in the cheapest
+tier and the harshest. Short Count dropped to `+50%` to fix it, which also makes Skimmed
+properly mild: it is where the occasional briber chasing a bounty spends all of their time,
+so the cheap tier should not cost what the expensive one does.
 - **Blacklisted** — no bribes for 30 minutes.
 - **Banished** — only if you hold a citizenship on the challenge's planet: the host strips the
   role until you pay a fine or complete three clean challenges there. See §7.2. *Shipped as a
