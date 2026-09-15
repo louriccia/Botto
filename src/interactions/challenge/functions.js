@@ -4826,33 +4826,37 @@ exports.cofferKeys = function ({ user_profile } = {}) {
     return Object.keys(owned).filter(key => owned[key].id == exports.COFFER_ID && exports.usableItem({ item: owned[key] }))
 }
 
-//claim a set of items atomically -- one transaction over the items node rather than one
-//per item, so opening three hundred coffers is a single round trip and can never
-//half-apply. Returns only the keys it actually got: a double-click, or the inventory and
-//a challenge card racing each other, finds them already stamped and comes back with fewer
-//(or none) rather than spending anything twice.
-exports.claimProfileItems = async function ({ profile_ref, keys, stamp } = {}) {
-    let claimed = []
-    const result = await profile_ref.child('items').transaction(owned => {
-        claimed = []
-        if (owned === null) {
-            return owned //not in the local cache yet; the SDK retries with server data
-        }
-        const next = { ...owned }
-        keys.forEach(key => {
-            const item = next[key]
-            if (!item || item.used || item.scrapped || item.fed || item.locked) {
-                return
-            }
-            next[key] = { ...item, ...stamp }
-            claimed.push(key)
-        })
-        if (!claimed.length) {
-            return //nothing left to claim -> abort rather than rewriting the whole node
-        }
-        return next
-    })
-    return result.committed ? claimed : []
+//claim a set of items, each one atomically, so a double-click can't consume the same item
+//twice. Deliberately one transaction per item child rather than one over the whole `items`
+//node: the node holds a heavy player's entire inventory, and a read-modify-write of all of
+//it is both slow enough to blow Discord's three-second window on the single-item path and
+//a rewrite of every unrelated item on the profile. The children don't conflict with each
+//other, so they go out in parallel and cost about one round trip per batch.
+//
+//Returns only the keys it actually got: a double-click, or the inventory and a challenge
+//card racing each other, finds them already stamped and comes back with fewer (or none)
+//rather than spending anything twice.
+exports.claimProfileItems = async function ({ profile_ref, keys, stamp, batch = 50 } = {}) {
+    const claimed = []
+    for (let i = 0; i < keys.length; i += batch) {
+        const results = await Promise.all(keys.slice(i, i + batch).map(async key => {
+            let consumed = false
+            const result = await profile_ref.child('items').child(key).transaction(item => {
+                consumed = false
+                if (item === null) {
+                    return item //not in the local cache yet; the SDK retries with server data
+                }
+                if (item.used || item.scrapped || item.fed || item.locked) {
+                    return //already consumed -> abort
+                }
+                consumed = true
+                return { ...item, ...stamp }
+            })
+            return consumed && result.committed && result.snapshot.exists() ? key : null
+        }))
+        claimed.push(...results.filter(Boolean))
+    }
+    return claimed
 }
 
 //consume up to `limit` coffers and hand back everything that was inside them. One place
