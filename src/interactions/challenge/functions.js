@@ -1639,7 +1639,21 @@ exports.challengeContainer = async function ({ current_challenge, user_profile, 
         let item = exports.earnedItem({ current_challenge, member, user_profile, db })
         if (item && exports.showsSetting(user_profile, 'item')) {
             container.addSeparatorComponents(new SeparatorBuilder())
-            container.addTextDisplayComponents(new TextDisplayBuilder().setContent(`**Item Reward**\n${exports.itemString({ item, user_profile })}\n*${item.description}*`))
+            const reward = new TextDisplayBuilder().setContent(`**Item Reward**\n${exports.itemString({ item, user_profile })}\n*${item.description}*`)
+            //A coffer is the one reward that isn't the reward -- it's four more rolls the
+            //player has to go and find in the inventory to collect. Put the Open here and
+            //it never has to become a stockpile in the first place. Once it's been opened
+            //the accessory goes away and the line reads as history, like every other item.
+            if (item.id == exports.COFFER_ID && !item.used) {
+                container.addSectionComponents(new SectionBuilder()
+                    .addTextDisplayComponents(reward)
+                    .setButtonAccessory(new ButtonBuilder()
+                        .setCustomId('challenge_random_coffer')
+                        .setStyle(ButtonStyle.Primary)
+                        .setLabel('Open')))
+            } else {
+                container.addTextDisplayComponents(reward)
+            }
         }
     }
 
@@ -2013,14 +2027,24 @@ exports.bribeHeat = function ({ delta, perks, user_profile } = {}) {
     if (!delta?.changes?.length) {
         return 0
     }
-    let heat = 0
-    delta.changes.forEach(change => {
-        //anything in changes[] that isn't the track or the racer is a condition key
-        //(nu, mirror, laps, ...), so GAIN stays the one place the numbers live
-        const base = heat_tuning.GAIN[change] ?? heat_tuning.GAIN.condition
-        //Quiet Routes: an in-system swap never leaves the planet, so nobody notices
-        heat += base * (change == 'track' && delta.smuggled ? heat_tuning.MODIFIERS.quiet_routes : 1)
-    })
+    //anything in changes[] that isn't the track or the racer is a condition key
+    //(nu, mirror, laps, ...), so GAIN stays the one place the numbers live
+    const gains = delta.changes
+        .map(change => (heat_tuning.GAIN[change] ?? heat_tuning.GAIN.condition)
+            //Quiet Routes: an in-system swap never leaves the planet, so nobody notices
+            * (change == 'track' && delta.smuggled ? heat_tuning.MODIFIERS.quiet_routes : 1))
+        //a change worth no heat is not a change the host noticed, so it doesn't take up a
+        //slot in the ranking below -- see STACKING in the tuning
+        .filter(gain => gain > 0)
+        //most expensive first, so the order the player happened to stage things in can't
+        //decide which element gets the full-price slot
+        .sort((a, b) => b - a)
+
+    //diminishing returns within the one bribe: the nth element is billed at falloff^(n-1),
+    //floored so nothing is ever free. All of it lives in heat_tuning.STACKING
+    const falloff = heat_tuning.STACKING?.falloff ?? 1
+    const min_factor = heat_tuning.STACKING?.min_factor ?? 1
+    let heat = gains.reduce((sum, gain, i) => sum + gain * Math.max(Math.pow(falloff, i), min_factor), 0)
     if (perks?.citizen) {
         heat *= heat_tuning.MODIFIERS.home_turf
     } else if (perks?.outlander) {
@@ -2827,11 +2851,22 @@ exports.inventoryComponents = function ({ user_profile, selection, db, interacti
         }
         let selected_usable = selection[2]?.[0] ?? null
         if (selected_usable == 'collectible_coffer') {
+            const held = exports.cofferKeys({ user_profile }).length
             const OpenButton = new ButtonBuilder()
                 .setCustomId("challenge_random_inventory_coffer")
                 .setStyle(ButtonStyle.Primary)
                 .setLabel('Open')
-            comp.push(new ActionRowBuilder().addComponents(OpenButton))
+            const buttons = [OpenButton]
+            //Open All only appears once there is a stockpile to drain. The count is on the
+            //label because that is the number the player is deciding about -- somebody
+            //sitting on three hundred of these should not have to guess before pressing
+            if (held > 1) {
+                buttons.push(new ButtonBuilder()
+                    .setCustomId("challenge_random_inventory_cofferall")
+                    .setStyle(ButtonStyle.Secondary)
+                    .setLabel(`Open All (${number_with_commas(held)})`))
+            }
+            comp.push(new ActionRowBuilder().addComponents(...buttons))
         } else if (selected_usable == 'sabotage_kit') {
             const OpenButton = new ButtonBuilder()
                 .setCustomId("challenge_random_inventory_sabotage")
@@ -4722,8 +4757,20 @@ exports.decayHeat = function ({ user_profile, profile_ref } = {}) {
 exports.randomChallengeItem = function ({ user_profile, current_challenge, db, member_id, coffer, sarlacc } = {}) {
     const challenges_completed = Object.values(db.ch.times).filter(time => time.user == member_id).length
     let item_pool = []
-    let special_items = ['collectible_coffer', 'trugut_boost', 'sabotage_kit', 'clean_record', 'alibi'].map(id => items.find(i => i.id == id)).filter(Boolean)
+    //A coffer inside a coffer is the one roll that hands back another four rolls, and it
+    //compounds: a player who already owns everything of a given rarity falls through to
+    //the special-item fallback below on most rolls, and one special in five was a coffer.
+    //Four rolls a coffer, that is ~0.7 new coffers per coffer opened -- a geometric series
+    //that turned a handful of drops into a stockpile of three hundred. Coffers still drop
+    //from challenges, which is the faucet that was always meant to fill them; they just
+    //can no longer fill themselves.
+    const special_ids = ['collectible_coffer', 'trugut_boost', 'sabotage_kit', 'clean_record', 'alibi']
+        .filter(id => !(coffer && id == 'collectible_coffer'))
+    let special_items = special_ids.map(id => items.find(i => i.id == id)).filter(Boolean)
     items.forEach(item => {
+        if (coffer && item.id == 'collectible_coffer') {
+            return
+        }
         if (coffer || sarlacc || (item.challenges !== null && challenges_completed > item.challenges) || current_challenge.conditions[item.condition] || item.track.includes(current_challenge.track) || item.racer.includes(current_challenge.racer)) {
             item_pool.push(item)
         }
@@ -4770,19 +4817,126 @@ exports.randomChallengeItem = function ({ user_profile, current_challenge, db, m
     return random_item
 }
 
-exports.openCoffer = function ({ user_profile, db, member_id } = {}) {
-    let coffer_items = []
+exports.COFFER_ID = 'collectible_coffer'
 
-    //grow the owned-items snapshot as we roll so the duplicate-avoidance
-    //logic can see the items granted earlier in this same coffer
-    let rolling_profile = { ...user_profile, items: { ...(user_profile.items ?? {}) } }
-    for (let j = 0; j < 4; j++) {
-        let rolled = exports.randomChallengeItem({ user_profile: rolling_profile, current_challenge: null, db, member_id, coffer: true })
-        rolling_profile.items[`coffer_roll_${j}`] = { id: rolled.id }
-        coffer_items.push(rolled)
+//every unopened coffer on the profile, newest last -- the count the buttons carry and the
+//pool Open All draws from
+exports.cofferKeys = function ({ user_profile } = {}) {
+    const owned = user_profile?.items ?? {}
+    return Object.keys(owned).filter(key => owned[key].id == exports.COFFER_ID && exports.usableItem({ item: owned[key] }))
+}
+
+//claim a set of items atomically -- one transaction over the items node rather than one
+//per item, so opening three hundred coffers is a single round trip and can never
+//half-apply. Returns only the keys it actually got: a double-click, or the inventory and
+//a challenge card racing each other, finds them already stamped and comes back with fewer
+//(or none) rather than spending anything twice.
+exports.claimProfileItems = async function ({ profile_ref, keys, stamp } = {}) {
+    let claimed = []
+    const result = await profile_ref.child('items').transaction(owned => {
+        claimed = []
+        if (owned === null) {
+            return owned //not in the local cache yet; the SDK retries with server data
+        }
+        const next = { ...owned }
+        keys.forEach(key => {
+            const item = next[key]
+            if (!item || item.used || item.scrapped || item.fed || item.locked) {
+                return
+            }
+            next[key] = { ...item, ...stamp }
+            claimed.push(key)
+        })
+        if (!claimed.length) {
+            return //nothing left to claim -> abort rather than rewriting the whole node
+        }
+        return next
+    })
+    return result.committed ? claimed : []
+}
+
+//consume up to `limit` coffers and hand back everything that was inside them. One place
+//for the whole operation -- claim, roll, write -- so the challenge card's Open, the
+//inventory's Open and its Open All are the same thing at different counts, and a bulk
+//open can't drift from a single one.
+exports.openCoffers = async function ({ user_profile, profile_ref, db, member_id, limit = 1, keys: only = null } = {}) {
+    //`only` is for a caller that means one particular copy -- the challenge card's Open
+    //button, which must consume the coffer that dropped there and not the first one that
+    //happens to be sitting in the inventory
+    const keys = (only ?? exports.cofferKeys({ user_profile })).slice(0, Math.max(0, limit))
+    if (!keys.length) {
+        return { opened: 0, items: [] }
+    }
+    const claimed = await exports.claimProfileItems({ profile_ref, keys, stamp: { used: Date.now() } })
+    if (!claimed.length) {
+        return { opened: 0, items: [] }
     }
 
-    return coffer_items
+    //grow the owned-items snapshot as we roll so the duplicate-avoidance logic can see
+    //what the earlier coffers in this same batch already handed over -- otherwise a bulk
+    //open rolls all of them against the profile as it stood before the first one
+    let rolling_profile = { ...user_profile, items: { ...(user_profile.items ?? {}) } }
+    const rolled = []
+    const writes = {}
+    claimed.forEach(key => {
+        for (let j = 0; j < 4; j++) {
+            const item = exports.randomChallengeItem({ user_profile: rolling_profile, current_challenge: null, db, member_id, coffer: true })
+            let condensed = { coffer: key, date: Date.now(), id: item.id }
+            if (item.upgrade) {
+                condensed = { ...condensed, upgrade: item.upgrade, health: item.health }
+            }
+            //push() with no argument only mints the key, it doesn't write -- so the whole
+            //batch lands in the one update below instead of 1,208 separate round trips
+            const new_key = profile_ref.child('items').push().key
+            writes[new_key] = condensed
+            rolling_profile.items[new_key] = condensed
+            rolled.push(item)
+        }
+    })
+    await profile_ref.child('items').update(writes)
+    return { opened: claimed.length, items: rolled }
+}
+
+//what came out of an open, as one embed. A single coffer gets the four items spelled out
+//the way it always has; a bulk open can't -- three hundred coffers is 1,200 items against
+//Discord's 25-field, 6,000-character ceiling -- so it collapses to counts by rarity with
+//the legendaries and rares named, which are the only ones anybody reads the list for.
+exports.cofferEmbed = function ({ items: rolled, opened, user_profile, name, avatar } = {}) {
+    const embed = new EmbedBuilder()
+        .setAuthor({ name: `${name} opened ${opened > 1 ? `${number_with_commas(opened)} 🎁Collectible Coffers` : 'a 🎁Collectible Coffer'}`, iconURL: avatar })
+
+    if (opened <= 1) {
+        return embed.addFields(...rolled.map(item => ({ name: exports.itemString({ item, user_profile }), value: `\`📀${number_with_commas(item.value)}\` | ${item.description}` })))
+    }
+
+    //tally by id so the named lines read "Ratts Tyerell ×3" rather than repeating
+    const tally = new Map()
+    rolled.forEach(item => tally.set(item.id, { item, count: (tally.get(item.id)?.count ?? 0) + 1 }))
+    const by_rarity = rarity => [...tally.values()].filter(t => t.item.rarity == rarity)
+    const named = t => `${raritysymbols[t.item.rarity]} ${t.item.name}${t.count > 1 ? ` ×${t.count}` : ''}`
+
+    const headline = ['legendary', 'rare'].flatMap(r => by_rarity(r).map(named))
+    const counts = ['legendary', 'rare', 'uncommon', 'common']
+        .map(r => ({ r, n: by_rarity(r).reduce((sum, t) => sum + t.count, 0) }))
+        .filter(c => c.n)
+        .map(c => `${raritysymbols[c.r]} ${number_with_commas(c.n)}`)
+        .join(' · ')
+
+    const total = rolled.reduce((sum, item) => sum + exports.itemValue({ item }), 0)
+    //4,096 is the description ceiling; drop whole names off the end rather than slicing
+    //one in half, and say how many didn't fit
+    let shown = headline, dropped = 0
+    while (shown.join('\n').length > 3600) {
+        shown = shown.slice(0, -1)
+        dropped++
+    }
+
+    return embed.setDescription([
+        `**${number_with_commas(rolled.length)} items** · ${counts}`,
+        shown.length ? shown.join('\n') : '',
+        dropped ? `-# +${number_with_commas(dropped)} more` : '',
+        `-# Total value \`📀${number_with_commas(total)}\``
+    ].filter(Boolean).join('\n\n'))
 }
 
 exports.userPicker = function ({ selection, row, customid, placeholder, db, descriptions } = {}) {
@@ -4868,8 +5022,10 @@ exports.earnedItem = function ({ current_challenge, member, user_profile, db } =
         return null
     }
     const owner = Object.values(db?.user ?? {}).find(u => u.discordID == member)?.random ?? user_profile
-    const instance = Object.values(owner?.items ?? {}).find(i => i.id == id && i.challenge == current_challenge.message)
-    return instance ? { ...base, ...instance } : { ...base, health: undefined }
+    //carry the profile key back with it -- the card's Open button has to consume this
+    //exact copy, not merely some item on the profile that shares its id
+    const key = Object.keys(owner?.items ?? {}).find(k => owner.items[k].id == id && owner.items[k].challenge == current_challenge.message)
+    return key ? { ...base, ...owner.items[key], key } : { ...base, health: undefined }
 }
 
 exports.itemString = function ({ item, user_profile }) {
