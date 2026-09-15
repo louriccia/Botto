@@ -2700,6 +2700,28 @@ exports.shopComponents = function ({ user_profile, selection, shoptions, purchas
     return comp
 }
 
+//Discord's limit for an embed field value. Over it, addFields throws and takes the entire
+//embed with it -- so a field that can grow with the player's inventory has to be clamped
+//before it gets there, not hoped about.
+exports.FIELD_MAX = 1024
+
+//trim to the last whole line that fits, so a truncated list never ends mid-task, and mark
+//what was dropped. Returns '' for empty input: an empty field value is rejected too.
+exports.clampField = function (text, max = exports.FIELD_MAX) {
+    const value = String(text ?? '')
+    if (!value.trim()) {
+        return ''
+    }
+    if (value.length <= max) {
+        return value
+    }
+    const tail = '\n-# ...'
+    const lines = value.slice(0, max - tail.length).split('\n')
+    //drop the line the slice landed in the middle of
+    lines.pop()
+    return (lines.join('\n').trimEnd() || value.slice(0, max - tail.length)) + tail
+}
+
 exports.inventoryEmbed = function ({ user_profile, selection, name, avatar }) {
     let section = selection[1]?.[0]
     let s_selection = selection[2]?.[0]
@@ -2740,10 +2762,18 @@ exports.inventoryEmbed = function ({ user_profile, selection, name, avatar }) {
                 repair_map = repair_map.slice(0, 5)
             }
             repair_map = repair_map.map(droid => `**${droid.name}**\n${droid.tasks.map(t => `<a:sparks:672640526444527647> ${t.name}${t.end_date ? ` <t:${Math.round(t.end_date / 1000)}:R>` : ''}`).join("\n")}`).join("\n")
-            myEmbed.addFields({
-                name: 'Current Tasks',
-                value: repair_map + additional
-            })
+            //Discord rejects a field value over 1,024 characters and the whole embed
+            //throws with it, taking the inventory down rather than the field. Five droids
+            //with a long queue each clears that easily -- and a player who has just opened
+            //a stockpile of coffers has a lot of damaged parts to queue -- so trim to the
+            //last whole task line that fits and say what didn't.
+            const tasks_value = exports.clampField(repair_map + additional)
+            if (tasks_value) {
+                myEmbed.addFields({
+                    name: 'Current Tasks',
+                    value: tasks_value
+                })
+            }
         }
         if (section.value == 'duplicates') {
             myEmbed.setFooter({ text: `Scrap: ${Object.values(user_profile.items ?? {}).filter(i => exports.usableItem({ item: i }) && !i.locked && i.id == 70).length}\nTruguts: 📀${number_with_commas(exports.currentTruguts(user_profile))}\n♦ indicates an item is needed for a collection` })
