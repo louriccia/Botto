@@ -1,4 +1,4 @@
-const { equipCitizenRole, equipEmojiRole, manageTruguts, randomChallengeItem, inventoryComponents, inventoryEmbed, Collections, collectionReward, collectionRewardEmbed, openCoffer, itemString, tradeEmbed, tradeComponents, availableItemsforScrap, availableItemsforCollection, availableItemsforRepairs, heatValue, applyHeat } = require('./functions.js');
+const { equipCitizenRole, equipEmojiRole, manageTruguts, randomChallengeItem, inventoryComponents, inventoryEmbed, Collections, collectionReward, collectionRewardEmbed, openCoffers, cofferKeys, cofferEmbed, itemString, tradeEmbed, tradeComponents, availableItemsforScrap, availableItemsforCollection, availableItemsforRepairs, heatValue, applyHeat } = require('./functions.js');
 const heat_tuning = require('../../data/challenge/heat.js');
 const { postMessage, editMessage } = require('../../discord.js');
 const { planets } = require('../../data/sw_racer/planet.js')
@@ -47,12 +47,13 @@ exports.inventory = async function ({ interaction, user_profile, profile_ref, db
 
     const actionmap = {
         coffer: 'collectible_coffer',
+        cofferall: 'collectible_coffer',
         sabotage: 'sabotage_kit',
         boost: 'trugut_boost',
         clean: 'clean_record',
         alibi: 'alibi'
     }
-    if (['coffer', 'sabotage', 'boost', 'clean', 'alibi'].includes(args[2])) {
+    if (['coffer', 'cofferall', 'sabotage', 'boost', 'clean', 'alibi'].includes(args[2])) {
         if (!user_profile.items) {
             NoItems()
             return
@@ -63,24 +64,37 @@ exports.inventory = async function ({ interaction, user_profile, profile_ref, db
             return
         }
 
-        if (args[2] == 'coffer') {
-            if (!(await consumeProfileItem(key, { used: Date.now() }))) {
-                NoItems()
+        if (args[2] == 'coffer' || args[2] == 'cofferall') {
+            //a bulk open is a lot of rolls and one big write, so ack the click first --
+            //Discord gives an interaction three seconds and then stops listening
+            const bulk = args[2] == 'cofferall'
+            if (bulk) {
+                await interaction.deferUpdate()
+            }
+            const { opened, items: new_items } = await openCoffers({
+                user_profile,
+                profile_ref,
+                db,
+                member_id,
+                limit: bulk ? cofferKeys({ user_profile }).length : 1
+            })
+            if (!opened) {
+                //somebody already spent them -- a double click, or the Open button on a
+                //challenge card -- so say so rather than posting an empty coffer
+                if (!bulk) {
+                    NoItems()
+                    return
+                }
+                user_profile = db.user[user_key].random
+                await interaction.editReply({ embeds: [inventoryEmbed({ user_profile, selection: iselection, name: botto_name, member_avatar })], components: inventoryComponents({ user_profile, selection: iselection, db, interaction }) })
                 return
             }
-            let new_items = openCoffer({ user_profile, db, member_id })
-            new_items.forEach(async item => {
-                let condensed = { coffer: key, date: Date.now(), id: item.id }
-                if (item.upgrade) {
-                    condensed = { ...condensed, upgrade: item.upgrade, health: item.health }
-                }
-                await profile_ref.child('items').push(condensed)
-            })
-            const congratsEmbed = new EmbedBuilder()
-                .setAuthor({ name: botto_name + " opened a 🎁Collectible Coffer", iconURL: member_avatar })
-                .addFields(...new_items.map(item => ({ name: itemString({ item, user_profile }), value: `\`📀${number_with_commas(item.value)}\` | ${item.description}` })))
-            postMessage(interaction.client, interaction.channelId, { embeds: [congratsEmbed] })
+            postMessage(interaction.client, interaction.channelId, { embeds: [cofferEmbed({ items: new_items, opened, user_profile, name: botto_name, avatar: member_avatar })] })
             user_profile = db.user[user_key].random
+            if (bulk) {
+                await interaction.editReply({ embeds: [inventoryEmbed({ user_profile, selection: iselection, name: botto_name, member_avatar })], components: inventoryComponents({ user_profile, selection: iselection, db, interaction }) })
+                return
+            }
             //collectionRewardUpdater({ user_profile, client, interaction, profile_ref, name, member_avatar })
         } else if (args[2] == 'sabotage') {
             let selected_player = iselection[3]?.[0]
