@@ -1,4 +1,4 @@
-const { updateChallenge, dailyChallenge, dailyRerollCost, dailyRerollOpen, manageTruguts } = require('../functions.js');
+const { updateChallenge, dailyChallenge, dailyRerollCost, dailyRerollOpen, refreshDailyReroll, manageTruguts } = require('../functions.js');
 const { editMessage } = require('../../../discord.js');
 const { number_with_commas } = require('../../../generic.js');
 
@@ -9,16 +9,35 @@ exports.rerolldaily = async function ({ interaction, current_challenge, db, data
     //announcement - dailyRerollOpen anchors to that rather than to whichever
     //replacement is currently up, so rerolling can't push the window forward
     let last = current_challenge ?? Object.values(db.ch.challenges).filter(c => c.type == 'cotd' && !c.rerolled).sort((a, b) => a.created - b.created).pop()
+    const challengesref = database.ref('challenge/challenges')
     if (!last || last.type !== 'cotd' || last.rerolled || last.completed || !dailyRerollOpen(db, last)) {
         const tooLate = new EmbedBuilder()
             .setTitle("<:WhyNobodyBuy:589481340957753363> It's too late...")
             .setDescription("You can only reroll the random challenge of the day within 2 hours of its announcement.")
         interaction.reply({ embeds: [tooLate], ephemeral: true })
+        //the button this was pressed on is out of date -- take it off the card so the
+        //next player isn't offered a reroll that can no longer be bought
+        refreshDailyReroll({ client: interaction.client, db, challengesref }).catch(err => console.error('[rerolldaily] refresh after late press failed:', err))
         return false
     }
 
     //cost starts at 1M and doubles with every reroll of the day
     const cost = dailyRerollCost(db)
+
+    //the button carries the price from the moment its card was rendered, and the price
+    //doubles server-wide with every reroll of the day, so a press can arrive quoting a
+    //figure that has since gone up. Never charge more than the card asked for: correct
+    //the card and let the player decide again at a price they can actually see
+    const quoted = Number(String(interaction.component?.label ?? '').replace(/[^0-9]/g, '')) || null
+    if (quoted && cost > quoted) {
+        const priceHike = new EmbedBuilder()
+            .setTitle("<:WhyNobodyBuy:589481340957753363> The price went up")
+            .setDescription("Someone beat you to it. Rerolling the Random Challenge of the Day now costs `📀" + number_with_commas(cost) + "`, not `📀" + number_with_commas(quoted) + "`.\n\nYou have **not** been charged. Press again to reroll at the new price.")
+        interaction.reply({ embeds: [priceHike], ephemeral: true })
+        refreshDailyReroll({ client: interaction.client, db, challengesref }).catch(err => console.error('[rerolldaily] refresh after stale quote failed:', err))
+        return false
+    }
+
     if (user_profile.truguts_earned - user_profile.truguts_spent < cost) {
         const noMoney = new EmbedBuilder()
             .setTitle("<:WhyNobodyBuy:589481340957753363> Insufficient Truguts")
@@ -30,7 +49,7 @@ exports.rerolldaily = async function ({ interaction, current_challenge, db, data
     //do the reroll FIRST and charge only once it lands — a throw here must not
     //cost the user 1M+ truguts for a reroll that never happened
     await interaction.deferReply()
-    const last_ref = database.ref(`challenge/challenges/${last.message}`)
+    const last_ref = challengesref.child(last.message)
     try {
         last.rerolled = true
         //updateChallenge persists rerolled:true via current_challengeref.update()
@@ -68,6 +87,6 @@ exports.rerolldaily = async function ({ interaction, current_challenge, db, data
     //post the replacement daily; if this throws, the minuteUpdater's own
     //dailyChallenge call re-posts it within a minute (the old cotd is already
     //persisted as rerolled, so it no longer counts as today's challenge)
-    Promise.resolve(dailyChallenge({ client: interaction.client, db, challengesref: database.ref('challenge/challenges') })).catch(err => console.error('[rerolldaily] dailyChallenge failed (minuteUpdater will retry):', err))
+    Promise.resolve(dailyChallenge({ client: interaction.client, db, challengesref })).catch(err => console.error('[rerolldaily] dailyChallenge failed (minuteUpdater will retry):', err))
     return true
 }

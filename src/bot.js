@@ -2,7 +2,7 @@ require('dotenv').config({ path: __dirname + '/../.env' })
 
 const { testing } = require('../config.js')
 
-const { dailyChallenge, monthlyChallenge, completeRepairs } = require("./interactions/challenge/functions.js")
+const { dailyChallenge, monthlyChallenge, completeRepairs, refreshDailyReroll } = require("./interactions/challenge/functions.js")
 const { swe1r_guild, test_guild } = require('./data/discord/guild.js')
 const { scan_streams } = require('./twitch.js')
 const { drops } = require('./auto/drops.js')
@@ -243,6 +243,11 @@ client.once(Events.ClientReady, async () => {
                 scan_streams(client);
                 dailyChallenge({ client, db, challengesref: database.ref('challenge/challenges') })
                 monthlyChallenge({ client, db, challengesref: database.ref('challenge/challenges'), database })
+                //the daily's reroll button is a snapshot of a price and a window that
+                //both move on without it; this takes it down when the window closes and
+                //corrects the label when a reroll changes the price
+                refreshDailyReroll({ client, db, challengesref: database.ref('challenge/challenges') })
+                    .catch(err => console.error('[minuteUpdater] refreshDailyReroll failed:', err?.message ?? err))
             }
         } catch (error) {
             reportError('Minute Updater', error);

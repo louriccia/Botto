@@ -1265,6 +1265,12 @@ exports.updateChallenge = async function ({ client, db, user_profile, current_ch
         current_challenge.reroll_cost = (player_profile.effects?.free_rerolls || perks.citizen || current_challenge.sponsors?.[player] || record_holder) ? "free" : played ? "discount" : "full price"
     }
 
+    //record the offer this render is about to print on the card, so refreshDailyReroll
+    //can tell a stale button from a current one without re-reading the message
+    if (current_challenge.type == 'cotd') {
+        current_challenge.reroll_price = exports.dailyRerollOffer(db, current_challenge)
+    }
+
     if (current_challengeref) {
         current_challengeref.update(current_challenge)
     }
@@ -1357,6 +1363,47 @@ exports.dailyRerollCost = function (db) {
         c.type == 'cotd' && c.rerolled && c.day == today && c.created > Date.now() - 1000 * 60 * 60 * 24
     ).length
     return base * Math.pow(2, rerollsToday)
+}
+
+// The one place that decides whether a daily card carries a reroll button and what
+// the button charges -- the renderer and the staleness sweep both read it, so the
+// price printed on the card and the price the sweep checks it against cannot drift
+// apart. Returns null when there is no offer to make.
+exports.dailyRerollOffer = function (db, current_challenge) {
+    if (!db || !current_challenge || current_challenge.type !== 'cotd') return null
+    if (current_challenge.rerolled || current_challenge.completed) return null
+    if (current_challenge.day !== exports.easternTime().dayOfYear()) return null
+    if (!exports.dailyRerollOpen(db, current_challenge)) return null
+    return exports.dailyRerollCost(db)
+}
+
+// A posted card is a snapshot: the reroll button's price and its very presence are
+// fixed at render time and never revisited. Nothing is scheduled at the two-hour
+// deadline to take the button down, and the price doubles server-wide with each
+// reroll of the day -- so a daily nobody has touched keeps advertising an offer that
+// has since changed or closed. minuteUpdater calls this every tick; `reroll_price`
+// records the offer the card is showing (stamped wherever a daily is persisted), so
+// the message is re-rendered only when that no longer matches the live offer.
+exports.refreshDailyReroll = async function ({ client, db, challengesref } = {}) {
+    const today = exports.easternTime().dayOfYear()
+    const live = Object.values(db?.ch?.challenges || {}).filter(c =>
+        c && c.type == 'cotd' && c.day == today && !c.rerolled && !c.completed && c.message && c.channel
+    )
+    for (const current_challenge of live) {
+        const offer = exports.dailyRerollOffer(db, current_challenge)
+        if ((current_challenge.reroll_price ?? null) === offer) continue
+        try {
+            const current_challengeref = challengesref.child(current_challenge.message)
+            const refreshed = await exports.updateChallenge({ client, db, current_challenge, current_challengeref })
+            const message = await client.channels.cache.get(current_challenge.channel)?.messages?.fetch(current_challenge.message)
+            await message.edit(refreshed)
+        } catch (err) {
+            //the stamp is already written by updateChallenge, so a card whose message
+            //has gone (deleted, or a channel the bot can no longer read) is logged once
+            //rather than retried every minute for the rest of the day
+            console.error('[refreshDailyReroll] could not refresh daily', current_challenge.message, err?.message ?? err)
+        }
+    }
 }
 
 exports.checkActive = function (db, member, current_challenge) {
@@ -1787,12 +1834,12 @@ exports.challengeComponents = function (current_challenge, user_profile, db, per
                 .setEmoji("⏱️")
         )
     }
-    if (db && current_challenge.type == 'cotd' && !current_challenge.rerolled && !current_challenge.completed
-        && current_challenge.day == exports.easternTime().dayOfYear() && exports.dailyRerollOpen(db, current_challenge)) {
+    const daily_reroll = exports.dailyRerollOffer(db, current_challenge)
+    if (daily_reroll !== null) {
         row.addComponents(
             new ButtonBuilder()
                 .setCustomId("challenge_random_reroll")
-                .setLabel("📀" + number_with_commas(exports.dailyRerollCost(db)))
+                .setLabel("📀" + number_with_commas(daily_reroll))
                 .setStyle(ButtonStyle.Secondary)
                 .setEmoji("854097998357987418")
         )
@@ -4401,6 +4448,11 @@ exports.dailyChallenge = async function ({ client, challengesref, db } = {}) {
 
         }
 
+        //the offer the render below prints on the card. Recorded here because this
+        //daily is persisted with .set() rather than through updateChallenge's own
+        //stamp, and read before the post so a reroll landing mid-post cannot leave
+        //the record claiming a price the card never showed
+        current_challenge.reroll_price = exports.dailyRerollOffer(db, current_challenge)
         const cotdmessage = await postMessage(client, '551786988861128714', await exports.updateChallenge({ client, current_challenge, db })) //551786988861128714
         current_challenge.message = cotdmessage.id
         current_challenge.guild = cotdmessage.guildId
