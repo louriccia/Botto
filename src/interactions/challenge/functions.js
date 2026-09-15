@@ -570,7 +570,9 @@ exports.bountyAchievement = function (db, member) {
     return count
 }
 
-exports.generateLeaderboard = function ({ best, member, current_challenge, db } = {}) {
+exports.generateLeaderboard = function ({ best, member, current_challenge, db, user_profile } = {}) {
+    const leader = exports.leaderTime(best)
+    const gap = (time) => exports.timeGap({ time, leader, show: exports.showsSetting(user_profile, 'timediff') })
     if (!best.length) {
         return `:snowflake: \`📀 ${number_with_commas(truguts.first)}\``
     }
@@ -597,7 +599,7 @@ exports.generateLeaderboard = function ({ best, member, current_challenge, db } 
             leaderboard.push(
                 {
                     time: run.time,
-                    string: [pos[0], name, time, platform, notes, record, earnings].filter(e => e).join(" ")
+                    string: [pos[0], name, time, gap(run.time), platform, notes, record, earnings].filter(e => e).join(" ")
                 }
             )
             if (run.user) {
@@ -1193,7 +1195,7 @@ exports.updateChallenge = async function ({ client, db, user_profile, current_ch
         current_challengeref.update(current_challenge)
     }
 
-    let flavor_text = player_profile?.settings?.flavor === false ? '' : exports.flavorText({ current_challenge, db, best })
+    let flavor_text = exports.showsSetting(player_profile, 'flavor') ? exports.flavorText({ current_challenge, db, best }) : ''
 
     //challenges created with v2: true render as components v2; older messages
     //can't be converted (Discord forbids switching) so they keep the embed
@@ -1369,18 +1371,17 @@ exports.challengeEmbed = async function ({ current_challenge, user_profile, prof
     if (image) {
         challengeEmbed.setImage(image)
     }
-    challengeEmbed.addFields({ name: "Best Times", value: exports.generateLeaderboard({ best, member, current_challenge, db }).slice(0, 1024), inline: true })
+    challengeEmbed.addFields({ name: "Best Times", value: exports.generateLeaderboard({ best, member, current_challenge, db, user_profile }).slice(0, 1024), inline: true })
     if (current_challenge.completed && ['private', 'abandoned'].includes(current_challenge.type)) {
-        let progression = exports.challengeProgression({ current_challenge, submitted_time, goals, user_profile })
-        //item
-
-
-        challengeEmbed
-            //the summary names the racer itself
-            .addFields({ name: 'Experience', value: exports.fitField(progression.summary), inline: true })
+        if (exports.showsSetting(user_profile, 'level')) {
+            let progression = exports.challengeProgression({ current_challenge, submitted_time, goals, user_profile })
+            challengeEmbed
+                //the summary names the racer itself
+                .addFields({ name: 'Experience', value: exports.fitField(progression.summary), inline: true })
+        }
 
         let item = exports.earnedItem({ current_challenge, member, user_profile, db })
-        if (item) {
+        if (item && exports.showsSetting(user_profile, 'item')) {
             challengeEmbed.addFields({ name: exports.itemString({ item, user_profile }), value: `*${item.description}*`, inline: true })
         }
 
@@ -1403,7 +1404,12 @@ exports.challengeEmbed = async function ({ current_challenge, user_profile, prof
 //predictions, and sponsor times sorted together by time. goal, prediction, and
 //sponsor rows are small text; every time is a bolded code block. goal rows
 //carry no winnings or level-up markers -- those live in the Winnings receipt
-exports.challengeLeaderboardV2 = function ({ current_challenge, best, member, db, goals } = {}) {
+exports.challengeLeaderboardV2 = function ({ current_challenge, best, member, db, goals, user_profile } = {}) {
+    //Time Difference: each run carries its gap to the fastest time on the board.
+    //The leader has no gap, and a DNF (or anything else non-numeric) is skipped
+    //rather than rendered as NaN.
+    const leader = exports.leaderTime(best)
+    const gap = (time) => exports.timeGap({ time, leader, show: exports.showsSetting(user_profile, 'timediff') })
     //player times are bold; small-text rows (-#) keep the code block unbolded
     const t = (time) => `**\`${time_fix(time)}\`**`
     const st = (time) => `\`${time_fix(time)}\``
@@ -1433,7 +1439,7 @@ exports.challengeLeaderboardV2 = function ({ current_challenge, best, member, db
             //notes drop to their own small italic line, matching tourney runs and bets
             rows.push({
                 time: run.time,
-                string: [pos[0].trim(), time, name, platform, record, earnings].filter(e => e).join(" ")
+                string: [pos[0].trim(), time, gap(run.time), name, platform, record, earnings].filter(e => e).join(" ")
                     + (notes ? `\n-# *└ ${notes}*` : '')
             })
             if (run.user) {
@@ -1534,7 +1540,7 @@ exports.challengeContainer = async function ({ current_challenge, user_profile, 
 
     //Leaderboard leads every view; Pole Position's avatar sits beside it
     container.addSeparatorComponents(new SeparatorBuilder())
-    const leaderboard_text = new TextDisplayBuilder().setContent(`**Leaderboard**\n${exports.challengeLeaderboardV2({ current_challenge, best, member, db, goals }).slice(0, 1500)}`)
+    const leaderboard_text = new TextDisplayBuilder().setContent(`**Leaderboard**\n${exports.challengeLeaderboardV2({ current_challenge, best, member, db, goals, user_profile }).slice(0, 1500)}`)
     if (pole?.avatar) {
         container.addSectionComponents(new SectionBuilder().addTextDisplayComponents(leaderboard_text).setThumbnailAccessory(new ThumbnailBuilder().setURL(pole.avatar)))
     } else {
@@ -1547,13 +1553,17 @@ exports.challengeContainer = async function ({ current_challenge, user_profile, 
         container.addSeparatorComponents(new SeparatorBuilder())
         container.addTextDisplayComponents(new TextDisplayBuilder().setContent(`**Winnings**\n${winnings.receipt.slice(0, 1000)}`))
 
-        let progression = exports.challengeProgression({ current_challenge, submitted_time, goals, user_profile })
-        //the summary names the racer itself, so no separate name line here
-        container.addSeparatorComponents(new SeparatorBuilder())
-        container.addTextDisplayComponents(new TextDisplayBuilder().setContent(`**Experience**\n${progression.summary}`))
+        //Leveling and Item Rewards are display settings only -- the xp, the level
+        //rewards and the item are all awarded in submit.js either way
+        if (exports.showsSetting(user_profile, 'level')) {
+            let progression = exports.challengeProgression({ current_challenge, submitted_time, goals, user_profile })
+            //the summary names the racer itself, so no separate name line here
+            container.addSeparatorComponents(new SeparatorBuilder())
+            container.addTextDisplayComponents(new TextDisplayBuilder().setContent(`**Experience**\n${progression.summary}`))
+        }
 
         let item = exports.earnedItem({ current_challenge, member, user_profile, db })
-        if (item) {
+        if (item && exports.showsSetting(user_profile, 'item')) {
             container.addSeparatorComponents(new SeparatorBuilder())
             container.addTextDisplayComponents(new TextDisplayBuilder().setContent(`**Item Reward**\n${exports.itemString({ item, user_profile })}\n*${item.description}*`))
         }
@@ -3437,6 +3447,31 @@ exports.huntComponents = function (user_profile) {
     return [row1]
 }
 
+exports.leaderTime = function (best) {
+    const times = (best ?? []).map(b => Number(b?.time)).filter(n => Number.isFinite(n))
+    return times.length ? Math.min(...times) : null
+}
+
+//The gap reads as a duration, so it reuses time_fix -- a gap over a minute comes
+//out as 1:02.500 rather than 62.500.
+exports.timeGap = function ({ time, leader, show } = {}) {
+    if (!show || leader === null) {
+        return ''
+    }
+    const n = Number(time)
+    if (!Number.isFinite(n) || n <= leader) {
+        return ''
+    }
+    return '`+' + time_fix(n - leader) + '`'
+}
+
+//Display settings are opt-out: a profile that has never touched the dropdown has
+//no key at all, and the selector shows those options checked. Anything but an
+//explicit false therefore counts as on, which is how `flavor` has always read.
+exports.showsSetting = function (user_profile, setting) {
+    return user_profile?.settings?.[setting] !== false
+}
+
 exports.settingsEmbed = function ({ user_profile, name, avatar } = {}) {
     const settingsEmbed = new EmbedBuilder()
         .setAuthor({ name: "My Random Challenge Settings" })
@@ -3513,8 +3548,8 @@ exports.settingsComponents = function (user_profile) {
         },
         {
             value: 'level',
-            label: 'Level Rewards',
-            description: 'Display level rewards on my random challenges',
+            label: 'Leveling',
+            description: 'Display racer/player XP and level rewards on my challenges',
             emoji: {
                 id: '891128437354401842'
             }
@@ -3730,7 +3765,7 @@ exports.sponsorEmbed = function (sponsorchallenge, user_profile, db) {
     }
     sponsorEmbed.addFields(
         { name: "Goal Times", value: exports.goalTimeList(sponsorchallenge, null, best).list, inline: true },
-        { name: 'Best Times', value: exports.generateLeaderboard({ best, member: null, current_challenge: sponsorchallenge, db }) ?? 'No times', inline: true }
+        { name: 'Best Times', value: exports.generateLeaderboard({ best, member: null, current_challenge: sponsorchallenge, db, user_profile }) ?? 'No times', inline: true }
     )
     return sponsorEmbed
 }

@@ -26,7 +26,10 @@ exports.settings_default = {
     mirror_mode: 5,
     backwards: 5,
     predictions: true,
-    flavor: true
+    flavor: true,
+    timediff: true,
+    item: true,
+    level: true
 }
 
 exports.winnings_map = [

@@ -101,7 +101,10 @@ exports.settings = async function ({ interaction, db, botto_name, user_profile, 
             mirror_mode: settings_default.mirror_mode,
             backwards: settings_default.backwards,
             predictions: settings_default.predictions,
-            flavor: settings_default.flavor
+            flavor: settings_default.flavor,
+            timediff: settings_default.timediff,
+            item: settings_default.item,
+            level: settings_default.level
         })
     }
     user_profile = db.user[user_key].random
