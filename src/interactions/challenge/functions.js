@@ -2700,6 +2700,28 @@ exports.shopComponents = function ({ user_profile, selection, shoptions, purchas
     return comp
 }
 
+//Discord's limit for an embed field value. Over it, addFields throws and takes the entire
+//embed with it -- so a field that can grow with the player's inventory has to be clamped
+//before it gets there, not hoped about.
+exports.FIELD_MAX = 1024
+
+//trim to the last whole line that fits, so a truncated list never ends mid-task, and mark
+//what was dropped. Returns '' for empty input: an empty field value is rejected too.
+exports.clampField = function (text, max = exports.FIELD_MAX) {
+    const value = String(text ?? '')
+    if (!value.trim()) {
+        return ''
+    }
+    if (value.length <= max) {
+        return value
+    }
+    const tail = '\n-# ...'
+    const lines = value.slice(0, max - tail.length).split('\n')
+    //drop the line the slice landed in the middle of
+    lines.pop()
+    return (lines.join('\n').trimEnd() || value.slice(0, max - tail.length)) + tail
+}
+
 exports.inventoryEmbed = function ({ user_profile, selection, name, avatar }) {
     let section = selection[1]?.[0]
     let s_selection = selection[2]?.[0]
@@ -2740,10 +2762,18 @@ exports.inventoryEmbed = function ({ user_profile, selection, name, avatar }) {
                 repair_map = repair_map.slice(0, 5)
             }
             repair_map = repair_map.map(droid => `**${droid.name}**\n${droid.tasks.map(t => `<a:sparks:672640526444527647> ${t.name}${t.end_date ? ` <t:${Math.round(t.end_date / 1000)}:R>` : ''}`).join("\n")}`).join("\n")
-            myEmbed.addFields({
-                name: 'Current Tasks',
-                value: repair_map + additional
-            })
+            //Discord rejects a field value over 1,024 characters and the whole embed
+            //throws with it, taking the inventory down rather than the field. Five droids
+            //with a long queue each clears that easily -- and a player who has just opened
+            //a stockpile of coffers has a lot of damaged parts to queue -- so trim to the
+            //last whole task line that fits and say what didn't.
+            const tasks_value = exports.clampField(repair_map + additional)
+            if (tasks_value) {
+                myEmbed.addFields({
+                    name: 'Current Tasks',
+                    value: tasks_value
+                })
+            }
         }
         if (section.value == 'duplicates') {
             myEmbed.setFooter({ text: `Scrap: ${Object.values(user_profile.items ?? {}).filter(i => exports.usableItem({ item: i }) && !i.locked && i.id == 70).length}\nTruguts: 📀${number_with_commas(exports.currentTruguts(user_profile))}\n♦ indicates an item is needed for a collection` })
@@ -4826,33 +4856,37 @@ exports.cofferKeys = function ({ user_profile } = {}) {
     return Object.keys(owned).filter(key => owned[key].id == exports.COFFER_ID && exports.usableItem({ item: owned[key] }))
 }
 
-//claim a set of items atomically -- one transaction over the items node rather than one
-//per item, so opening three hundred coffers is a single round trip and can never
-//half-apply. Returns only the keys it actually got: a double-click, or the inventory and
-//a challenge card racing each other, finds them already stamped and comes back with fewer
-//(or none) rather than spending anything twice.
-exports.claimProfileItems = async function ({ profile_ref, keys, stamp } = {}) {
-    let claimed = []
-    const result = await profile_ref.child('items').transaction(owned => {
-        claimed = []
-        if (owned === null) {
-            return owned //not in the local cache yet; the SDK retries with server data
-        }
-        const next = { ...owned }
-        keys.forEach(key => {
-            const item = next[key]
-            if (!item || item.used || item.scrapped || item.fed || item.locked) {
-                return
-            }
-            next[key] = { ...item, ...stamp }
-            claimed.push(key)
-        })
-        if (!claimed.length) {
-            return //nothing left to claim -> abort rather than rewriting the whole node
-        }
-        return next
-    })
-    return result.committed ? claimed : []
+//claim a set of items, each one atomically, so a double-click can't consume the same item
+//twice. Deliberately one transaction per item child rather than one over the whole `items`
+//node: the node holds a heavy player's entire inventory, and a read-modify-write of all of
+//it is both slow enough to blow Discord's three-second window on the single-item path and
+//a rewrite of every unrelated item on the profile. The children don't conflict with each
+//other, so they go out in parallel and cost about one round trip per batch.
+//
+//Returns only the keys it actually got: a double-click, or the inventory and a challenge
+//card racing each other, finds them already stamped and comes back with fewer (or none)
+//rather than spending anything twice.
+exports.claimProfileItems = async function ({ profile_ref, keys, stamp, batch = 50 } = {}) {
+    const claimed = []
+    for (let i = 0; i < keys.length; i += batch) {
+        const results = await Promise.all(keys.slice(i, i + batch).map(async key => {
+            let consumed = false
+            const result = await profile_ref.child('items').child(key).transaction(item => {
+                consumed = false
+                if (item === null) {
+                    return item //not in the local cache yet; the SDK retries with server data
+                }
+                if (item.used || item.scrapped || item.fed || item.locked) {
+                    return //already consumed -> abort
+                }
+                consumed = true
+                return { ...item, ...stamp }
+            })
+            return consumed && result.committed && result.snapshot.exists() ? key : null
+        }))
+        claimed.push(...results.filter(Boolean))
+    }
+    return claimed
 }
 
 //consume up to `limit` coffers and hand back everything that was inside them. One place
@@ -4867,10 +4901,21 @@ exports.openCoffers = async function ({ user_profile, profile_ref, db, member_id
     if (!keys.length) {
         return { opened: 0, items: [] }
     }
-    const claimed = await exports.claimProfileItems({ profile_ref, keys, stamp: { used: Date.now() } })
+    const used = Date.now()
+    const claimed = await exports.claimProfileItems({ profile_ref, keys, stamp: { used } })
     if (!claimed.length) {
         return { opened: 0, items: [] }
     }
+
+    //stamp the in-memory profile too. The listener that refreshes the cache from the write
+    //above lands whenever it lands, and every caller here re-renders immediately -- without
+    //this the card can repaint with its Open button still on, and the inventory with a
+    //count that hasn't moved. Same pattern applyHeat uses.
+    claimed.forEach(key => {
+        if (user_profile?.items?.[key]) {
+            user_profile.items[key].used = used
+        }
+    })
 
     //grow the owned-items snapshot as we roll so the duplicate-avoidance logic can see
     //what the earlier coffers in this same batch already handed over -- otherwise a bulk

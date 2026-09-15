@@ -20,11 +20,14 @@ exports.inventory = async function ({ interaction, user_profile, profile_ref, db
         return (val)
     })
 
-    function NoItems() {
-        const holdUp = new EmbedBuilder()
+    function noItemsEmbed() {
+        return new EmbedBuilder()
             .setTitle("<:WhyNobodyBuy:589481340957753363> We have nothing of value. That's our problem.")
             .setDescription("You don't have the required item. Go do some challenges to earn items!")
-        interaction.reply({ embeds: [holdUp], ephemeral: true })
+    }
+
+    function NoItems() {
+        interaction.reply({ embeds: [noItemsEmbed()], ephemeral: true })
         return
     }
 
@@ -65,12 +68,13 @@ exports.inventory = async function ({ interaction, user_profile, profile_ref, db
         }
 
         if (args[2] == 'coffer' || args[2] == 'cofferall') {
-            //a bulk open is a lot of rolls and one big write, so ack the click first --
-            //Discord gives an interaction three seconds and then stops listening
+            //Opening writes before it renders -- claiming the coffers, then one update
+            //carrying everything that was inside them -- and on a heavy profile that is
+            //more than the three seconds Discord waits before it stops listening. Both
+            //sizes acknowledge first and edit afterwards; the bulk one needs it most, but
+            //a single open on a big inventory was enough to lose the interaction too.
             const bulk = args[2] == 'cofferall'
-            if (bulk) {
-                await interaction.deferUpdate()
-            }
+            await interaction.deferUpdate()
             const { opened, items: new_items } = await openCoffers({
                 user_profile,
                 profile_ref,
@@ -78,24 +82,17 @@ exports.inventory = async function ({ interaction, user_profile, profile_ref, db
                 member_id,
                 limit: bulk ? cofferKeys({ user_profile }).length : 1
             })
-            if (!opened) {
+            if (opened) {
+                postMessage(interaction.client, interaction.channelId, { embeds: [cofferEmbed({ items: new_items, opened, user_profile, name: botto_name, avatar: member_avatar })] })
+            } else {
                 //somebody already spent them -- a double click, or the Open button on a
-                //challenge card -- so say so rather than posting an empty coffer
-                if (!bulk) {
-                    NoItems()
-                    return
-                }
-                user_profile = db.user[user_key].random
-                await interaction.editReply({ embeds: [inventoryEmbed({ user_profile, selection: iselection, name: botto_name, member_avatar })], components: inventoryComponents({ user_profile, selection: iselection, db, interaction }) })
-                return
+                //challenge card. followUp rather than reply: the click is already
+                //acknowledged, so a reply would be rejected
+                await interaction.followUp({ embeds: [noItemsEmbed()], ephemeral: true })
             }
-            postMessage(interaction.client, interaction.channelId, { embeds: [cofferEmbed({ items: new_items, opened, user_profile, name: botto_name, avatar: member_avatar })] })
             user_profile = db.user[user_key].random
-            if (bulk) {
-                await interaction.editReply({ embeds: [inventoryEmbed({ user_profile, selection: iselection, name: botto_name, member_avatar })], components: inventoryComponents({ user_profile, selection: iselection, db, interaction }) })
-                return
-            }
-            //collectionRewardUpdater({ user_profile, client, interaction, profile_ref, name, member_avatar })
+            await interaction.editReply({ embeds: [inventoryEmbed({ user_profile, selection: iselection, name: botto_name, member_avatar })], components: inventoryComponents({ user_profile, selection: iselection, db, interaction }) })
+            return
         } else if (args[2] == 'sabotage') {
             let selected_player = iselection[3]?.[0]
             if (selected_player == user_key) {
