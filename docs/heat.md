@@ -93,6 +93,29 @@ Keyed off `delta.changes`, which `bribeDelta` already returns as a discrete arra
 | Racer swap | **+15** |
 | Each condition change (`altered_deal`) | **+8** |
 
+Billed with diminishing returns **within the one bribe**: the changes are ranked
+most-expensive-first and the *n*th is charged at `0.7^(n-1)`, never below `0.3`. A change
+worth no heat (a Quiet Routes track swap) is left out of the ranking rather than taking up
+the full-price slot.
+
+Flat billing was the first shipped version and it did not survive contact with players.
+Every element at full price meant an outlander rewriting two conditions and the racer
+walked out at **39** — and a full Altered Deal rewrite of track, racer and four conditions
+at **78**, most of the gauge from a single press, before they had raced anything. The
+first bribed element is what the host notices; the fifth is paperwork on a deal already
+being made.
+
+| Bribe | Flat | Now |
+|---|---|---|
+| Racer, outlander | 19 | **19** |
+| Track + racer | 30 | **26** |
+| Racer + 2 conditions, outlander | 39 | **31** |
+| Full rewrite, outlander | 78 | **46** |
+
+The floor is untouched — one bribed element, and the cheapest stack anyone has found
+(Quiet Routes track + racer on your own planet, still **8**) both cost exactly what they
+did. Only the ceiling moves. `STACKING.falloff: 1` in the tuning restores flat billing.
+
 Then modified, in order:
 
 ```

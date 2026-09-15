@@ -2013,14 +2013,24 @@ exports.bribeHeat = function ({ delta, perks, user_profile } = {}) {
     if (!delta?.changes?.length) {
         return 0
     }
-    let heat = 0
-    delta.changes.forEach(change => {
-        //anything in changes[] that isn't the track or the racer is a condition key
-        //(nu, mirror, laps, ...), so GAIN stays the one place the numbers live
-        const base = heat_tuning.GAIN[change] ?? heat_tuning.GAIN.condition
-        //Quiet Routes: an in-system swap never leaves the planet, so nobody notices
-        heat += base * (change == 'track' && delta.smuggled ? heat_tuning.MODIFIERS.quiet_routes : 1)
-    })
+    //anything in changes[] that isn't the track or the racer is a condition key
+    //(nu, mirror, laps, ...), so GAIN stays the one place the numbers live
+    const gains = delta.changes
+        .map(change => (heat_tuning.GAIN[change] ?? heat_tuning.GAIN.condition)
+            //Quiet Routes: an in-system swap never leaves the planet, so nobody notices
+            * (change == 'track' && delta.smuggled ? heat_tuning.MODIFIERS.quiet_routes : 1))
+        //a change worth no heat is not a change the host noticed, so it doesn't take up a
+        //slot in the ranking below -- see STACKING in the tuning
+        .filter(gain => gain > 0)
+        //most expensive first, so the order the player happened to stage things in can't
+        //decide which element gets the full-price slot
+        .sort((a, b) => b - a)
+
+    //diminishing returns within the one bribe: the nth element is billed at falloff^(n-1),
+    //floored so nothing is ever free. All of it lives in heat_tuning.STACKING
+    const falloff = heat_tuning.STACKING?.falloff ?? 1
+    const min_factor = heat_tuning.STACKING?.min_factor ?? 1
+    let heat = gains.reduce((sum, gain, i) => sum + gain * Math.max(Math.pow(falloff, i), min_factor), 0)
     if (perks?.citizen) {
         heat *= heat_tuning.MODIFIERS.home_turf
     } else if (perks?.outlander) {

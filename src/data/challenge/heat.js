@@ -25,6 +25,27 @@ exports.GAIN = {
     condition: 8
 };
 
+// Diminishing returns *within a single bribe*. Without this, every element is billed at
+// full price and the numbers add up faster than anything can pay them off: an outlander
+// rewriting two conditions and the racer walks out at 39, and a full Altered Deal rewrite
+// of track, racer and four conditions at 78 -- most of the gauge, from one press, before
+// they have raced anything. The first bribed element is what the host actually notices;
+// the fifth is paperwork on a deal already being made.
+//
+// Changes are ranked most-expensive-first and the nth is billed at falloff^(n-1), never
+// below min_factor -- so ordering can't be gamed and no change is ever free. A
+// Quiet-Routes track swap contributes 0 and is left out of the ranking entirely rather
+// than eating the full-price slot, which would have turned that perk into a discount on
+// the racer bribe it has nothing to do with.
+//
+// ** My defaults. falloff is the lever: 1 restores the old flat billing, lower flattens
+// ** the stack harder. These barely move a one- or two-element bribe (the common case,
+// ** 30 -> 26 for track+racer) and cut the worst case roughly in half.
+exports.STACKING = {
+    falloff: 0.7,
+    min_factor: 0.3
+};
+
 // Multipliers on that gain. At most one of home_turf/outlander applies -- they are the
 // two sides of where the player holds citizenship -- and quiet_routes zeroes the track
 // portion before either of them is considered.
