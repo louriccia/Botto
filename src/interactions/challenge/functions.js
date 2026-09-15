@@ -3635,14 +3635,13 @@ exports.settingsComponents = function (user_profile, interaction) {
         .addOptions(settings.map(option => { return { ...option, default: exports.showsSetting(user_profile, option.value) } }))
     const row3 = new ActionRowBuilder().addComponents(other_selector)
     let comp = [row1, row2, row3]
-    //The same citizen and emoji icon selectors the inventory's Roles section
-    //uses. They only appear in the guild the roles live in, and only once the
-    //player has something to pick -- an all-locked menu is just noise here.
-    const roles_here = interaction?.guild?.id == swe1r_guild && interaction?.member
-    if (roles_here && planets.some(p => user_profile.effects?.[p.name.toLowerCase().replaceAll(" ", "_")])) {
+    //The same citizen and emoji icon selectors the inventory's Roles section uses,
+    //shown on the same terms it shows them: always. Both menus describe what is
+    //still locked, which is the point of seeing them, and the guild check lives in
+    //the equip helpers rather than here -- gating the rows on it only meant they
+    //never appeared in the test guild.
+    if (interaction?.member) {
         comp.push(exports.citizenSelector({ user_profile, interaction, context: 'settings' }))
-    }
-    if (roles_here && Object.keys(user_profile.roles?.emoji ?? {}).length) {
         comp.push(exports.emojiRoleSelector({ user_profile, interaction, context: 'settings' }))
     }
     if (user_profile.effects?.nav_computer) {
