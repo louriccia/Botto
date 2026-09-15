@@ -1365,6 +1365,13 @@ exports.dailyRerollCost = function (db) {
     return base * Math.pow(2, rerollsToday)
 }
 
+// Whether the challenge mirror has answered yet (see db.ready in firebase.js). The
+// daily and monthly schedulers decide whether to post by looking for a record of the
+// last one, so running them against a mirror that has not loaded posts a duplicate.
+exports.challengeMirrorReady = function (db) {
+    return !!db?.ready?.challenges
+}
+
 // The one place that decides whether a daily card carries a reroll button and what
 // the button charges -- the renderer and the staleness sweep both read it, so the
 // price printed on the card and the price the sweep checks it against cannot drift
@@ -4312,6 +4319,13 @@ exports.easternTime = function () {
 }
 
 exports.monthlyChallenge = async function ({ client, challengesref, db, database } = {}) {
+    //this one treats a missing record as "no monthly posted yet" and posts, so an
+    //unloaded mirror does not throw here -- it posts a second monthly challenge
+    if (!exports.challengeMirrorReady(db)) {
+        console.log('[monthlyChallenge] challenge mirror not ready yet, skipping this tick')
+        return
+    }
+
     let recent = null
     let lastfive = []
     if (db.ch.challenges) {
@@ -4340,7 +4354,10 @@ exports.monthlyChallenge = async function ({ client, challengesref, db, database
         challengesref.child(cotmmessage.id).set(current_challenge)
         cotmmessage.pin()
     }
-    if (!recent.lotto) {
+    //the lotto settles tickets against the *previous* monthly (its month, its tracks,
+    //its record), so with no monthly on record there is nothing to settle -- and
+    //`recent` is null in exactly that case
+    if (recent && !recent.lotto) {
         function trackMatch(a, b) {
             return a.map(i => b.includes(Number(i))).filter(i => i).length
         }
@@ -4372,6 +4389,14 @@ exports.monthlyChallenge = async function ({ client, challengesref, db, database
 }
 
 exports.dailyChallenge = async function ({ client, challengesref, db } = {}) {
+    //an unloaded mirror looks exactly like a day with no daily on record, so waiting a
+    //tick is the only safe reading -- and without it the unpin sweep below throws on a
+    //null challenges node every minute until the listener fires
+    if (!exports.challengeMirrorReady(db)) {
+        console.log('[dailyChallenge] challenge mirror not ready yet, skipping this tick')
+        return
+    }
+
     let recent = null
     let lastfive = []
 
@@ -4392,7 +4417,7 @@ exports.dailyChallenge = async function ({ client, challengesref, db } = {}) {
             }
         })
     }
-    if (exports.easternTime().dayOfYear() !== recent.day) {
+    if (!recent || exports.easternTime().dayOfYear() !== recent.day) {
         const SWE1R_Guild = await client.guilds.cache.get("441839750555369474")
         if (exports.anniversaryMonth()) {
             await SWE1R_Guild.edit({ banner: 'https://drive.usercontent.google.com/download?id=12A6WQBQCPRFVvUkdpMjT4noQGIn9hpdR' })
@@ -4425,11 +4450,13 @@ exports.dailyChallenge = async function ({ client, challengesref, db } = {}) {
                 current_challenge.track = leftovertracks[Math.floor(Math.random() * leftovertracks.length)]
             }
         }
-        if (recent.conditions.laps !== 3 && current_challenge.conditions.laps !== 3 && Math.random() < .9) {
+        //these only avoid repeating yesterday, so with no previous daily to compare
+        //against (or one stored before `conditions`) there is nothing to avoid
+        if (recent?.conditions && recent.conditions.laps !== 3 && current_challenge.conditions.laps !== 3 && Math.random() < .9) {
             current_challenge.conditions.laps = 3
         }
         ['nu', 'skips', 'mirror', 'backwards'].forEach(con => {
-            if (recent.conditions[con] && current_challenge.conditions[con] && Math.random() < .9) {
+            if (recent?.conditions?.[con] && current_challenge.conditions[con] && Math.random() < .9) {
                 current_challenge.conditions[con] = false
             }
         })
