@@ -21,7 +21,7 @@ exports.settings = async function ({ interaction, db, botto_name, user_profile, 
         profile_ref.child("settings").update(update)
     } else if (args[2] == 'citizen') {
         //the role selectors are shared with the inventory's Roles section
-        if (!await equipCitizenRole({ interaction, member_id, user_profile })) {
+        if (!await equipCitizenRole({ interaction, member_id, user_profile, profile_ref })) {
             return
         }
     } else if (args[2] == 'icon') {

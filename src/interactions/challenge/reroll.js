@@ -1,8 +1,9 @@
-const { initializeChallenge, updateChallenge, playButton, notYoursEmbed, isActive, expiredEmbed, manageTruguts } = require('./functions.js');
+const { initializeChallenge, updateChallenge, playButton, notYoursEmbed, isActive, expiredEmbed, manageTruguts, applyHeat } = require('./functions.js');
 const { editMessage } = require('../../discord.js');
 
 const { EmbedBuilder } = require('discord.js');
 const { truguts } = require('../../data/challenge/trugut.js');
+const heat_tuning = require('../../data/challenge/heat.js');
 const { number_with_commas } = require('../../generic.js');
 
 exports.reroll = async function ({ interaction, current_challenge, current_challenge_ref, user_profile, member_id, profile_ref, database, db, botto_name, member_avatar, user_key } = {}) {
@@ -64,6 +65,16 @@ exports.reroll = async function ({ interaction, current_challenge, current_chall
         })
     }
 
+    //Rerolling out from under a verdict is the escape hatch the heat design left open, and
+    //a flat 1,200 (or free, for a citizen on home turf) was no price at all for voiding a
+    //penalty that scales with heat. Walking away costs heat instead, which scales on its
+    //own and bites even when the reroll is free -- and the replacement challenge is marked
+    //so it pays no Running Hot, because fleeing isn't getting away with it either.
+    const fled_penalty = current_challenge.heat_penalty ?? null
+    if (fled_penalty) {
+        user_profile = applyHeat({ user_profile, profile_ref, amount: heat_tuning.FLEE.heat })
+    }
+
     //clean up old challenge
     database.ref(`challenge/challenges/${interaction.message.id}`).update({ completed: true, rerolled: true })
     current_challenge = db.ch.challenges[interaction.message.id]
@@ -73,6 +84,10 @@ exports.reroll = async function ({ interaction, current_challenge, current_chall
     //prepare new challenge
     let rerolltype = 'private'
     current_challenge = initializeChallenge({ user_profile, member_id, type: rerolltype, name: botto_name, avatar: member_avatar, user: user_key, db, interaction })
+    if (fled_penalty) {
+        //stamped before the first render so the new card can say why it won't pay the bonus
+        current_challenge.heat_fled = { from: fled_penalty.title, host: fled_penalty.host ?? null }
+    }
     const reroll_reply = await updateChallenge({ client: interaction.client, user_profile, current_challenge, profile_ref, member_id, name: botto_name, avatar: member_avatar, interaction, db })
     const rerollmessage_reply = await interaction.reply(reroll_reply)
     const rerollmessage = rerollmessage_reply.resource.message
