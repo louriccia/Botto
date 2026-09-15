@@ -104,10 +104,23 @@ async function show(label, route) {
 	try {
 		if (mode === '--global') {
 			const before = await rest.get(Routes.applicationCommands(clientID));
-			const added = commands.filter(c => !before.some(b => b.name === c.name)).map(c => c.name);
-			const removed = before.filter(b => !commands.some(c => c.name === b.name)).map(b => b.name);
+			// Discord registers the Activity's PRIMARY_ENTRY_POINT command itself, and
+			// cube_launch.js is deliberately held back rather than replacing it. A PUT
+			// replaces the whole set, so without carrying that command through, every
+			// global deploy would silently delete /launch and with it the App Launcher
+			// entry for the Activity. Anything the repo actually defines still wins.
+			const carried = before.filter(b =>
+				b.type === ApplicationCommandType.PrimaryEntryPoint && !commands.some(c => c.name === b.name)
+			);
+			if (carried.length) {
+				console.log(`  keeping ${names(carried)} — Discord's own entry point command, not defined here
+`);
+			}
+			const body = [...commands, ...carried];
+			const added = body.filter(c => !before.some(b => b.name === c.name)).map(c => c.name);
+			const removed = before.filter(b => !body.some(c => c.name === b.name)).map(b => b.name);
 
-			const data = await rest.put(Routes.applicationCommands(clientID), { body: commands });
+			const data = await rest.put(Routes.applicationCommands(clientID), { body });
 			console.log(`Deployed ${data.length} command(s) globally.`);
 			if (added.length) console.log(`  added:   ${added.map(n => '/' + n).join(' ')}`);
 			if (removed.length) console.log(`  removed: ${removed.map(n => '/' + n).join(' ')}`);
