@@ -62,12 +62,15 @@ exports.TREND_LABEL = {
 exports.isWeekday = (m) => m.isoWeekday() <= 5
 exports.isMarketOpen = (m) => exports.isWeekday(m) && m.hour() >= 6 && m.hour() < 18
 
-// Max price points kept per company (~30 trading days at 4 ticks/day).
-exports.HISTORY_CAP = 120
+// Max price points kept per company (~1 year at 4 ticks/day). This is the hard
+// ceiling on every graph range: a range can never show more history than is
+// stored, so the widest option in RANGE_POINTS must equal this value.
+exports.HISTORY_CAP = 1460
 
 // Max ticks to replay in a single cron pass after downtime (2 trading days).
 exports.MAX_CATCHUP = 8
 
-// Number of trailing history points shown for each graph range option (4 ticks/day).
-exports.RANGE_POINTS = { "1D": 4, "1W": 28, "1M": 120, "ALL": exports.HISTORY_CAP }
+// Number of trailing history points shown for each graph range option (4 ticks/day,
+// every calendar day). 1Y is the widest and is pinned to the storage cap.
+exports.RANGE_POINTS = { "1D": 4, "1W": 28, "1M": 120, "3M": 360, "1Y": exports.HISTORY_CAP }
 exports.DEFAULT_RANGE = "1M"

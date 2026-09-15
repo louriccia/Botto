@@ -494,7 +494,7 @@ function historySelect(symbol, range) {
         .setPlaceholder("Graph range")
         .setMinValues(1)
         .setMaxValues(1);
-    [["1D", "Today"], ["1W", "1 Week"], ["1M", "1 Month"], ["ALL", "All time"]].forEach(([value, label]) => {
+    [["1D", "Today"], ["1W", "1 Week"], ["1M", "1 Month"], ["3M", "3 Months"], ["1Y", "1 Year"]].forEach(([value, label]) => {
         menu.addOptions({ label, value, default: active === value });
     });
     return new ActionRowBuilder().addComponents(menu);
@@ -598,6 +598,19 @@ function buildTradeModal({ db, user_profile, kind, company } = {}) {
 
 // ---- chart --------------------------------------------------------------
 
+// Most points ever sent to QuickChart for one line. The chart is 600px wide, so
+// anything much past this is invisible detail.
+const MAX_PLOT_POINTS = 180;
+
+// Evenly thin `arr` to at most `max` entries, anchored on the last element.
+function downsample(arr, max) {
+    if (arr.length <= max) return arr;
+    const step = (arr.length - 1) / (max - 1);
+    const out = [];
+    for (let i = 0; i < max; i++) out.push(arr[Math.round(i * step)]);
+    return out;
+}
+
 // Build a QuickChart line graph of a company's price history for the given
 // range. Returns an AttachmentBuilder (attachment://chart.png) or null on
 // failure — callers must handle null (render the embed without an image).
@@ -611,8 +624,14 @@ async function priceChart({ company, range } = {}) {
             .filter(h => Number.isFinite(Number(h.price)));
         if (history.length < 2) return null; // nothing meaningful to plot yet
 
-        const data = history.map(h => Number(h.price));
-        const labels = history.map(h => h.t ? moment(h.t).tz('America/New_York').format('M/D') : '');
+        // A year's worth of ticks is ~1460 points on a 600px-wide chart — more
+        // detail than the image can show, and a needlessly large POST body. Thin
+        // the wide ranges down, always keeping the most recent point so the line
+        // ends on the current price.
+        const plotted = downsample(history, MAX_PLOT_POINTS);
+
+        const data = plotted.map(h => Number(h.price));
+        const labels = plotted.map(h => h.t ? moment(h.t).tz('America/New_York').format('M/D') : '');
 
         // Per-stock line color from static data (dark-mode charts).
         const meta = COMPANIES.find(c => c.symbol === company.symbol);

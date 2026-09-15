@@ -298,6 +298,10 @@ function normalizeCompany(c) {
     if (!Number.isFinite(Number(c.buyVolume))) c.buyVolume = 0;
     if (!Number.isFinite(Number(c.sellVolume))) c.sellVolume = 0;
     if (!Array.isArray(c.history)) c.history = [];
+    // History points are {t, price} only. Older rows also carried `boosted` and
+    // `newsFlag`, which nothing ever read — strip them so the whole-node write
+    // each tick doesn't keep paying for them.
+    c.history = c.history.map(h => ({ t: h.t, price: h.price }));
     return c;
 }
 
@@ -335,7 +339,7 @@ function runTick(companies, meta, slotIndex, now) {
         c.lastChange = total;
         c.lastDebug = { trend, reversion, noise, player, total };
 
-        c.history.push({ t: Date.now(), price, boosted, newsFlag: !!c.newsEventTick });
+        c.history.push({ t: Date.now(), price });
         if (c.history.length > HISTORY_CAP) c.history = c.history.slice(-HISTORY_CAP);
         c.newsEventTick = false;
 
@@ -381,7 +385,7 @@ function seed(now) {
             sellVolume: 0,
             lastChange: 0,
             lastDebug: { trend: 0, reversion: 0, noise: 0, player: 0, total: 0 },
-            history: [{ t: Date.now(), price: c.price, boosted: false, newsFlag: false }]
+            history: [{ t: Date.now(), price: c.price }]
         };
     }
     const meta = {
