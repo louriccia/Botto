@@ -607,7 +607,9 @@ exports.bountyAchievement = function (db, member) {
     return count
 }
 
-exports.generateLeaderboard = function ({ best, member, current_challenge, db } = {}) {
+exports.generateLeaderboard = function ({ best, member, current_challenge, db, user_profile } = {}) {
+    const leader = exports.leaderTime(best)
+    const gap = (time) => exports.timeGap({ time, leader, show: exports.showsSetting(user_profile, 'timediff') })
     if (!best.length) {
         return `:snowflake: \`📀 ${number_with_commas(truguts.first)}\``
     }
@@ -634,7 +636,7 @@ exports.generateLeaderboard = function ({ best, member, current_challenge, db } 
             leaderboard.push(
                 {
                     time: run.time,
-                    string: [pos[0], name, time, platform, notes, record, earnings].filter(e => e).join(" ")
+                    string: [pos[0], name, time, gap(run.time), platform, notes, record, earnings].filter(e => e).join(" ")
                 }
             )
             if (run.user) {
@@ -1267,7 +1269,7 @@ exports.updateChallenge = async function ({ client, db, user_profile, current_ch
         current_challengeref.update(current_challenge)
     }
 
-    let flavor_text = player_profile?.settings?.flavor === false ? '' : exports.flavorText({ current_challenge, db, best })
+    let flavor_text = exports.showsSetting(player_profile, 'flavor') ? exports.flavorText({ current_challenge, db, best }) : ''
 
     //challenges created with v2: true render as components v2; older messages
     //can't be converted (Discord forbids switching) so they keep the embed
@@ -1372,7 +1374,7 @@ exports.checkActive = function (db, member, current_challenge) {
 exports.challengeEmbed = async function ({ current_challenge, user_profile, profile_ref, best, name, member, avatar, db, client } = {}) {
     let submitted_time = db.ch.times[current_challenge?.submissions?.[member]?.id] ?? {}
     let achs = current_challenge.type == 'private' ? exports.achievementProgress({ db, player: member }) : null
-    let desc = exports.generateChallengeDescription({ current_challenge, db, user_profile }) + (current_challenge.type == 'private' ? "\n" + exports.challengeAchievementProgress({ client, current_challenge, user_profile, profile_ref, achievements: achs, name, avatar, member }) : '')
+    let desc = exports.generateChallengeDescription({ current_challenge, db, user_profile }) + (current_challenge.type == 'private' && exports.showsSetting(user_profile, 'achievements') ? "\n" + exports.challengeAchievementProgress({ client, current_challenge, user_profile, profile_ref, achievements: achs, name, avatar, member }) : '')
     let title = exports.generateChallengeTitle(current_challenge)
     const challengeEmbed = new EmbedBuilder()
 
@@ -1443,18 +1445,17 @@ exports.challengeEmbed = async function ({ current_challenge, user_profile, prof
     if (image) {
         challengeEmbed.setImage(image)
     }
-    challengeEmbed.addFields({ name: "Best Times", value: exports.generateLeaderboard({ best, member, current_challenge, db }).slice(0, 1024), inline: true })
+    challengeEmbed.addFields({ name: "Best Times", value: exports.generateLeaderboard({ best, member, current_challenge, db, user_profile }).slice(0, 1024), inline: true })
     if (current_challenge.completed && ['private', 'abandoned'].includes(current_challenge.type)) {
-        let progression = exports.challengeProgression({ current_challenge, submitted_time, goals, user_profile })
-        //item
-
-
-        challengeEmbed
-            //the summary names the racer itself
-            .addFields({ name: 'Experience', value: exports.fitField(progression.summary), inline: true })
+        if (exports.showsSetting(user_profile, 'level')) {
+            let progression = exports.challengeProgression({ current_challenge, submitted_time, goals, user_profile })
+            challengeEmbed
+                //the summary names the racer itself
+                .addFields({ name: 'Experience', value: exports.fitField(progression.summary), inline: true })
+        }
 
         let item = exports.earnedItem({ current_challenge, member, user_profile, db })
-        if (item) {
+        if (item && exports.showsSetting(user_profile, 'item')) {
             challengeEmbed.addFields({ name: exports.itemString({ item, user_profile }), value: `*${item.description}*`, inline: true })
         }
 
@@ -1477,7 +1478,12 @@ exports.challengeEmbed = async function ({ current_challenge, user_profile, prof
 //predictions, and sponsor times sorted together by time. goal, prediction, and
 //sponsor rows are small text; every time is a bolded code block. goal rows
 //carry no winnings or level-up markers -- those live in the Winnings receipt
-exports.challengeLeaderboardV2 = function ({ current_challenge, best, member, db, goals } = {}) {
+exports.challengeLeaderboardV2 = function ({ current_challenge, best, member, db, goals, user_profile } = {}) {
+    //Time Difference: each run carries its gap to the fastest time on the board.
+    //The leader has no gap, and a DNF (or anything else non-numeric) is skipped
+    //rather than rendered as NaN.
+    const leader = exports.leaderTime(best)
+    const gap = (time) => exports.timeGap({ time, leader, show: exports.showsSetting(user_profile, 'timediff') })
     //player times are bold; small-text rows (-#) keep the code block unbolded
     const t = (time) => `**\`${time_fix(time)}\`**`
     const st = (time) => `\`${time_fix(time)}\``
@@ -1507,7 +1513,7 @@ exports.challengeLeaderboardV2 = function ({ current_challenge, best, member, db
             //notes drop to their own small italic line, matching tourney runs and bets
             rows.push({
                 time: run.time,
-                string: [pos[0].trim(), time, name, platform, record, earnings].filter(e => e).join(" ")
+                string: [pos[0].trim(), time, gap(run.time), name, platform, record, earnings].filter(e => e).join(" ")
                     + (notes ? `\n-# *└ ${notes}*` : '')
             })
             if (run.user) {
@@ -1551,7 +1557,7 @@ exports.challengeLeaderboardV2 = function ({ current_challenge, best, member, db
 exports.challengeContainer = async function ({ current_challenge, user_profile, profile_ref, best, name, member, avatar, db, client, perks = null } = {}) {
     let submitted_time = db.ch.times[current_challenge?.submissions?.[member]?.id] ?? {}
     let achs = current_challenge.type == 'private' ? exports.achievementProgress({ db, player: member }) : null
-    let desc = exports.generateChallengeDescription({ current_challenge, db, user_profile }) + (current_challenge.type == 'private' ? "\n" + exports.challengeAchievementProgress({ client, current_challenge, user_profile, profile_ref, achievements: achs, name, avatar, member }) : '')
+    let desc = exports.generateChallengeDescription({ current_challenge, db, user_profile }) + (current_challenge.type == 'private' && exports.showsSetting(user_profile, 'achievements') ? "\n" + exports.challengeAchievementProgress({ client, current_challenge, user_profile, profile_ref, achievements: achs, name, avatar, member }) : '')
     let title = exports.generateChallengeTitle(current_challenge)
 
     const container = new ContainerBuilder()
@@ -1608,7 +1614,7 @@ exports.challengeContainer = async function ({ current_challenge, user_profile, 
 
     //Leaderboard leads every view; Pole Position's avatar sits beside it
     container.addSeparatorComponents(new SeparatorBuilder())
-    const leaderboard_text = new TextDisplayBuilder().setContent(`**Leaderboard**\n${exports.challengeLeaderboardV2({ current_challenge, best, member, db, goals }).slice(0, 1500)}`)
+    const leaderboard_text = new TextDisplayBuilder().setContent(`**Leaderboard**\n${exports.challengeLeaderboardV2({ current_challenge, best, member, db, goals, user_profile }).slice(0, 1500)}`)
     if (pole?.avatar) {
         container.addSectionComponents(new SectionBuilder().addTextDisplayComponents(leaderboard_text).setThumbnailAccessory(new ThumbnailBuilder().setURL(pole.avatar)))
     } else {
@@ -1621,13 +1627,17 @@ exports.challengeContainer = async function ({ current_challenge, user_profile, 
         container.addSeparatorComponents(new SeparatorBuilder())
         container.addTextDisplayComponents(new TextDisplayBuilder().setContent(`**Winnings**\n${winnings.receipt.slice(0, 1000)}`))
 
-        let progression = exports.challengeProgression({ current_challenge, submitted_time, goals, user_profile })
-        //the summary names the racer itself, so no separate name line here
-        container.addSeparatorComponents(new SeparatorBuilder())
-        container.addTextDisplayComponents(new TextDisplayBuilder().setContent(`**Experience**\n${progression.summary}`))
+        //Leveling and Item Rewards are display settings only -- the xp, the level
+        //rewards and the item are all awarded in submit.js either way
+        if (exports.showsSetting(user_profile, 'level')) {
+            let progression = exports.challengeProgression({ current_challenge, submitted_time, goals, user_profile })
+            //the summary names the racer itself, so no separate name line here
+            container.addSeparatorComponents(new SeparatorBuilder())
+            container.addTextDisplayComponents(new TextDisplayBuilder().setContent(`**Experience**\n${progression.summary}`))
+        }
 
         let item = exports.earnedItem({ current_challenge, member, user_profile, db })
-        if (item) {
+        if (item && exports.showsSetting(user_profile, 'item')) {
             container.addSeparatorComponents(new SeparatorBuilder())
             container.addTextDisplayComponents(new TextDisplayBuilder().setContent(`**Item Reward**\n${exports.itemString({ item, user_profile })}\n*${item.description}*`))
         }
@@ -3037,64 +3047,8 @@ exports.inventoryComponents = function ({ user_profile, selection, db, interacti
         comp.push(new ActionRowBuilder().addComponents(TaskButton, NameButton))
     } else if (selection[1]?.[0] == 'roles') {
 
-        const citizen_select = new StringSelectMenuBuilder()
-            .setCustomId('challenge_random_inventory_citizen')
-            .setPlaceholder("Citizen roles")
-            .setMinValues(0)
-            .setMaxValues(1)
-            .addOptions(planets.map(p => {
-                let id = p.name.toLowerCase().replaceAll(" ", "_")
-                return ({
-                    label: `${p.citizen}`,
-                    value: p.role,
-                    description: user_profile.effects?.[id] ? `Free bribes and rerolls on ${p.name} tracks` : `Unlocked by completing the ${p.name} Collection`,
-                    emoji: {
-                        id: p.emoji.split(":")[2].replace(">", "")
-                    },
-                    default: interaction.member.roles.cache.some(r => r.id === p.role)
-                })
-            }))
-        comp.push(new ActionRowBuilder().addComponents(citizen_select))
-        let emoji_roles = user_profile.roles?.emoji ? Object.values(user_profile.roles.emoji).map(role => {
-            let emoji = Object.values(emojimap).find(e => e.includes(role.emoji_id))
-            let emoji_name = emoji.split(":")[1]
-            return ({
-                label: emoji_name,
-                value: role.id,
-                emoji: {
-                    id: role.emoji_id
-                }
-            })
-        }) : []
-        if (emoji_roles.length) {
-            emoji_roles.push(
-                {
-                    label: 'No icon',
-                    value: 'no',
-                    description: "Clear your role icon",
-                }
-            )
-        } else {
-            emoji_roles.push(
-                {
-                    label: 'No emoji roles',
-                    value: 'no',
-                    description: "You haven't bought an emoji icon role",
-                    emoji: {
-                        id: '589481340957753363'
-                    }
-                }
-            )
-        }
-
-
-        const emoji_role_select = new StringSelectMenuBuilder()
-            .setCustomId('challenge_random_inventory_icon')
-            .setPlaceholder("Emoji icon roles")
-            .setMinValues(0)
-            .setMaxValues(1)
-            .addOptions(emoji_roles)
-        comp.push(new ActionRowBuilder().addComponents(emoji_role_select))
+        comp.push(exports.citizenSelector({ user_profile, interaction, context: 'inventory' }))
+        comp.push(exports.emojiRoleSelector({ user_profile, interaction, context: 'inventory' }))
         const ColorButton = new ButtonBuilder()
             .setCustomId('challenge_random_inventory_tricoat')
             .setStyle(ButtonStyle.Secondary)
@@ -3705,6 +3659,181 @@ exports.huntComponents = function (user_profile) {
     return [row1]
 }
 
+exports.leaderTime = function (best) {
+    const times = (best ?? []).map(b => Number(b?.time)).filter(n => Number.isFinite(n))
+    return times.length ? Math.min(...times) : null
+}
+
+//The gap reads as a duration, so it reuses time_fix -- a gap over a minute comes
+//out as 1:02.500 rather than 62.500.
+exports.timeGap = function ({ time, leader, show } = {}) {
+    if (!show || leader === null) {
+        return ''
+    }
+    const n = Number(time)
+    if (!Number.isFinite(n) || n <= leader) {
+        return ''
+    }
+    return '`+' + time_fix(n - leader) + '`'
+}
+
+//A profile that has never touched the dropdown has no key at all, so an absent
+//setting falls back to its default rather than to plain "on" -- Time Difference
+//ships off, the rest ship on. The selector's checkmarks read the same function,
+//so what the dropdown shows is always what the renderer does.
+exports.showsSetting = function (user_profile, setting) {
+    return (user_profile?.settings?.[setting] ?? settings_default[setting]) !== false
+}
+
+//The citizen and emoji-icon role selectors are shared by the inventory's Roles
+//section and the settings panel, so the same menu appears wherever roles are
+//managed. `context` only picks the custom id prefix -- both routes run the same
+//equip helpers below.
+exports.citizenSelector = function ({ user_profile, interaction, context } = {}) {
+    const citizen_select = new StringSelectMenuBuilder()
+        .setCustomId(`challenge_random_${context}_citizen`)
+        .setPlaceholder("Citizen roles")
+        .setMinValues(0)
+        .setMaxValues(1)
+        .addOptions(planets.map(p => {
+            let id = p.name.toLowerCase().replaceAll(" ", "_")
+            return ({
+                label: `${p.citizen}`,
+                value: p.role,
+                description: user_profile.effects?.[id] ? `Free bribes and rerolls on ${p.name} tracks` : `Unlocked by completing the ${p.name} Collection`,
+                emoji: {
+                    id: p.emoji.split(":")[2].replace(">", "")
+                },
+                default: interaction.member.roles.cache.some(r => r.id === p.role)
+            })
+        }))
+    return new ActionRowBuilder().addComponents(citizen_select)
+}
+
+exports.emojiRoleSelector = function ({ user_profile, interaction, context } = {}) {
+    //a role whose emoji has since left the server has no entry in emojimap --
+    //skip it rather than splitting undefined
+    let emoji_roles = user_profile.roles?.emoji ? Object.values(user_profile.roles.emoji).map(role => {
+        let emoji = Object.values(emojimap).find(e => e.includes(role.emoji_id))
+        if (!emoji) {
+            return null
+        }
+        return ({
+            label: emoji.split(":")[1],
+            value: role.id,
+            emoji: {
+                id: role.emoji_id
+            },
+            default: interaction.member.roles.cache.some(r => r.id === role.id)
+        })
+    }).filter(r => r) : []
+    if (emoji_roles.length) {
+        emoji_roles.push(
+            {
+                label: 'No icon',
+                value: 'no',
+                description: "Clear your role icon",
+            }
+        )
+    } else {
+        emoji_roles.push(
+            {
+                label: 'No emoji roles',
+                value: 'no',
+                description: "You haven't bought an emoji icon role",
+                emoji: {
+                    id: '589481340957753363'
+                }
+            }
+        )
+    }
+    const emoji_role_select = new StringSelectMenuBuilder()
+        .setCustomId(`challenge_random_${context}_icon`)
+        .setPlaceholder("Emoji icon roles")
+        .setMinValues(0)
+        .setMaxValues(1)
+        .addOptions(emoji_roles)
+    return new ActionRowBuilder().addComponents(emoji_role_select)
+}
+
+//Equipping a citizen role. Shared by the inventory's Roles section and the
+//settings panel, so both get the same refusals and the same cooldown bookkeeping.
+//Returns false when it has already answered the interaction, so the caller skips
+//its own re-render.
+exports.equipCitizenRole = async function ({ interaction, member_id, user_profile, profile_ref } = {}) {
+    if (interaction.guild.id !== swe1r_guild) {
+        return true
+    }
+    const Member = await interaction.guild.members.fetch(member_id)
+    const claimed = planets.find(p => interaction.values.includes(p.role)) ?? null
+    const claimed_key = claimed ? exports.planetKey(claimed) : null
+    //the player already wears this one, so re-selecting it is not a switch
+    const already = !!claimed && user_profile.citizenship?.planet == claimed_key
+        && Member.roles.cache.some(r => r.id === claimed.role)
+
+    //Every refusal has to be decided before a single role is touched. The loop
+    //below unequips as it goes, so returning from inside it used to strip the
+    //citizenship the player already had and then refuse the new one -- losing them
+    //a role they'd ground a collection for, with the cooldown still running.
+    const refuse = (title, description) => {
+        interaction.reply({ embeds: [new EmbedBuilder().setTitle(title).setDescription(description)], ephemeral: true })
+        return false
+    }
+    const allowed = () => {
+        if (!claimed) {
+            return true
+        }
+        //citizenship must be unlocked by completing the planet's collection
+        if (!user_profile.effects?.[claimed_key]) {
+            return refuse("<:WhyNobodyBuy:589481340957753363> Citizenship must be earned!",
+                `Complete the ${claimed.name} Collection to unlock the ${claimed.citizen} role.`)
+        }
+        //Banished: the host isn't having you back until it's settled
+        const banished = exports.banishment(user_profile)
+        if (banished?.planet == claimed_key) {
+            return refuse("<:WhyNobodyBuy:589481340957753363> You've been banished!",
+                `${claimed.name} won't have you back yet. Pay the \`📀${number_with_commas(banished.fine)}\` fine at Botto's shop or finish ${banished.clean_needed} more challenge${banished.clean_needed == 1 ? '' : 's'} on ${claimed.name} without bribing.`)
+        }
+        //a claim has to sit for a day before another will take, so Home Turf can't
+        //be hot-swapped onto whatever planet the challenge landed on
+        const cooldown = exports.citizenshipCooldown(user_profile)
+        if (cooldown && !already) {
+            return refuse("<:WhyNobodyBuy:589481340957753363> Not so fast",
+                `Someone has to vouch for you. You can claim a new citizenship <t:${Math.round(cooldown / 1000)}:R>.`)
+        }
+        return true
+    }
+    if (!allowed()) {
+        return false
+    }
+
+    for (const p of planets) {
+        if (claimed && p.role == claimed.role) {
+            await Member.roles.add(p.role).catch(error => console.log(error))
+        } else if (Member.roles.cache.some(r => r.id === p.role)) {
+            await Member.roles.remove(p.role).catch(error => console.log(error))
+        }
+    }
+    if (claimed && !already) {
+        profile_ref.child('citizenship').update({ planet: claimed_key, switched: Date.now() })
+    }
+    return true
+}
+
+exports.equipEmojiRole = async function ({ interaction, member_id, user_profile } = {}) {
+    if (user_profile?.roles?.emoji && interaction.guild.id == swe1r_guild) {
+        const Member = await interaction.guild.members.fetch(member_id)
+        Object.values(user_profile.roles.emoji).forEach(role => {
+            if (interaction.values.includes(role.id)) {
+                Member.roles.add(role.id)
+            } else {
+                Member.roles.remove(role.id)
+            }
+        })
+    }
+    return true
+}
+
 exports.settingsEmbed = function ({ user_profile, name, avatar } = {}) {
     const settingsEmbed = new EmbedBuilder()
         .setAuthor({ name: "My Random Challenge Settings" })
@@ -3725,7 +3854,7 @@ exports.settingsEmbed = function ({ user_profile, name, avatar } = {}) {
     return settingsEmbed
 }
 
-exports.settingsComponents = function (user_profile) {
+exports.settingsComponents = function (user_profile, interaction) {
     const row1 = new ActionRowBuilder()
         .addComponents(
             new ButtonBuilder()
@@ -3781,8 +3910,8 @@ exports.settingsComponents = function (user_profile) {
         },
         {
             value: 'level',
-            label: 'Level Rewards',
-            description: 'Display level rewards on my random challenges',
+            label: 'Leveling',
+            description: 'Display racer/player XP and level rewards on my challenges',
             emoji: {
                 id: '891128437354401842'
             }
@@ -3809,13 +3938,24 @@ exports.settingsComponents = function (user_profile) {
         .setPlaceholder("Other Settings")
         .setMinValues(0)
         .setMaxValues(settings.length)
-        .addOptions(settings.map(option => { return { ...option, default: user_profile.settings[option.value] === false ? false : true } }))
+        .addOptions(settings.map(option => { return { ...option, default: exports.showsSetting(user_profile, option.value) } }))
     const row3 = new ActionRowBuilder().addComponents(other_selector)
     let comp = [row1, row2, row3]
+    //The same citizen and emoji icon selectors the inventory's Roles section uses,
+    //shown on the same terms it shows them: always. Both menus describe what is
+    //still locked, which is the point of seeing them, and the guild check lives in
+    //the equip helpers rather than here -- gating the rows on it only meant they
+    //never appeared in the test guild.
+    if (interaction?.member) {
+        comp.push(exports.citizenSelector({ user_profile, interaction, context: 'settings' }))
+        comp.push(exports.emojiRoleSelector({ user_profile, interaction, context: 'settings' }))
+    }
     if (user_profile.effects?.nav_computer) {
         comp.push(...exports.navComponents({ context: 'settings', user_profile }))
     }
-    return comp
+    //Discord allows five action rows per message. Nav sits last because it is the
+    //one selector that still does nothing, so it is the one that can be spared.
+    return comp.slice(0, 5)
 }
 
 exports.racerHint = function ({ racer, count, db } = {}) {
@@ -3998,7 +4138,7 @@ exports.sponsorEmbed = function (sponsorchallenge, user_profile, db) {
     }
     sponsorEmbed.addFields(
         { name: "Goal Times", value: exports.goalTimeList(sponsorchallenge, null, best).list, inline: true },
-        { name: 'Best Times', value: exports.generateLeaderboard({ best, member: null, current_challenge: sponsorchallenge, db }) ?? 'No times', inline: true }
+        { name: 'Best Times', value: exports.generateLeaderboard({ best, member: null, current_challenge: sponsorchallenge, db, user_profile }) ?? 'No times', inline: true }
     )
     return sponsorEmbed
 }

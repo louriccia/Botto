@@ -1,4 +1,4 @@
-const { updateChallenge, playButton, isActive, expiredEmbed, challengeWinnings, getBest, goalTimeList, predictionScore, manageTruguts, decayHeat, banishment, bribePerks, planetKey, currentTruguts, predictionAchievement, bountyAchievement, achievementEmbed, randomChallengeItem, challengeProgression, playerLevel, convertLevel, progressionReward, fitField } = require('./functions.js');
+const { showsSetting, updateChallenge, playButton, isActive, expiredEmbed, challengeWinnings, getBest, goalTimeList, predictionScore, manageTruguts, decayHeat, banishment, bribePerks, planetKey, currentTruguts, predictionAchievement, bountyAchievement, achievementEmbed, randomChallengeItem, challengeProgression, playerLevel, convertLevel, progressionReward, fitField } = require('./functions.js');
 const { postMessage, editMessage } = require('../../discord.js');
 const { items } = require('../../data/challenge/item.js')
 const { raritysymbols } = require('../../data/challenge/rarity.js')
@@ -354,7 +354,7 @@ exports.submit = async function ({ current_challenge, current_challenge_ref, int
 
             }
         }
-        if (new_player_level.level !== player_level) {
+        if (new_player_level.level !== player_level && showsSetting(user_profile, 'level')) {
             postMessage(interaction.client, interaction.channelId, { embeds: [new EmbedBuilder().setAuthor({ name: `${botto_name} leveled up!`, iconURL: member_avatar }).setDescription(new_player_level.string).setFooter({ text: `Level ${new_player_level.level}` })] })
         }
         await profile_ref.child('progression').set(progression)
