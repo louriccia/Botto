@@ -22,7 +22,10 @@ module.exports = {
         //find relevant challenge
         if (!interaction.isChatInputCommand() && args[1] !== 'play') {
             current_challenge_ref = database.ref(`challenge/challenges/${interaction.message.id}`)
-            current_challenge = db.ch.challenges[interaction.message.id]
+            //the challenges node reads as null before the first listener fires (and if it
+            //is ever emptied), so index it defensively -- a press that lands in that window
+            //should fall through to the "not in our records" reply below, not throw
+            current_challenge = db.ch?.challenges?.[interaction.message.id]
         }
 
         if (!current_challenge && ["submit", "modal", "like", "dislike", "reroll", "bribe", "predict", "undo"].includes(args[1])) {
