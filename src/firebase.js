@@ -57,7 +57,15 @@ let db = {
         companies: null,
         meta: null
     },
-    user: null
+    user: null,
+    // `db.ch.challenges` is null both before the first listener callback and for a node
+    // that is genuinely empty, and nothing downstream can tell those apart from the
+    // value alone -- reading "not loaded yet" as "no daily posted today" is how the
+    // schedulers post a second one on top of the first. This records that the mirror
+    // has answered at least once.
+    ready: {
+        challenges: false
+    }
 }
 
 function fetchData(ref, callback) {
@@ -82,6 +90,7 @@ fetchData(database.ref('challenge/times'), function (data) {
 
 fetchData(database.ref('challenge/challenges'), function (data) {
     db.ch.challenges = data;
+    db.ready.challenges = true;
 });
 
 fetchData(database.ref('challenge/feedback'), function (data) {
