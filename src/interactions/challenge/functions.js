@@ -4732,8 +4732,20 @@ exports.decayHeat = function ({ user_profile, profile_ref } = {}) {
 exports.randomChallengeItem = function ({ user_profile, current_challenge, db, member_id, coffer, sarlacc } = {}) {
     const challenges_completed = Object.values(db.ch.times).filter(time => time.user == member_id).length
     let item_pool = []
-    let special_items = ['collectible_coffer', 'trugut_boost', 'sabotage_kit', 'clean_record', 'alibi'].map(id => items.find(i => i.id == id)).filter(Boolean)
+    //A coffer inside a coffer is the one roll that hands back another four rolls, and it
+    //compounds: a player who already owns everything of a given rarity falls through to
+    //the special-item fallback below on most rolls, and one special in five was a coffer.
+    //Four rolls a coffer, that is ~0.7 new coffers per coffer opened -- a geometric series
+    //that turned a handful of drops into a stockpile of three hundred. Coffers still drop
+    //from challenges, which is the faucet that was always meant to fill them; they just
+    //can no longer fill themselves.
+    const special_ids = ['collectible_coffer', 'trugut_boost', 'sabotage_kit', 'clean_record', 'alibi']
+        .filter(id => !(coffer && id == 'collectible_coffer'))
+    let special_items = special_ids.map(id => items.find(i => i.id == id)).filter(Boolean)
     items.forEach(item => {
+        if (coffer && item.id == 'collectible_coffer') {
+            return
+        }
         if (coffer || sarlacc || (item.challenges !== null && challenges_completed > item.challenges) || current_challenge.conditions[item.condition] || item.track.includes(current_challenge.track) || item.racer.includes(current_challenge.racer)) {
             item_pool.push(item)
         }
