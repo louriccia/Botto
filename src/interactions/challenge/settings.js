@@ -1,24 +1,31 @@
 const { settings_default } = require('./data.js');
-const { settingsEmbed, settingsComponents } = require('./functions.js');
+const { settingsEmbed, settingsComponents, equipCitizenRole, equipEmojiRole } = require('./functions.js');
 const { ActionRowBuilder, ModalBuilder, TextInputBuilder, TextInputStyle } = require('discord.js');
 
-exports.settings = async function ({ interaction, db, botto_name, user_profile, member_avatar, profile_ref, user_key, args } = {}) {
+exports.settings = async function ({ interaction, db, botto_name, user_profile, member_avatar, member_id, profile_ref, user_key, args } = {}) {
     //`/challenge settings` arrives with no action segment, so treat it the same as
     //the Settings button on the profile panel
     if (args[2] == 'initial' || interaction.isChatInputCommand()) {
         user_profile = db.user[user_key].random
-        interaction.reply({ embeds: [settingsEmbed({ user_profile, name: botto_name, avatar: member_avatar })], components: settingsComponents(user_profile), ephemeral: true })
+        interaction.reply({ embeds: [settingsEmbed({ user_profile, name: botto_name, avatar: member_avatar })], components: settingsComponents(user_profile, interaction), ephemeral: true })
         return
     }
     if (args[2] == "winnings") {
         profile_ref.child("settings").update({ winnings: Number(interaction.values[0]) })
     } else if (args[2] == "other") {
         let update = {}
-        let other_options = ['predictions', 'timediff', 'flavor', 'item', 'level']
+        let other_options = ['predictions', 'timediff', 'flavor', 'item', 'level', 'achievements']
         other_options.forEach(value => {
             update[value] = interaction.values.includes(value)
         })
         profile_ref.child("settings").update(update)
+    } else if (args[2] == 'citizen') {
+        //the role selectors are shared with the inventory's Roles section
+        if (!await equipCitizenRole({ interaction, member_id, user_profile })) {
+            return
+        }
+    } else if (args[2] == 'icon') {
+        await equipEmojiRole({ interaction, member_id, user_profile })
     } else if (args[2] == 'nav') {
         profile_ref.child('settings').update({ nav: interaction.values })
     } else if (args[2] == "odds") {
@@ -104,9 +111,10 @@ exports.settings = async function ({ interaction, db, botto_name, user_profile, 
             flavor: settings_default.flavor,
             timediff: settings_default.timediff,
             item: settings_default.item,
-            level: settings_default.level
+            level: settings_default.level,
+            achievements: settings_default.achievements
         })
     }
     user_profile = db.user[user_key].random
-    interaction.update({ embeds: [settingsEmbed({ user_profile, name: botto_name, avatar: member_avatar })], components: settingsComponents(user_profile) })
+    interaction.update({ embeds: [settingsEmbed({ user_profile, name: botto_name, avatar: member_avatar })], components: settingsComponents(user_profile, interaction) })
 }

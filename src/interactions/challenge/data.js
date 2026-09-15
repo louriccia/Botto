@@ -27,9 +27,10 @@ exports.settings_default = {
     backwards: 5,
     predictions: true,
     flavor: true,
-    timediff: true,
+    timediff: false,
     item: true,
-    level: true
+    level: true,
+    achievements: true
 }
 
 exports.winnings_map = [

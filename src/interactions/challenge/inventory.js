@@ -1,4 +1,4 @@
-const { manageTruguts, randomChallengeItem, inventoryComponents, inventoryEmbed, Collections, collectionReward, collectionRewardEmbed, openCoffer, itemString, tradeEmbed, tradeComponents, availableItemsforScrap, availableItemsforCollection, availableItemsforRepairs } = require('./functions.js');
+const { equipCitizenRole, equipEmojiRole, manageTruguts, randomChallengeItem, inventoryComponents, inventoryEmbed, Collections, collectionReward, collectionRewardEmbed, openCoffer, itemString, tradeEmbed, tradeComponents, availableItemsforScrap, availableItemsforCollection, availableItemsforRepairs } = require('./functions.js');
 const { postMessage, editMessage } = require('../../discord.js');
 const { planets } = require('../../data/sw_racer/planet.js')
 const { items } = require('../../data/challenge/item.js')
@@ -430,37 +430,13 @@ exports.inventory = async function ({ interaction, user_profile, profile_ref, db
             return
         }
     } else if (args[2] == 'citizen') {
-        if (interaction.guild.id == swe1r_guild) {
-            const Member = await interaction.guild.members.fetch(member_id)
-            for (const p of planets) {
-                const planet_key = p.name.toLowerCase().replaceAll(" ", "_")
-                if (interaction.values.includes(p.role)) {
-                    //citizenship must be unlocked by completing the planet's collection
-                    if (!user_profile.effects?.[planet_key]) {
-                        const holdUp = new EmbedBuilder()
-                            .setTitle("<:WhyNobodyBuy:589481340957753363> Citizenship must be earned!")
-                            .setDescription(`Complete the ${p.name} Collection to unlock the ${p.citizen} role.`)
-                        interaction.reply({ embeds: [holdUp], ephemeral: true })
-                        return
-                    }
-                    await Member.roles.add(p.role).catch(error => console.log(error))
-                } else if (Member.roles.cache.some(r => r.id === p.role)) {
-                    await Member.roles.remove(p.role).catch(error => console.log(error))
-                }
-            }
+        if (!await equipCitizenRole({ interaction, member_id, user_profile })) {
+            return
         }
     } else if (args[2] == 'icon') {
-        if (user_profile?.roles?.emoji && interaction.guild.id == swe1r_guild) {
-            const Member = await interaction.guild.members.fetch(member_id)
-            Object.values(user_profile.roles.emoji).forEach(role => {
-                if (interaction.values.includes(role.id)) {
-                    Member.roles.add(role.id)
-                } else {
-                    Member.roles.remove(role.id)
-                }
-            })
-        }
+        await equipEmojiRole({ interaction, member_id, user_profile })
     }
+
     user_profile = db.user[user_key].random
     if (interaction.isChatInputCommand()) {
         interaction.reply({ embeds: [inventoryEmbed({ user_profile, selection: iselection, name: botto_name, member_avatar })], components: inventoryComponents({ user_profile, selection: iselection, db, interaction }) })
