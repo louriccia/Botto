@@ -1323,19 +1323,27 @@ exports.rerollReceipt = function (current_challenge, user_profile) {
 // and lets the window slide forward all day. Every cotd posted today (the
 // original and each replacement) carries the same `day`, so the earliest of them
 // is the announcement the window should run from.
-exports.dailyRerollDeadline = function (db) {
+// `current_challenge` is the daily being rendered, when there is one. It has to be
+// counted alongside the mirror because dailyChallenge posts the card *before* writing
+// the record (the record is keyed by the message id, which does not exist until the
+// post lands) -- so while the day's first daily is being rendered it is not in `db`
+// yet, the day looks like it has no daily at all, and the window reads as closed on
+// the very card the reroll button belongs on.
+exports.dailyRerollDeadline = function (db, current_challenge = null) {
     const today = exports.easternTime().dayOfYear()
-    const created = Object.values(db?.ch?.challenges || {})
+    const candidates = Object.values(db?.ch?.challenges || {})
         .filter(c => c && c.type == 'cotd' && c.day == today)
-        .map(c => Number(c.created))
-        .filter(Number.isFinite)
+    if (current_challenge && current_challenge.type == 'cotd' && current_challenge.day == today) {
+        candidates.push(current_challenge)
+    }
+    const created = candidates.map(c => Number(c.created)).filter(Number.isFinite)
     if (!created.length) return null
     return Math.min(...created) + 1000 * 60 * 60 * 2
 }
 
 // Whether the daily can still be rerolled right now.
-exports.dailyRerollOpen = function (db) {
-    const deadline = exports.dailyRerollDeadline(db)
+exports.dailyRerollOpen = function (db, current_challenge = null) {
+    const deadline = exports.dailyRerollDeadline(db, current_challenge)
     return deadline !== null && Date.now() < deadline
 }
 
@@ -1780,7 +1788,7 @@ exports.challengeComponents = function (current_challenge, user_profile, db, per
         )
     }
     if (db && current_challenge.type == 'cotd' && !current_challenge.rerolled && !current_challenge.completed
-        && current_challenge.day == exports.easternTime().dayOfYear() && exports.dailyRerollOpen(db)) {
+        && current_challenge.day == exports.easternTime().dayOfYear() && exports.dailyRerollOpen(db, current_challenge)) {
         row.addComponents(
             new ButtonBuilder()
                 .setCustomId("challenge_random_reroll")

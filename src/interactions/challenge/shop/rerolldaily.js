@@ -9,7 +9,7 @@ exports.rerolldaily = async function ({ interaction, current_challenge, db, data
     //announcement - dailyRerollOpen anchors to that rather than to whichever
     //replacement is currently up, so rerolling can't push the window forward
     let last = current_challenge ?? Object.values(db.ch.challenges).filter(c => c.type == 'cotd' && !c.rerolled).sort((a, b) => a.created - b.created).pop()
-    if (!last || last.type !== 'cotd' || last.rerolled || last.completed || !dailyRerollOpen(db)) {
+    if (!last || last.type !== 'cotd' || last.rerolled || last.completed || !dailyRerollOpen(db, last)) {
         const tooLate = new EmbedBuilder()
             .setTitle("<:WhyNobodyBuy:589481340957753363> It's too late...")
             .setDescription("You can only reroll the random challenge of the day within 2 hours of its announcement.")
@@ -30,13 +30,19 @@ exports.rerolldaily = async function ({ interaction, current_challenge, db, data
     //do the reroll FIRST and charge only once it lands — a throw here must not
     //cost the user 1M+ truguts for a reroll that never happened
     await interaction.deferReply()
+    const last_ref = database.ref(`challenge/challenges/${last.message}`)
     try {
         last.rerolled = true
         //updateChallenge persists rerolled:true via current_challengeref.update()
-        const pub_response = await updateChallenge({ client: interaction.client, current_challenge: last, current_challengeref: database.ref(`challenge/challenges/${last.message}`), interaction, db })
+        const pub_response = await updateChallenge({ client: interaction.client, current_challenge: last, current_challengeref: last_ref, interaction, db })
         editMessage(interaction.client, last.channel, last.message, pub_response)
     } catch (err) {
+        //updateChallenge writes the record before it renders, so rerolled:true may
+        //already be persisted -- clearing it only in memory would leave the mirror
+        //saying the daily was rerolled while the player was told it wasn't, handing
+        //out a free replacement on the next minuteUpdater tick
         last.rerolled = false
+        last_ref.update({ rerolled: false })
         console.error('[rerolldaily] reroll failed before charging:', err)
         const failed = new EmbedBuilder()
             .setTitle("<:WhyNobodyBuy:589481340957753363> The reroll sputtered out")
