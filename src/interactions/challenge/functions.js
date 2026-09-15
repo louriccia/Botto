@@ -3812,11 +3812,36 @@ exports.showsSetting = function (user_profile, setting) {
     return (user_profile?.settings?.[setting] ?? settings_default[setting]) !== false
 }
 
+//Discord rejects a select whose default count is over its own max_values, and it
+//rejects the entire message with it -- so a menu whose defaults are read off live
+//state (the roles a member is wearing right now) can't assume that state stayed
+//within the menu's limit. Keep the first `max` defaults and clear the rest.
+exports.clampDefaults = function (options, max = 1) {
+    let left = max
+    return (options ?? []).map(o => {
+        if (!o?.default) {
+            return o
+        }
+        if (left > 0) {
+            left--
+            return o
+        }
+        return { ...o, default: false }
+    })
+}
+
 //The citizen and emoji-icon role selectors are shared by the inventory's Roles
 //section and the settings panel, so the same menu appears wherever roles are
 //managed. `context` only picks the custom id prefix -- both routes run the same
 //equip helpers below.
 exports.citizenSelector = function ({ user_profile, interaction, context } = {}) {
+    //the menu takes one value, so it can carry one default. A player wearing two
+    //citizen roles -- a removal that errored out mid-switch, or a role handed out by
+    //hand -- used to send Discord two defaults for a single-select, and Discord
+    //rejects the whole message for it. The recorded citizenship is the authoritative
+    //one; fall back to whichever worn role comes first
+    const worn = planets.filter(p => interaction.member?.roles?.cache?.some(r => r.id === p.role))
+    const equipped = worn.find(p => exports.planetKey(p) == user_profile?.citizenship?.planet) ?? worn[0] ?? null
     const citizen_select = new StringSelectMenuBuilder()
         .setCustomId(`challenge_random_${context}_citizen`)
         .setPlaceholder("Citizen roles")
@@ -3831,7 +3856,7 @@ exports.citizenSelector = function ({ user_profile, interaction, context } = {})
                 emoji: {
                     id: p.emoji.split(":")[2].replace(">", "")
                 },
-                default: interaction.member.roles.cache.some(r => r.id === p.role)
+                default: p.role === equipped?.role
             })
         }))
     return new ActionRowBuilder().addComponents(citizen_select)
@@ -3851,9 +3876,12 @@ exports.emojiRoleSelector = function ({ user_profile, interaction, context } = {
             emoji: {
                 id: role.emoji_id
             },
-            default: interaction.member.roles.cache.some(r => r.id === role.id)
+            default: interaction.member?.roles?.cache?.some(r => r.id === role.id) ?? false
         })
     }).filter(r => r) : []
+    //same single-select rule as the citizen menu above: a player wearing two icon
+    //roles, or a duplicate entry in their owned list, is one default too many
+    emoji_roles = exports.clampDefaults(emoji_roles, 1)
     if (emoji_roles.length) {
         emoji_roles.push(
             {
@@ -3891,7 +3919,10 @@ exports.equipCitizenRole = async function ({ interaction, member_id, user_profil
     if (interaction.guild.id !== swe1r_guild) {
         return true
     }
-    const Member = await interaction.guild.members.fetch(member_id)
+    //force the fetch: the switch below decides what to strip from what the member is
+    //actually wearing, and a gateway event this shard missed would otherwise let a
+    //stale citizen role survive the change
+    const Member = await interaction.guild.members.fetch({ user: member_id, force: true })
     const claimed = planets.find(p => interaction.values.includes(p.role)) ?? null
     const claimed_key = claimed ? exports.planetKey(claimed) : null
     //the player already wears this one, so re-selecting it is not a switch
@@ -3934,12 +3965,28 @@ exports.equipCitizenRole = async function ({ interaction, member_id, user_profil
         return false
     }
 
-    for (const p of planets) {
-        if (claimed && p.role == claimed.role) {
-            await Member.roles.add(p.role).catch(error => console.log(error))
-        } else if (Member.roles.cache.some(r => r.id === p.role)) {
-            await Member.roles.remove(p.role).catch(error => console.log(error))
-        }
+    //One citizenship at a time. Every other citizen role comes off before the claimed
+    //one goes on, rather than adding first and trusting the removals to keep up -- a
+    //removal that failed mid-switch used to leave the player wearing two, which the
+    //selectors then rendered as two defaults on a menu that allows one, and Discord
+    //rejected the whole message for it.
+    const wears = p => Member.roles.cache.some(r => r.id === p.role)
+    let stripped = true
+    for (const p of planets.filter(p => p.role !== claimed?.role && wears(p))) {
+        await Member.roles.remove(p.role).catch(error => {
+            console.log(error)
+            stripped = false
+        })
+    }
+    //granting on top of a strip that didn't finish is what puts two roles on a player,
+    //so don't. The citizenship isn't recorded either -- the player keeps the cooldown
+    //they came in with and can try the switch again
+    if (claimed && !stripped) {
+        return refuse("<:WhyNobodyBuy:589481340957753363> The paperwork didn't go through",
+            `Your old citizenship is still on the books, so ${claimed.name} won't stamp you in. Try again in a moment.`)
+    }
+    if (claimed && !wears(claimed)) {
+        await Member.roles.add(claimed.role).catch(error => console.log(error))
     }
     if (claimed && !already) {
         profile_ref.child('citizenship').update({ planet: claimed_key, switched: Date.now() })

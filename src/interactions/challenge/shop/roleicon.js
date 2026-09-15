@@ -34,11 +34,14 @@ exports.roleicon = async function ({ interaction, database, member_id, user_key,
 
         let pos = await SWE1R_Guild.roles.cache.get('1094292597478010880')
         let e = emojimap[emojikey].split(":")[2].replace(">", "")
-        const m = await SWE1R_Guild.members.cache.find(m => m.id == member_id)
+        //fetch rather than read the cache: a member this shard never saw speak isn't
+        //in it, and the adds below have nothing to hang off when that happens
+        const m = await SWE1R_Guild.members.fetch(member_id)
+        //the icon just bought becomes the equipped one, so the rest come off first
         if (user_profile?.roles?.emoji && interaction.guild.id == swe1r_guild) {
-            Object.values(user_profile.roles.emoji).forEach(role => {
-                Member.roles.remove(role.id)
-            })
+            for (const role of Object.values(user_profile.roles.emoji)) {
+                await m.roles.remove(role.id).catch(error => console.log(error))
+            }
         }
         if (role) {
             m.roles.add(role)
