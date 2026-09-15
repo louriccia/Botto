@@ -1,4 +1,4 @@
-const { openCoffers, cofferEmbed, earnedItem, challengeContainer, challengeComponents, getBest, bribePerks, playButton, notYoursEmbed, isActive, expiredEmbed, COFFER_ID } = require('./functions.js');
+const { openCoffers, cofferEmbed, earnedItem, challengeContainer, challengeComponents, getBest, bribePerks, playButton, notYoursEmbed, COFFER_ID } = require('./functions.js');
 const { postMessage } = require('../../discord.js');
 const { EmbedBuilder, MessageFlags } = require('discord.js');
 
@@ -9,16 +9,16 @@ const { EmbedBuilder, MessageFlags } = require('discord.js');
 //inventory runs, at a count of one: see openCoffers in functions.js.
 exports.coffer = async function ({ current_challenge, interaction, user_profile, profile_ref, member_avatar, db, member_id, user_key, botto_name } = {}) {
 
-    //expired challenge
-    if (!isActive(current_challenge)) {
-        interaction.reply({ embeds: [expiredEmbed()], components: [{ type: 1, components: [playButton()] }], ephemeral: true })
-        return
-    }
+    //Deliberately NOT gated on isActive. The Item Reward only renders on a completed
+    //card, and isActive is false for exactly those -- gating on it would refuse every
+    //press this button can ever receive. Expiry is about racing the challenge anyway; the
+    //coffer is already sitting on the profile and stays openable for as long as it exists.
 
-    //not your challenge. The card is a public message, so without this anyone reading it
-    //could press Open and spend a coffer off their own profile -- their own item, but
-    //never the one they thought they were opening
-    if (interaction.user.id !== current_challenge.player?.member) {
+    //not your challenge, or a card whose challenge is no longer in the database and whose
+    //owner therefore can't be established. The card is a public message, so without this
+    //anyone reading it could press Open and spend a coffer off their own profile -- their
+    //own item, but never the one they thought they were opening
+    if (!current_challenge || interaction.user.id !== current_challenge.player?.member) {
         interaction.reply({ embeds: [notYoursEmbed()], components: [{ type: 1, components: [playButton()] }], ephemeral: true })
         return
     }

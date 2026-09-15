@@ -4871,10 +4871,21 @@ exports.openCoffers = async function ({ user_profile, profile_ref, db, member_id
     if (!keys.length) {
         return { opened: 0, items: [] }
     }
-    const claimed = await exports.claimProfileItems({ profile_ref, keys, stamp: { used: Date.now() } })
+    const used = Date.now()
+    const claimed = await exports.claimProfileItems({ profile_ref, keys, stamp: { used } })
     if (!claimed.length) {
         return { opened: 0, items: [] }
     }
+
+    //stamp the in-memory profile too. The listener that refreshes the cache from the write
+    //above lands whenever it lands, and every caller here re-renders immediately -- without
+    //this the card can repaint with its Open button still on, and the inventory with a
+    //count that hasn't moved. Same pattern applyHeat uses.
+    claimed.forEach(key => {
+        if (user_profile?.items?.[key]) {
+            user_profile.items[key].used = used
+        }
+    })
 
     //grow the owned-items snapshot as we roll so the duplicate-avoidance logic can see
     //what the earlier coffers in this same batch already handed over -- otherwise a bulk
