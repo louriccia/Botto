@@ -2955,14 +2955,16 @@ exports.inventoryComponents = function ({ user_profile, selection, db, interacti
                 .setStyle(ButtonStyle.Primary)
                 .setLabel('Open')
             const buttons = [OpenButton]
-            //Open All only appears once there is a stockpile to drain. The count is on the
-            //label because that is the number the player is deciding about -- somebody
-            //sitting on three hundred of these should not have to guess before pressing
+            //The bulk button only appears once there is a stockpile to drain. The count is
+            //on the label because that is the number the player is deciding about -- and
+            //past the batch ceiling the label says the number it will actually open, so
+            //"Open All" never means anything but all of them
             if (held > 1) {
+                const capped = held > exports.COFFER_BULK_LIMIT
                 buttons.push(new ButtonBuilder()
                     .setCustomId("challenge_random_inventory_cofferall")
                     .setStyle(ButtonStyle.Secondary)
-                    .setLabel(`Open All (${number_with_commas(held)})`))
+                    .setLabel(capped ? `Open ${number_with_commas(exports.COFFER_BULK_LIMIT)} of ${number_with_commas(held)}` : `Open All (${number_with_commas(held)})`))
             }
             comp.push(new ActionRowBuilder().addComponents(...buttons))
         } else if (selected_usable == 'sabotage_kit') {
@@ -4924,8 +4926,14 @@ exports.decayHeat = function ({ user_profile, profile_ref } = {}) {
     return exports.applyHeat({ user_profile, profile_ref, amount: -amount })
 }
 
-exports.randomChallengeItem = function ({ user_profile, current_challenge, db, member_id, coffer, sarlacc } = {}) {
-    const challenges_completed = Object.values(db.ch.times).filter(time => time.user == member_id).length
+//`context` is an optional pre-computed bundle for a caller rolling many items in a row --
+//see rollContext below. Both of the figures it carries are scans of collections that dwarf
+//the item list (every recorded challenge time; the player's whole inventory), and a bulk
+//coffer open rolls thousands of times against the same two. Left in here they turn one
+//click into minutes of blocked event loop, which is how a big Open All started timing out
+//every *other* interaction in the guild.
+exports.randomChallengeItem = function ({ user_profile, current_challenge, db, member_id, coffer, sarlacc, context } = {}) {
+    const challenges_completed = context ? context.challenges_completed : Object.values(db.ch.times).filter(time => time.user == member_id).length
     let item_pool = []
     //A coffer inside a coffer is the one roll that hands back another four rolls, and it
     //compounds: a player who already owns everything of a given rarity falls through to
@@ -4966,9 +4974,9 @@ exports.randomChallengeItem = function ({ user_profile, current_challenge, db, m
 
     //if it's a dup, there's a chance it will be replaced with a new item
     //(only live items count -- scrapped/fed/used copies aren't dups)
-    let owned_ids = user_profile.items ? Object.values(user_profile.items).filter(item => exports.usableItem({ item })).map(item => item.id) : []
-    if (owned_ids.includes(random_item.id) && Math.random() < (sarlacc || user_profile.effects?.favor_ancients ? 0.85 : 0.15)) {
-        let new_pool = rarity_pool.filter(item => !owned_ids.includes(item.id))
+    let owned_ids = context ? context.owned_ids : new Set(user_profile.items ? Object.values(user_profile.items).filter(item => exports.usableItem({ item })).map(item => item.id) : [])
+    if (owned_ids.has(random_item.id) && Math.random() < (sarlacc || user_profile.effects?.favor_ancients ? 0.85 : 0.15)) {
+        let new_pool = rarity_pool.filter(item => !owned_ids.has(item.id))
         if (new_pool.length) {
             random_item = new_pool[Math.floor(Math.random() * new_pool.length)]
         } else {
@@ -4986,6 +4994,22 @@ exports.randomChallengeItem = function ({ user_profile, current_challenge, db, m
 
     return random_item
 }
+
+//The two expensive lookups randomChallengeItem would otherwise redo on every single roll.
+//`owned_ids` is a Set the caller keeps up to date as it rolls, which is also what makes a
+//batch roll against what the earlier items in the same batch already handed over.
+exports.rollContext = function ({ user_profile, db, member_id } = {}) {
+    return {
+        challenges_completed: Object.values(db.ch.times).filter(time => time.user == member_id).length,
+        owned_ids: new Set(user_profile?.items ? Object.values(user_profile.items).filter(item => exports.usableItem({ item })).map(item => item.id) : [])
+    }
+}
+
+//How many coffers one press of the bulk button will drain. The rolling itself is cheap
+//now, but a press still costs a claim transaction per coffer and one write carrying four
+//items each, so an unbounded stockpile is an unbounded round trip. A player holding more
+//than this just presses again.
+exports.COFFER_BULK_LIMIT = 100
 
 exports.COFFER_ID = 'collectible_coffer'
 
@@ -5059,13 +5083,16 @@ exports.openCoffers = async function ({ user_profile, profile_ref, db, member_id
 
     //grow the owned-items snapshot as we roll so the duplicate-avoidance logic can see
     //what the earlier coffers in this same batch already handed over -- otherwise a bulk
-    //open rolls all of them against the profile as it stood before the first one
-    let rolling_profile = { ...user_profile, items: { ...(user_profile.items ?? {}) } }
+    //open rolls all of them against the profile as it stood before the first one. It's one
+    //Set that the loop adds to rather than a fresh copy of the inventory per roll: Open All
+    //on a stockpile is thousands of rolls, and re-deriving it each time is quadratic in the
+    //size of the very profile that got big enough to want the button.
+    const context = exports.rollContext({ user_profile, db, member_id })
     const rolled = []
     const writes = {}
     claimed.forEach(key => {
         for (let j = 0; j < 4; j++) {
-            const item = exports.randomChallengeItem({ user_profile: rolling_profile, current_challenge: null, db, member_id, coffer: true })
+            const item = exports.randomChallengeItem({ user_profile, current_challenge: null, db, member_id, coffer: true, context })
             let condensed = { coffer: key, date: Date.now(), id: item.id }
             if (item.upgrade) {
                 condensed = { ...condensed, upgrade: item.upgrade, health: item.health }
@@ -5074,7 +5101,7 @@ exports.openCoffers = async function ({ user_profile, profile_ref, db, member_id
             //batch lands in the one update below instead of 1,208 separate round trips
             const new_key = profile_ref.child('items').push().key
             writes[new_key] = condensed
-            rolling_profile.items[new_key] = condensed
+            context.owned_ids.add(item.id)
             rolled.push(item)
         }
     })

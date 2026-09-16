@@ -94,7 +94,7 @@ client.on(Events.InteractionCreate, async interaction => {
     const member_id = interaction.member?.id ?? interaction.user.id
 
     if (banned.includes(member_id)) {
-        interaction.reply({ content: `${WhyNobodyBuy} Get lost!`, ephemeral: true })
+        await interaction.reply({ content: `${WhyNobodyBuy} Get lost!`, ephemeral: true })
         return
     }
 
@@ -105,7 +105,7 @@ client.on(Events.InteractionCreate, async interaction => {
 
     //database might be down
     if (!database) {
-        interaction.reply({ content: 'Impossible, the archives must be... down?', ephemeral: true })
+        await interaction.reply({ content: 'Impossible, the archives must be... down?', ephemeral: true })
         return
     }
 
@@ -438,8 +438,18 @@ client.on(Events.MessageCreate, async function (message) {
 
 
 // Global error handling — prevent crashes and report to droid testing channel when live
+//Discord stops listening for a response three seconds after it hands us an interaction,
+//and it only accepts one. A press that arrives while the process is busy -- or a second
+//press of a button whose first press is still working -- comes back 10062/40060 no matter
+//what we do, and there is nothing left to do about it by the time we hear. Console only,
+//so the log channel stays readable for the errors that are actually ours to fix.
+const EXPECTED_INTERACTION_CODES = [10062, 40060];
+
 async function reportError(label, error) {
     console.error(`[${label}]`, error);
+    if (EXPECTED_INTERACTION_CODES.includes(error?.code)) {
+        return;
+    }
     if (!testing) {
         try {
             const channel = client.channels?.cache?.get("444208252541075476");

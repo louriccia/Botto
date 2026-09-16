@@ -1,4 +1,4 @@
-const { equipCitizenRole, equipEmojiRole, manageTruguts, randomChallengeItem, inventoryComponents, inventoryEmbed, Collections, collectionReward, collectionRewardEmbed, openCoffers, cofferKeys, cofferEmbed, itemString, tradeEmbed, tradeComponents, availableItemsforScrap, availableItemsforCollection, availableItemsforRepairs, heatValue, applyHeat } = require('./functions.js');
+const { equipCitizenRole, equipEmojiRole, manageTruguts, randomChallengeItem, inventoryComponents, inventoryEmbed, Collections, collectionReward, collectionRewardEmbed, openCoffers, cofferKeys, COFFER_BULK_LIMIT, cofferEmbed, itemString, tradeEmbed, tradeComponents, availableItemsforScrap, availableItemsforCollection, availableItemsforRepairs, heatValue, applyHeat } = require('./functions.js');
 const heat_tuning = require('../../data/challenge/heat.js');
 const { postMessage, editMessage } = require('../../discord.js');
 const { planets } = require('../../data/sw_racer/planet.js')
@@ -26,9 +26,11 @@ exports.inventory = async function ({ interaction, user_profile, profile_ref, db
             .setDescription("You don't have the required item. Go do some challenges to earn items!")
     }
 
+    //returns the promise so a caller on a path that can be slow (the coffer buttons) can
+    //await it, and a failure to answer lands in the interaction handler's catch instead of
+    //surfacing as an unhandled rejection
     function NoItems() {
-        interaction.reply({ embeds: [noItemsEmbed()], ephemeral: true })
-        return
+        return interaction.reply({ embeds: [noItemsEmbed()], ephemeral: true })
     }
 
     //atomically stamp a disposal field on an item so a double-click can't consume it twice
@@ -58,12 +60,12 @@ exports.inventory = async function ({ interaction, user_profile, profile_ref, db
     }
     if (['coffer', 'cofferall', 'sabotage', 'boost', 'clean', 'alibi'].includes(args[2])) {
         if (!user_profile.items) {
-            NoItems()
+            await NoItems()
             return
         }
         let key = Object.keys(user_profile.items).find(key => user_profile.items[key].id == actionmap[args[2]] && !user_profile.items[key].used)
         if (!key) {
-            NoItems()
+            await NoItems()
             return
         }
 
@@ -80,7 +82,10 @@ exports.inventory = async function ({ interaction, user_profile, profile_ref, db
                 profile_ref,
                 db,
                 member_id,
-                limit: bulk ? cofferKeys({ user_profile }).length : 1
+                //capped, matching the button's label -- a stockpile past the ceiling takes
+                //more than one press, which is also what keeps a single press to a
+                //bounded number of claim transactions
+                limit: bulk ? Math.min(cofferKeys({ user_profile }).length, COFFER_BULK_LIMIT) : 1
             })
             if (opened) {
                 postMessage(interaction.client, interaction.channelId, { embeds: [cofferEmbed({ items: new_items, opened, user_profile, name: botto_name, avatar: member_avatar })] })

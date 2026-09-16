@@ -19,7 +19,7 @@ exports.coffer = async function ({ current_challenge, interaction, user_profile,
     //anyone reading it could press Open and spend a coffer off their own profile -- their
     //own item, but never the one they thought they were opening
     if (!current_challenge || interaction.user.id !== current_challenge.player?.member) {
-        interaction.reply({ embeds: [notYoursEmbed()], components: [{ type: 1, components: [playButton()] }], ephemeral: true })
+        await interaction.reply({ embeds: [notYoursEmbed()], components: [{ type: 1, components: [playButton()] }], ephemeral: true })
         return
     }
 
