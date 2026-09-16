@@ -279,10 +279,16 @@ exports.getSponsors = function (challenge, db) {
         challenge.sponsor = {}
     }
     Object.values(db.ch.sponsors).filter(sponsor => exports.matchingChallenge(sponsor, challenge)).forEach(sponsor => {
-        if (!challenge.sponsors[sponsor.sponsor?.member]) {
-            challenge.sponsors[sponsor.sponsor.member] = { ...sponsor.sponsor, take: truguts.sponsor_cut, earnings: 0 }
-        } else {
-            challenge.sponsors[sponsor.sponsor.member].take += truguts.sponsor_cut
+        //this map is keyed by member id and the key is what later writes address, so a sponsor
+        //without one can't be keyed at all -- it would collapse every such sponsor into a single
+        //"undefined" entry and hand firebase that as a path. The account is the fallback id.
+        const sponsor_id = sponsor.sponsor?.member ?? sponsor.sponsor?.member_id ?? db.user[sponsor.sponsor?.user]?.discordID
+        if (sponsor_id) {
+            if (!challenge.sponsors[sponsor_id]) {
+                challenge.sponsors[sponsor_id] = { ...sponsor.sponsor, member: sponsor_id, take: truguts.sponsor_cut, earnings: 0 }
+            } else {
+                challenge.sponsors[sponsor_id].take += truguts.sponsor_cut
+            }
         }
         if (sponsor.time) {
             challenge.sponsor = JSON.parse(JSON.stringify(sponsor.sponsor))
