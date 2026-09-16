@@ -55,13 +55,25 @@ exports.reroll = async function ({ interaction, current_challenge, current_chall
     }
 
     //award sponsorship cut
+    //The map is keyed by member id and the entries themselves don't reliably carry one --
+    //a challenge rendered while a sponsorship was mid-publish was stored under the literal
+    //key "undefined", and reading the id back off the entry handed firebase that path.
+    //The key is the id; where it isn't, the sponsor's own account still knows it.
     if (current_challenge.sponsors) {
-        Object.values(current_challenge.sponsors).forEach(sponsor => {
+        const paid = new Set()
+        Object.entries(current_challenge.sponsors).forEach(([key, sponsor]) => {
+            const sponsor_id = key && key !== 'undefined' ? key : db.user[sponsor.user]?.discordID
+            if (!sponsor_id || paid.has(sponsor_id)) { //no id to pay or write to, or a stale duplicate of one already paid
+                return
+            }
+            paid.add(sponsor_id)
             let sponsor_earnings = cost
-            const thissponsorref = userref.child(sponsor.user).child("random")
-            const thissponsor = db.user[sponsor.user].random
-            manageTruguts({ user_profile: thissponsor, profile_ref: thissponsorref, transaction: 'd', amount: sponsor_earnings })
-            current_challenge_ref.child('sponsors').child(sponsor.member).child('earnings').set((current_challenge.sponsors?.[sponsor.member]?.earnings ?? 0) + sponsor_earnings)
+            const thissponsor = db.user[sponsor.user]?.random
+            if (thissponsor) {
+                const thissponsorref = userref.child(sponsor.user).child("random")
+                manageTruguts({ user_profile: thissponsor, profile_ref: thissponsorref, transaction: 'd', amount: sponsor_earnings })
+            }
+            current_challenge_ref.child('sponsors').child(sponsor_id).child('earnings').set((sponsor.earnings ?? 0) + sponsor_earnings)
         })
     }
 

@@ -55,9 +55,13 @@ exports.sponsor = async function ({ interaction, args, db, member_id, botto_name
             interaction.reply({ embeds: [cantSponsor], ephemeral: true })
             return
         }
+        //`member`, not `member_id` -- this is the same shape as challenge.player and every
+        //reader of a sponsor (the sponsors map key, sponsorEmbed) looks for `member`. It also
+        //overwrites the cached sponsorship in place, so a mismatch here leaked out to any
+        //challenge rolled before the mirror caught up.
         sponsorchallenge.sponsor = {
             avatar: member_avatar,
-            member_id,
+            member: member_id,
             name: botto_name,
             user: user_key
         }
