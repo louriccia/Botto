@@ -64,7 +64,7 @@ const resolveThrown = function (ctx, run, { line, set, bag: drawnBag, kind, wrec
 
     const tie = !res.overflow && !!res.faceIds.length && !res.majority;
 
-    const betPaid = engine.betPaid(run.bet, res);
+    const betPaid = engine.betPaid(run.bet, res, run.call);
     const base = engine.rungMultiple(kind, run.mult, res.mult + betPaid);
     const opening = engine.rungMultiple(kind, run.mult, 0);
 
@@ -272,7 +272,7 @@ const settleWin = function (ctx, { run, majority, pure, cubes, standing, mult, p
         saw: false, armed: {},
         bet: null,
         betUsed: false,
-        book: s.sidebet ? engine.drawBook(s.equipped) : [],
+        book: s.sidebet ? engine.drawBook({ set: survivors, bag, hold }) : [],
     };
     persist.saveLadder(database, db, discordId, live);
     return {
@@ -423,7 +423,10 @@ exports.premonition = function (ctx) {
     if (s.sidebet && !charged.live.bet) {
         persist.saveLadder(ctx.database, db, discordId, {
             ...charged.live,
-            book: engine.drawBook(s.equipped, line[at].face?.kind),
+            book: engine.drawBook(
+                { set: drawn.set, bag: drawn.bag, hold: run.hold },
+                line[at].face?.kind,
+            ),
         });
     }
 
@@ -777,9 +780,13 @@ exports.weldCubes = function (ctx, { ids, major = null, keep = null }) {
     if (stop) return stop;
     if (s.pressTier < 1) return refuse('no_press', "You haven't taken the press off Watto's rack.");
     if (s.points < 1) return refuse('no_points', 'You have no build tokens to spend. A prestige pays one.');
-    const want = s.pressCubes;
-    if (!Array.isArray(ids) || ids.length !== want) {
-        return refuse('bad_pair', `The press takes exactly ${want} cubes.`);
+    // **The third cube is an option, not a quota.** `pressCubes` is the widest cut the rung can make
+    // — the number of slots — and reading it as the required count made a two-cube press illegal for
+    // anyone who had bought The Third Cube. The legal counts come off the split table the engine rolls
+    // from, so nothing here can offer a shape `rollWeld` would then refuse.
+    const counts = engine.weldCounts(s.pressTier).filter(n => n <= s.pressCubes);
+    if (!Array.isArray(ids) || !counts.includes(ids.length)) {
+        return refuse('bad_pair', `The press takes ${counts.join(' or ')} cubes.`);
     }
     if (new Set(ids).size !== ids.length) return refuse('bad_pair', 'A cube cannot be welded to itself.');
     if (!ids.every(id => s.cubes.includes(id))) return refuse('not_owned', "That isn't yours.");

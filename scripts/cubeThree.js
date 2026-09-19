@@ -86,18 +86,36 @@ ok('guideBonus is a live per-cube bonus', config.guideBonus > 0,
 // Phase two: the slot round-trips
 // ---------------------------------------------------------------------------
 
-check('a clean slot still encodes as a bare id',
-    engine.encodeSet([{ id: 'wild', burned: [], painted: [], frozen: null, heat: 0, hauled: false }]), ['wild']);
-check('a plain clean slot still encodes as 0', engine.encodeSet([engine.plainSlot()]), [0]);
+// **Every slot encodes as an object now, because every cube carries a name.** The bare-id shortcut
+// these checks used to assert was a migration aid and it is what kept instances anonymous on the
+// wire — two Greed Cubes side by side were the same two characters twice. What it was really
+// protecting still holds and is asserted below: Firebase deletes nulls, so a plain cube's id
+// encodes as `0` rather than as nothing.
+const shapeOf = raw => raw.map(function (v) {
+    if (v === null || typeof v !== 'object') return v;
+    const out = { ...v };
+    delete out.uid;
+    if (out.held) out.held = shapeOf(out.held);
+    return out;
+});
+
+check('a clean slot encodes as an object carrying its id',
+    shapeOf(engine.encodeSet([{ id: 'wild', burned: [], painted: [], frozen: null, heat: 0 }])),
+    [{ id: 'wild' }]);
+check('a plain clean slot still encodes its id as 0, never null',
+    shapeOf(engine.encodeSet([engine.plainSlot()])), [{ id: 0 }]);
+check('every slot carries a name',
+    engine.encodeSet([engine.plainSlot(), engine.slotOf('wild')]).every(v => !!v.uid), true);
+check('two cubes of one class are two instances',
+    engine.encodeSet([engine.slotOf('wild'), engine.slotOf('wild')]).map(v => v.uid)
+        .reduce((a, b) => a !== b), true);
 check('heat encodes as an object',
-    engine.encodeSet([{ id: 'turbine', burned: [], frozen: null, heat: 3, hauled: false }]),
+    shapeOf(engine.encodeSet([{ id: 'turbine', burned: [], frozen: null, heat: 3 }])),
     [{ id: 'turbine', heat: 3 }]);
-// A hold encodes as an object and nests all the way down, which is the one shape a slot has that
-// isn't a scalar. `hauled` used to live here as a flag: a cube being carried is a cube sitting in
-// somebody's `held` now, so membership says it and there is no flag to keep in step.
+// A hold nests all the way down, and every cube inside one is named too.
 check('a hold encodes as an object',
-    engine.encodeSet([engine.slotOf({ id: 'scavenger', held: [{ id: 'wild' }] })]),
-    [{ id: 'scavenger', held: ['wild'] }]);
+    shapeOf(engine.encodeSet([engine.slotOf({ id: 'scavenger', held: [{ id: 'wild' }] })])),
+    [{ id: 'scavenger', held: [{ id: 'wild' }] }]);
 check('heat round-trips', engine.decodeSet(engine.encodeSet([
     { ...engine.plainSlot(), id: 'turbine', heat: 4 },
 ]))[0].heat, 4);
@@ -105,10 +123,15 @@ check('a hold round-trips, nested',
     engine.decodeSet(engine.encodeSet([
         engine.slotOf({ id: 'scavenger', held: [{ id: 'scavenger', held: [{ id: 'wild' }] }] }),
     ]))[0].held[0].held[0].id, 'wild');
+// A set written before slots existed at all still reads, and the cubes it reads into are named —
+// that is the whole migration, and both halves matter: the shape has to be right and the instance
+// has to exist.
 check('a set written before any of it existed reads back clean',
-    engine.decodeSet(['wild', 0])[0], {
+    shapeOf(engine.decodeSet(['wild', 0]))[0], {
+        mirrored: false,
         id: 'wild', burned: [], painted: [], frozen: null, heat: 0, blessed: false, held: [],
     });
+check('and is named on the way in', !!engine.decodeSet(['wild', 0])[0].uid, true);
 
 // ---------------------------------------------------------------------------
 // Phase three: the Turbine burns its own list

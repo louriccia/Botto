@@ -103,6 +103,15 @@ const cutsFor = (parents, tier) => ((config.weldSplits || {})[parents] || [])
     .filter(s => (s.tier || 1) <= tier);
 exports.cutsFor = cutsFor;
 
+// How many cubes the press can take at a rung — every count it can cut, rather than the widest one.
+// A rung that gains the third cube *adds* a shape to this table; it does not retire the two-cube cut
+// below it, so two stays legal all the way up. Read off `weldSplits` itself, so the counts a caller
+// offers and the counts `rollWeld` can actually roll a split for cannot drift apart.
+exports.weldCounts = tier => Object.keys(config.weldSplits || {})
+    .map(Number)
+    .filter(n => n >= 2 && cutsFor(n, tier).length)
+    .sort((a, b) => a - b);
+
 const rollSplit = function (parents, tier) {
     const splits = cutsFor(parents, tier);
     const total = splits.reduce((n, s) => n + (s.weight || 0), 0);
@@ -249,9 +258,6 @@ const JAILERS = new Set(
     SPECIALS.filter(sp => (sp.faces || []).some(f => f && f.kind === 'jail')).map(sp => sp.id),
 );
 exports.JAILERS = JAILERS;
-
-const HOISTED = new Set(['blessing']);
-exports.HOISTED = HOISTED;
 
 const MAX_LEVEL = LEVELS.length - 1;
 exports.MAX_LEVEL = MAX_LEVEL;
@@ -400,9 +406,33 @@ const fillBag = function (equipped) {
 };
 exports.fillBag = fillBag;
 
+// **A cube on the line is an instance, and an instance has a name.** `SPECIALS` is the class — one
+// shared, immutable definition per cube — and a slot is one cube built from it, carrying the state
+// that makes it itself: what has been singed off it, what it has been painted, whether it is on ice,
+// how hot it is, who it is holding.
+//
+// That much was always true. What a slot did not have was a **name**, and the consequence was that
+// its identity existed only as a JavaScript object reference. Inside one roll that was enough, and it
+// is load-bearing — `liftOne` insists on the slot itself rather than a copy, and the end-of-roll
+// sweep works out what left the table by comparing references. But a reference does not survive
+// Firebase and does not survive `throwSet`, which reshuffles every rung on purpose. So the moment a
+// cube crossed either boundary the only thing identifying it was its position in an array, and two
+// Greed Cubes standing side by side were genuinely indistinguishable to anything downstream.
+//
+// `uid` closes that. It is minted once, at the point a slot is first built, and from then on it is
+// the cube — through the shuffle, through the wire, into the junkyard and back out again on a
+// scavenge. A **copy is a new cube** and gets its own, which is what keeps a reflected Oovo IV's
+// prisoners distinct from the ones still in the original cell.
+const newUid = () => crypto.randomBytes(4).toString('hex');
+exports.newUid = newUid;
+
 const slotOf = function (v) {
     if (v && typeof v === 'object' && !Array.isArray(v)) {
         return {
+            // Minted on read when it is missing, which is the whole migration: a set stored before
+            // cubes had names decodes into named cubes the first time it is picked up.
+            uid: v.uid ? String(v.uid) : newUid(),
+            mirrored: !!v.mirrored,
             id: v.id ? String(v.id) : null,
             burned: Object.values(v.burned || {}).map(String),
             painted: Object.values(v.painted || {}).map(String),
@@ -413,13 +443,36 @@ const slotOf = function (v) {
         };
     }
     return {
+        uid: newUid(),
+        mirrored: false,
         id: v ? String(v) : null,
         burned: [], painted: [], frozen: null, heat: 0, blessed: false, held: [],
     };
 };
+
+// **Which way round a cube is.** Handedness is everywhere in this game — the Binder burns its right
+// and reads its left, the Sandcrawler carries off its right, Sebulba points an engine one way or the
+// other, the Mirror writes left to right — and until now none of it could ever change. A reflection
+// turned the *picture* on the face it was showing and nothing else, so a reflected Sebulba pointed
+// the other way for exactly one throw and then forgot.
+//
+// A reflection now turns the **cube**. Every handed face on a mirrored cube acts the other way for
+// the rest of the climb, and reflecting a mirrored cube turns it back, so a reflection of a
+// reflection is the original. One boolean, and the seven faces that have a hand read it.
+// Named `flipped` rather than `handed`: `resolveLine` already keeps a local `handed` counter for
+// the turn queue, and a module-level function of the same name is silently shadowed by it — which
+// is a `TypeError` at the one call site inside the loop and nowhere else.
+const flipped = c => !!(c && c.slot && c.slot.mirrored);
+exports.flipped = flipped;
+
+// The direction a cube reaches in, as a step: +1 the normal way round, -1 mirrored.
+const stepOf = c => (flipped(c) ? -1 : 1);
+const OTHER_DIR = { left: 'right', right: 'left' };
 exports.slotOf = slotOf;
 
 const plainSlot = () => ({
+    uid: newUid(),
+    mirrored: false,
     id: null, burned: [], painted: [], frozen: null, heat: 0, blessed: false, held: [],
 });
 exports.plainSlot = plainSlot;
@@ -429,8 +482,27 @@ const countHeld = function (slots) {
 };
 exports.countHeld = countHeld;
 
-const cloneHeld = slots => (slots || []).map(s => ({ ...s, held: cloneHeld(s.held) }));
+// `fresh` is the difference between a copy and a corpse. A reflected captor arrives with its own
+// prisoners — new cubes, new names — while a slot swept into the junkyard is the same cube that died
+// and keeps the name it had, so a scavenger hands back the cube you lost rather than one like it.
+const cloneHeld = (slots, fresh) => (slots || []).map(s => ({
+    ...s,
+    ...(fresh ? { uid: newUid() } : {}),
+    held: cloneHeld(s.held, fresh),
+}));
 exports.cloneHeld = cloneHeld;
+
+// **A slot going into the junkyard is copied whole, arrays included.** A bare spread shares
+// `burned`, `painted` and `held` with the dead slot it came from — harmless only for as long as
+// nothing touches a slot after it leaves the table, which is not a property anything enforces. What
+// a scavenger pulls back out has to be the cube as it died, and a cube as it died cannot be sharing
+// its scorch marks with anything still standing.
+const keepSlot = sl => ({
+    ...sl,
+    burned: [...(sl.burned || [])],
+    painted: [...(sl.painted || [])],
+    held: cloneHeld(sl.held),
+});
 
 const liveFaces = function (special, burned) {
     const all = (special ? special.faces : PLAIN_FACES).slice();
@@ -501,7 +573,11 @@ exports.rollFaces = rollFaces;
 const frozenCube = function (special, id) {
     if (!special) {
         const side = id === SIDE_IDS.red ? 'red' : id === SIDE_IDS.blue ? 'blue' : null;
-        return side ? { side, special: null, face: null } : null;
+        if (!side) return null;
+        // Rebuilt with its face, for the reason `throwSet` keeps one: a chance cube picked back up
+        // off the wire has to be the same cube that was put down, marks and all.
+        const face = PLAIN_FACES.find(f => f && f.id === id);
+        return { side, special: null, face: face ? { ...face } : null };
     }
     const face = (special.faces || []).find(f => f && f.id === id);
     return face ? { side: null, special, face: { ...face } } : null;
@@ -530,11 +606,14 @@ exports.drawCubes = function (set, bag, levelIdx) {
 exports.encodeSet = function (set) {
     const one = function (c) {
         const slot = slotOf(c);
-        if (!slot.burned.length && !slot.painted.length && !slot.frozen && !slot.heat
-            && !slot.blessed && !slot.held.length) {
-            return slot.id || 0;
-        }
-        const out = { id: slot.id || 0 };
+        // **Always an object now, because every cube has a name to carry.** The bare-id shortcut that
+        // used to live here was a migration aid — it let slots ship onto an array of plain ids with
+        // no rewrite in either direction — and it is what kept instances anonymous on the wire. The
+        // rule it was really protecting still holds: Firebase deletes nulls, so a plain cube encodes
+        // its id as `0` rather than as nothing. `decodeSet` still reads the old bare form and mints a
+        // name for it, so stored runs pick up unharmed.
+        const out = { uid: slot.uid, id: slot.id || 0 };
+        if (slot.mirrored) out.mirrored = true;
         if (slot.burned.length) out.burned = slot.burned;
         if (slot.painted.length) out.painted = slot.painted;
         if (slot.blessed) out.blessed = true;
@@ -556,8 +635,23 @@ exports.decodeBag = raw => Object.values(raw || {}).map(v => (v ? String(v) : nu
 // — without this every position-dependent face resolved against the same neighbours for a whole climb.
 // Slots are copied on the way in, so nothing here mutates the set it was handed, which is what lets a
 // reroll pick the table up exactly as it was.
+// **A frozen cube holds its place as well as its face.** Everything else lands in a new order every
+// rung, which is the rule above and worth keeping: without it, every position-dependent face resolves
+// against the same neighbours for a whole climb. Ice is the one exception and has to be — a freeze
+// that kept the face but moved the cube is not holding anything a player can aim at, and after the
+// ice stopped being a ward, position is most of what is left to give it. Hold a wild inside a Guide's
+// run, hold a cube inside Ben's reach, hold a shield where the blast is coming from.
+//
+// **Relative order, not an absolute index.** Only the open positions are shuffled, and only among
+// themselves, so the line can still grow and shrink around a held cube without the ice having to
+// know how long the line is. Read before the map, because serving the ice clears `slot.frozen`.
 exports.throwSet = function (set) {
-    return shuffle((set || []).map(slotOf)).map((slot) => {
+    const slots = (set || []).map(slotOf);
+    const open = slots.map((sl, k) => (sl && sl.frozen ? -1 : k)).filter(k => k >= 0);
+    const mixed = shuffle(open.map(k => slots[k]));
+    const order = slots.slice();
+    open.forEach((k, n) => { order[k] = mixed[n]; });
+    return order.map((slot) => {
         const special = slot.id ? specialById(slot.id) : null;
 
         // **Ice is consumed the moment it is served.** Clearing the slot here rather than after the
@@ -571,12 +665,24 @@ exports.throwSet = function (set) {
 
         const faces = rollFaces(special, slot);
         if (!special) {
+            // **A chance cube that has had something done to it is a cube, not a colour.** An
+            // untouched one is still just a coin — it has six interchangeable sides, nothing has
+            // happened to it, and rolling a face object for it would put a `side` note on every
+            // plain position on the table for no information.
+            //
+            // The moment it carries a mark it stops being interchangeable, and it has to keep
+            // **which of its six faces is up**, because that is the key every mark is filed under.
+            // Handing it back with `face: null` threw that away one line after computing it, which
+            // is why a turn could not move paint on a chance cube: there was no face left to move
+            // the mark off. A cube accumulates; this is what lets it.
             if (!slot.burned.length && !slot.painted.length) {
                 return { side: rollSide(), special: null, face: null, slot };
             }
             const face = faces[crypto.randomInt(0, faces.length)];
             const paint = paintOn(faces, slot.painted, face);
-            return { side: paint || face.side || null, special: null, face: null, slot, paint };
+            return {
+                side: paint || face.side || null, special: null, face: { ...face }, slot, paint,
+            };
         }
         const face = faces.length ? faces[crypto.randomInt(0, faces.length)] : null;
         return {
@@ -619,22 +725,51 @@ exports.relineFrom = function (set, faces, state = {}) {
     });
 };
 
-// **Only propositions the rack can actually produce.** Four measure a flat 0.0% without a specific
-// cube in the bag, and a bet that cannot be won is not a long shot, it is a trap.
+// **Only propositions the run can still produce.** Most measure a flat 0.0% without a specific cube
+// in the bag, and a bet that cannot be won is not a long shot, it is a trap. Chalked from the run —
+// the table, the bag, and what they hold — rather than from the rack as bought: a run is a war of
+// attrition, and a book read off `equipped` kept offering the Binder's cards after the Binder had
+// shattered. Three refinements, each because the coarser reading offered a dead card:
+//   - a face burned off a cube (a scorch, a spent heat) cannot land again, so it is subtracted per
+//     instance before its kind counts;
+//   - a captive inside a jail or a sandcrawler counts, because parole or a hold-break walks it
+//     straight back onto the line;
+//   - the wreckage counts only while a scavenger is still in play, because salvage is the only road
+//     out of it.
+// An id array still works — that is the rack-as-bought reading, for tests and anything with no run
+// in hand.
 //
 // **`spoiled` is what a look has already answered.** Every price is derived blind, so a card offered
 // to somebody who has seen a face that settles it is not mispriced by a little — a premonition showing
-// Sebulba turns `engine` from a 4.8% long shot into a near-certain +20. Re-chalking rather than
+// Sebulba turns `engine` from a ~5% long shot into a near-certain +34. Re-chalking rather than
 // refusing is what lets the two abilities be played in either order. Off `spoils` and not `needs`,
 // which differ only for `saved`. Known and left standing: a growth face means a longer line and so
 // lifts every per-cube effect at once — a look showing `draw` takes `broken` from 28.7% to 32.9%.
 // Spoiling the whole book on growth is worse than the leak; it empties the book on the one rack that
 // plays for line length.
-exports.drawBook = function (equipped, spoiled) {
+exports.drawBook = function (pool, spoiled) {
     const kinds = new Set();
-    for (const id of equipped || []) {
-        const sp = specialById(id);
-        for (const f of (sp && sp.faces) || []) kinds.add(f.kind);
+    const addSpecial = (sp) => { for (const f of (sp && sp.faces) || []) kinds.add(f.kind); };
+    const walk = function (raw) {
+        const slot = slotOf(raw);
+        const sp = slot.id ? specialById(slot.id) : null;
+        if (sp) {
+            const burned = [...slot.burned];
+            for (const f of sp.faces || []) {
+                const b = burned.indexOf(f.id);
+                if (b >= 0) burned.splice(b, 1);
+                else kinds.add(f.kind);
+            }
+        }
+        for (const h of slot.held) walk(h);
+    };
+    if (Array.isArray(pool)) {
+        for (const id of pool) addSpecial(specialById(id));
+    } else {
+        const { set, bag, hold } = pool || {};
+        for (const sl of set || []) walk(sl);
+        for (const id of bag || []) addSpecial(specialById(id));
+        if (kinds.has('scavenge')) for (const sl of hold || []) walk(sl);
     }
     const off = (Array.isArray(spoiled) ? spoiled : [spoiled]).filter(Boolean);
     const can = bet => (bet.needs ? bet.needs.some(k => kinds.has(k)) : kinds.size > 0)
@@ -647,14 +782,15 @@ exports.drawBook = function (equipped, spoiled) {
     return out;
 };
 
-// **The ante comes back inside the payout.** `cubeSideBet.js` derives every `price` as `1/p - 1`,
-// the **net** return on a one-unit stake — so a card pays `price + betAnte`. Paying only `price`
-// charged the stake and never returned it, a second house edge of a further `p` per card on top of
-// the ~15% the prices already shave. The card still advertises `price`, because net is how odds quote.
-exports.betPaid = function (id, res) {
+// **The ante comes back inside the payout.** Every `price` is a **net** return on the one-mult ante —
+// `cubeSideBet.js` derives it as `levelStep / p - 1` at the best measured rate, because the ante is
+// spent *before* the rung multiplies and the payout lands *after* — so a card pays `price + betAnte`.
+// Paying only `price` charged the stake and never returned it, a second house edge of a further `p`
+// per card. The card still advertises `price`, because net is how odds quote.
+exports.betPaid = function (id, res, call) {
     const bet = id ? SIDE_BETS.find(b => b.id === id) : null;
     if (!bet || !res) return 0;
-    return bet.hit(res) ? bet.price + config.betAnte : 0;
+    return bet.hit(res, call || null) ? bet.price + config.betAnte : 0;
 };
 
 exports.encodeLine = line => ({
@@ -684,6 +820,10 @@ const stateKey = line => keyOf(lineState(line));
 exports.keyOf = keyOf;
 
 const lineState = line => ({
+    // The names, position for position. This is what lets a client tell two identical cubes apart —
+    // and follow one across a shuffle, which no amount of position data can do.
+    uids: (line || []).map(c => ((c && c.slot) ? c.slot.uid : null)),
+    mirrored: (line || []).map(c => flipped(c)),
     frozen: (line || []).map(c => !!(c && c.frozen)),
     burned: (line || []).map(c => ((c && c.slot && c.slot.burned) ? [...c.slot.burned] : [])),
     charred: (line || []).map(c => !!(c && c.charred)),
@@ -771,14 +911,33 @@ const resolveLine = function (line, call, bag, opts = {}) {
                 break;
             case 'wild':
                 c.side = call;
+                c.paint = null;
                 note(c, 'wild', { side: call });
                 break;
-            case 'side':
-                c.side = c.face.side;
-                note(c, 'side', { side: c.face.side });
+            // **The paint outranks the face's own colour, and this is the only place that was true
+            // and then untrue.** The line above settles `c.side` to the paint for every face on the
+            // die; this case then read the colour straight off the face and put it back, so a mark
+            // the crowd had spent a landing to write was erased on the next throw before anything
+            // could count it. Only `side` faces were hit — an effect face has no colour of its own to
+            // reassert — which is why the Greed measured right at one-in-six while Anakin and Shmi
+            // measured a flat zero. The mark itself was never lost: it sat on the slot being
+            // overwritten every throw, so the cube looked unpainted for the rest of the climb.
+            case 'side': {
+                const side = c.paint || c.face.side;
+                c.side = side;
+                note(c, 'side', { side, painted: !!c.paint });
                 break;
+            }
             case 'greed':
                 note(c, 'greed', { bonus: config.greedBonus });
+                break;
+            // **Announced here with the rest of the multiple, not in the turn walk.** Mon Gazza's seam
+            // pays off the rungs behind it and moves nothing on the table, so a turn-phase note gave it
+            // a step that changed no position — which is exactly what `quiet` marks, and the reveal
+            // shakes a quiet step off as a cube that found nothing to do. It found the same thing every
+            // other paying face finds, and none of them takes a turn to find it.
+            case 'seam':
+                note(c, 'seam', { bonus: config.seamBonus * rungs, rungs });
                 break;
             case 'boost':
                 note(c, 'boost', { bonus: config.boostBonus });
@@ -809,8 +968,21 @@ const resolveLine = function (line, call, bag, opts = {}) {
     let final = line.slice();
     const plain = side => ({ side, special: null, face: null, slot: plainSlot() });
     const at = c => final.indexOf(c);
+    // **A flattened position is not a cube, whatever colour is on it.** Ben's wings carry no side of
+    // their own, so this used to hold without the `gone` test — and then the crowd was allowed to
+    // paint a wing, which handed one a side and let rubble vote in the majority. Tested here rather
+    // than at the crowd, because every other way a `gone` position could acquire a side is a bug too.
+    // **A position is a cube when it has a colour, and flattened is not an exception.** Ben cuts his
+    // wings in whatever he is wearing, so a painted Ben comes up as three matching cubes rather than
+    // one cube lying on two holes — and those three vote, pay, extend a Guide's run and can be turned
+    // one at a time, because there is nothing left to tell them apart from any other coloured
+    // position. A **bare** wing is still a hole: no colour, no vote, and it breaks a sweep the way it
+    // always did. The gate is the colour, which is the same gate every other position answers to.
+    //
+    // None of this outlives the rung. A wing is dropped from `set` before the next throw whatever
+    // colour it is wearing, so this is three positions for one roll and never a cube you own.
     const isCube = c => !!c && !!c.side;
-    const ours = x => !!x && !x.gone && x.side === call;
+    const ours = x => !!x && x.side === call;
     const guideRun = function (idx) {
         if (idx < 0) return 0;
         let n = 0;
@@ -818,8 +990,16 @@ const resolveLine = function (line, call, bag, opts = {}) {
         for (let k = idx + 1; k < final.length && ours(final[k]); k++) n += 1;
         return n;
     };
-    const razed = (id, mirrored) => ({
-        side: null, special: null, gone: true, slot: plainSlot(),
+    // **A painted Ben lies down in his own colour.** The wings are cut from him, so they are cut in
+    // whatever he is wearing: paint him and all three positions come up matching, which is the one
+    // way a wide Ben is ever a colour rather than a hole in the line.
+    //
+    // **Inherited once, at the moment they are made, and never again.** The wings are ordinary
+    // positions afterwards — a crowd or an engine reaching one of them changes that one and leaves
+    // the other two alone. Anything that kept the three tied together would be a fourth kind of
+    // cube, and the whole line is read on the rule that a position is a position.
+    const razed = (id, mirrored, paint) => ({
+        side: paint || null, paint: paint || null, special: null, gone: true, slot: plainSlot(),
         face: { kind: 'razed', id, mirrored },
     });
 
@@ -833,13 +1013,13 @@ const resolveLine = function (line, call, bag, opts = {}) {
     // could draw. `overflowAt` is the bound, so it is a budget rather than a rule about what a copy is
     // allowed to be.
     //
-    // `HOISTED` faces go to the head: a blessing has to be in force for the whole rung or it protects
-    // only whatever was destroyed after it came up, which is a rule about where it landed rather than
-    // about the cube. Thrown line only — one that arrives mid-pass takes its turn where it is spliced.
-    const queue = [];
-    const inTurn = [];
-    for (const c of line) ((c.face && HOISTED.has(c.face.kind)) ? queue : inTurn).push(c);
-    for (const c of inTurn) queue.push(c);
+    // **Every face takes its turn where it stands, left to right, with no exceptions.** The blessing
+    // used to be hoisted to the head of the queue so it was in force for the whole rung; that bought
+    // it a little reach at the cost of the one rule the line is read by, and a face that resolves
+    // before the cube to its left is a face the player cannot plan around. It waits its turn like
+    // everything else, so it protects what is still standing when Malastare comes up — and since a
+    // blessing rides the cube until it is spent, nothing it would have saved is lost for good.
+    const queue = line.slice();
 
     let spawned = 0;
     let overflow = false;
@@ -858,9 +1038,11 @@ const resolveLine = function (line, call, bag, opts = {}) {
         let noteAt = notes.length;
 
         let handed = 0;
+        const handedOut = new Set();
         const giveTurn = (x) => {
             queue.splice(q + 1 + handed, 0, x);
             handed += 1;
+            handedOut.add(x);
             spawned += 1;
             if (spawned >= config.overflowAt) overflow = true;
             return x;
@@ -879,7 +1061,11 @@ const resolveLine = function (line, call, bag, opts = {}) {
             x.slot = {
                 ...(src.slot || plainSlot()),
                 burned: [...(src.slot ? src.slot.burned : [])],
-                held: cloneHeld(src.slot ? src.slot.held : []),
+                uid: newUid(),
+                // Reflecting a mirrored cube turns it back — the status is an involution, so a
+                // reflection of a reflection is the cube you started with.
+                mirrored: !(src.slot && src.slot.mirrored),
+                held: cloneHeld(src.slot ? src.slot.held : [], true),
                 frozen: null,
             };
             if (x.slot.held.length) made.push({ slot: x.slot, faceId: faceIdOf(x) });
@@ -907,13 +1093,22 @@ const resolveLine = function (line, call, bag, opts = {}) {
             x.copy = true;
             return giveTurn(x);
         };
-        const liftOne = function (from, pick = 'pop') {
+        // `mend` is the Scavenger's, and only the Scavenger's. A parole and a hold-break both come
+        // through here too, and neither is salvage — a prisoner walking out is the cube it went in as.
+        const liftOne = function (from, pick = 'pop', mend = false) {
             const raw = pick === 'shift' ? from.shift() : from.pop();
             // **The slot itself where there is one, never a copy.** The end-of-roll sweep works out
             // what left the table by slot *identity*, so a fresh object here would leave the original
             // looking destroyed while the copy stands — one cube on the table and in the junkyard at
             // once, ready to be scavenged back out a second time.
             const slot = (raw && typeof raw === 'object' && Array.isArray(raw.held)) ? raw : slotOf(raw);
+            // **The one thing in the game that undoes permanent damage.** A singe is the only harm a
+            // cube cannot walk off — paint can be turned back, ice is not damage, and a spent heat
+            // face is how the Turbine pays. So the Jawa hands back one burned face on whatever it
+            // drags out of the wreckage, which is never a wasted landing because it only happens when
+            // there is something to salvage. Healed before the roll, so the face it gives back is a
+            // face this throw can land on.
+            const mended = (mend && slot.burned.length) ? slot.burned.pop() : null;
             const special = slot.id ? specialById(slot.id) : null;
             const faces = rollFaces(special, slot);
             const x = settle({
@@ -926,6 +1121,7 @@ const resolveLine = function (line, call, bag, opts = {}) {
             if (special) recovered.push(special.id);
             joined.push(x);
             if (x.slot.held.length) made.push({ slot: x.slot, faceId: faceIdOf(x) });
+            x.mended = mended;
             x.copy = true;
             return giveTurn(x);
         };
@@ -933,11 +1129,28 @@ const resolveLine = function (line, call, bag, opts = {}) {
         // line resolves strictly left to right, so anything put back behind the walk sits out the roll
         // it was freed into. Anything the actor destroyed in place is stepped over, so a released cube
         // cannot land in the middle of Ben.
+        //
+        // Anything already handed a turn this pass is stepped over for the same reason: one turn can
+        // put several cubes to the right of the actor — a raze takes the cube either side of it and
+        // both can be carrying — and each is queued in the order it was made. Splicing every release
+        // at the same index stacks them in the reverse of that, so the cubes freed second would sit
+        // left of the ones freed first and act after them.
+        //
+        // **An actor that took itself off the table has no "right of it" to measure from**: the line
+        // has closed over the gap and the index it stood at can now be held by a cube that is still
+        // waiting. What the walk is really pointing at is the first cube with a turn coming, so that
+        // is what is measured instead.
         const releasePoint = function () {
-            let k = at(c);
-            if (k < 0) return Math.min(Math.max(i, 0), final.length);
-            k += 1;
-            while (k < final.length && final[k].gone) k++;
+            const here = at(c);
+            if (here >= 0) {
+                let k = here + 1;
+                while (k < final.length && (final[k].gone || handedOut.has(final[k]))) k++;
+                return k;
+            }
+            const waiting = new Set(queue.slice(q + 1));
+            const next = x => waiting.has(x) && !handedOut.has(x) && !x.gone && !!x.face && !x.frozen;
+            let k = 0;
+            while (k < final.length && !next(final[k])) k++;
             return k;
         };
 
@@ -951,21 +1164,97 @@ const resolveLine = function (line, call, bag, opts = {}) {
             return { out, at: back };
         };
 
-        const shielding = x => !!x && !x.gone && x.face && x.face.kind === 'shield';
-
-        const shieldSpan = function (i, reach = Infinity) {
-            const stopped = [];
-            let first = Math.max(0, i - reach);
-            let last = Math.min(final.length - 1, i + reach);
-            for (let k = i - 1; k >= first; k--) if (shielding(final[k])) { first = k; stopped.push(k); break; }
-            for (let k = i + 1; k <= last; k++) if (shielding(final[k])) { last = k; stopped.push(k); break; }
-            return { first, last, stopped };
+        // **Turning a chance cube and turning a painted face are two different things**, and the
+        // engine used to do the same wrong thing to both.
+        //
+        // A regular chance cube is *rerolled* onto the other colour: the die itself is untouched, so
+        // the turn lasts this throw and the cube comes up 3/3 again next rung. Nothing about a turn
+        // should permanently recut a die, and a chance cube is all die.
+        //
+        // A **painted** face is a different object. The mark is permanent, so moving it is permanent
+        // — and moving it rather than clearing it is the fix. `x.paint = null` only cleared the paint
+        // *on the throw*; `slot.painted` was never touched, so the mark came back on the next
+        // `throwSet` and the cube quietly reverted one rung later. The turn looked like it worked and
+        // did not, on every painted cube in the game.
+        //
+        // Turning a face back to its own colour **removes** the mark rather than writing a second
+        // one over it: a red side painted blue and then turned red is just a red side again.
+        //
+        // **A chance cube is not a special case.** It used to be — its face id did not survive the
+        // throw, so there was no key to move its mark under and the turn quietly lasted one rung.
+        // `throwSet` keeps the face now, so a painted chance cube repaints exactly like a painted
+        // Greed. The only cube that still takes the first branch is one wearing no mark at all,
+        // which is the whole of the rule: unpainted is a reroll, painted is a repaint.
+        const turnTo = function (x, side) {
+            if (!x.paint || !x.face) {
+                x.side = side;
+                x.paint = null;
+                if (x.face && SIDED.has(x.face.kind)) x.face = null;
+                return false;
+            }
+            const id = faceIdOf(x);
+            const marks = [...(x.slot.painted || [])];
+            const at = marks.indexOf(`${id}|${x.paint}`);
+            const own = (x.face && x.face.side) || null;
+            if (own === side) {
+                if (at >= 0) marks.splice(at, 1);
+            } else if (at >= 0) {
+                marks[at] = `${id}|${side}`;
+            } else {
+                marks.push(`${id}|${side}`);
+            }
+            x.slot.painted = marks;
+            x.paint = own === side ? null : side;
+            x.side = side;
+            return true;
         };
 
-        // **The ice takes one hit** — anything that would destroy, overwrite or switch a frozen cube
-        // shatters the ice instead and the face survives, which is what makes the die's own pairing
-        // resolve against itself with no rule of its own. **A mine is not a hit**: the blast is a range
-        // rather than a target, and ice that stopped one would be a second Gungan Shield at no cost.
+        const shielding = x => !!x && !x.gone && x.face && x.face.kind === 'shield';
+
+        // **The Gungan Shield is a dome, not a wall.** It used to do three unrelated jobs — bound a
+        // blast and die absorbing it, bound what a Tusken could see, and hold a neighbour together
+        // through a wipeout for free, with a fresh face and a second turn on top. The last of those
+        // read as a bug because it was the only ward in the game that cost nothing, and the three
+        // together could not be said in one sentence. This can:
+        //
+        //   **A shield encloses itself and both its neighbours. Nothing crosses the boundary, in or
+        //   out. Only a cube inside the dome can destroy the shield.**
+        //
+        // A bubble rather than a barricade, which is the difference that matters: it protects what is
+        // under it and does **not** block passage past it. A Tusken outside can shoot clean over a
+        // dome to a position on the far side — it simply cannot reach anything sheltering under one.
+        //
+        // **It gates what an effect can change, never what it can see.** A reflection may copy a cube
+        // that is under a dome, because copying it alters nothing there; what it may not do is write
+        // onto a position on the other side of a wall. One rule at every destination, and reads left
+        // alone, is what keeps this to a single predicate instead of a second table of exceptions.
+        const domesAt = function (k) {
+            const out = [];
+            const from = Math.max(0, k - 1);
+            const to = Math.min(final.length - 1, k + 1);
+            for (let s = from; s <= to; s++) if (shielding(final[s])) out.push(s);
+            return out;
+        };
+
+        // Same dome, or open air on both sides. A position sheltering under a dome the actor is not
+        // standing in is unreachable, and so is the whole table seen from inside one.
+        const reaches = function (i, j) {
+            if (i === j) return true;
+            const mine = domesAt(i);
+            const theirs = domesAt(j);
+            if (!mine.length && !theirs.length) return true;
+            return mine.some(s => theirs.includes(s));
+        };
+
+        // **The ice takes one hit** — anything that would destroy or overwrite a frozen cube shatters
+        // the ice instead and the face survives, which is what makes the die's own pairing resolve
+        // against itself with no rule of its own. **A mine is not a hit**: the blast is a range rather
+        // than a target, and ice that stopped one would be a second Gungan Shield at no cost.
+        //
+        // **Destruction, heat and the blessing are the only things a frozen face answers to.** A turn
+        // or a coat of paint is neither: it bounces off with the ice intact rather than spending it,
+        // so those sites test `frozen` and never call this. Spending ice on a Sebulba that changed
+        // nothing made the freeze read as a one-roll trinket any neighbour could cash.
         const iced = function (x) {
             if (!x || !x.frozen) return false;
             x.frozen = false;
@@ -991,13 +1280,14 @@ const resolveLine = function (line, call, bag, opts = {}) {
         // The order matters and is the same everywhere a destroyer meets a protected cube: the ice is
         // consumed first, the blessing second. Returns the note suffix, or null if nothing shielded it
         // — so the ordering lives in one place rather than being restated at each destruction site.
+        // **The ice is not a ward, and only fire answers it.** It used to spare a cube from the
+        // Mirror, the Binder, the Tusken and Ben as well, which made it a second Malastare handed out
+        // by a face that costs nothing — and made the ward table unlearnable, because no two
+        // destroyers agreed on what stopped them. A freeze now holds a face and nothing more: what
+        // reaches a frozen cube destroys it. Flamejet and Singe still thaw rather than destroy, which
+        // is the one reading of ice-meets-fire that is not arbitrary, so `warded` is the burn's alone.
         const warded = x => (iced(x) ? 'iced' : (spend(x) ? 'blessed' : null));
-
-        const OFF_TABLE = new Set(['broken', 'end']);
-        const refaced = function (c) {
-            const pool = c.special ? c.special.faces.filter(f => f && !OFF_TABLE.has(f.kind)) : [];
-            return pool.length ? { ...pool[crypto.randomInt(0, pool.length)] } : null;
-        };
+        const blest = x => (spend(x) ? 'blessed' : null);
 
         if (c.slot && c.slot.held.length && c.special && JAILERS.has(c.special.id)) {
             const before = notes.length;
@@ -1020,23 +1310,34 @@ const resolveLine = function (line, call, bag, opts = {}) {
 
         switch (c.face.kind) {
             case 'mirror': {
-                const left = final.slice(0, i).reverse();
+                // **A mirrored Mirror reflects the other way**, reading the cubes in front of it and
+                // writing onto the ones behind. Nearest-first either way round, so `src[k]` is always
+                // the cube `k + 1` steps back from the one being written.
+                const step = stepOf(c);
+                const left = step === 1 ? final.slice(0, i).reverse() : final.slice(i + 1);
                 if (!left.length) {
                     note(c, 'mirror.nothing');
                     break;
                 }
-                const wanted = Math.min(left.length, Math.max(0, config.maxCubes - (i + 1)));
+                // Room ahead is the table's cap one way and the head of the line the other: turned
+                // around there is nothing to append onto, only the `i` positions already standing.
+                const room = step === 1 ? Math.max(0, config.maxCubes - (i + 1)) : i;
+                const wanted = Math.min(left.length, room);
                 if (wanted < 1) {
                     note(c, 'mirror.noroom');
                     break;
                 }
                 let copied = 0;
                 let made = 0;
+                // Blessings only. The ice used to be counted here too, which is why the field is
+                // named for the frost — kept because nothing downstream reads it by any other name.
                 let froze = 0;
+                let walled = 0;
                 for (let k = 0; k < wanted; k++) {
-                    const to = i + 1 + k;
-                    if (iced(final[to])) {
-                        froze++;
+                    const to = i + step * (k + 1);
+                    // Writing onto an existing position is a reach; appending past the tail is not.
+                    if (to < final.length && !reaches(i, to)) {
+                        walled += 1;
                         continue;
                     }
                     if (spend(final[to])) {
@@ -1048,123 +1349,155 @@ const resolveLine = function (line, call, bag, opts = {}) {
                     copied++;
                 }
                 for (let k = 0; k < final.length; k++) if (!final[k]) final[k] = plain(rollSide());
-                note(c, 'mirror', { copied, made, froze });
+                note(c, 'mirror', { copied, made, froze, walled });
                 break;
             }
-            case 'invert':
-                final.forEach((x) => {
+            case 'invert': {
+                let repainted = 0;
+                final.forEach((x, k) => {
                     if (!isCube(x)) return;
+                    if (!reaches(i, k)) return;
+                    if (x.frozen) return;
                     if (x.wild || x.face?.kind === 'wild') return;
-                    x.side = OTHER[x.side];
-                    if (x.face && SIDED.has(x.face.kind)) x.face = null;
+                    if (turnTo(x, OTHER[x.side])) repainted += 1;
                 });
-                note(c, 'invert');
+                note(c, 'invert', { repainted });
                 break;
+            }
             case 'end': {
                 const reach = Math.max(0, Number(config.blastReach) || 0);
-                const { first, last, stopped } = shieldSpan(i, reach);
+                const first = Math.max(0, i - reach);
+                const last = Math.min(final.length - 1, i + reach);
                 // **The blast has a reach, and that is what makes a mine affordable.** Unbounded, the
                 // set persists so a cube drawn at Level 2 is thrown four more times and one mine face
                 // had a 51.8% chance of ending the run before the top; paying for that needed a cube
                 // that multiplied the run by (6/5)^throws — 2.07x — and only the Wild was in that
                 // class. Every other carrier measured *below an empty seat*, so the strongest greedy
                 // rack held no mine and every mine-facing tool had nothing to point at. `blastReach`
-                // makes a mine cost cubes instead of the run. The shield absorbs rather than merely
-                // stopping, because at reach 1 "stops it further along" is inert.
+                // makes a mine cost cubes instead of the run.
+                //
+                // **A dome stops the blast dead at its wall.** It no longer absorbs — there is no
+                // shield left standing in the way to absorb anything, because a mine inside a dome
+                // takes the shield with everything else, and a mine outside never reaches in. So a
+                // shield destroyed here is an ordinary victim: wreckage a Jawa can pull back, rather
+                // than a shatter spent for the run.
                 const blast = [];
-                for (let k = first; k <= last; k++) if (k === i || !spend(final[k])) blast.push(k);
-                const spared = (last - first + 1) - blast.length;
-                for (const k of stopped) if (final[k].special) broken.push(final[k].special.id);
+                let walled = 0;
+                for (let k = first; k <= last; k++) {
+                    if (k !== i && !reaches(i, k)) { walled += 1; continue; }
+                    if (k === i || !spend(final[k])) blast.push(k);
+                }
+                const spared = (last - first + 1) - blast.length - walled;
                 for (const k of [...blast].reverse()) final.splice(k, 1);
 
                 detonated = c.special ? c.special.name : 'the cube';
-                note(c, stopped.length ? 'end.shielded' : 'end', {
+                note(c, walled ? 'end.shielded' : 'end', {
                     destroyed: blast.length,
-                    shields: stopped.length,
+                    shields: walled,
                     spared,
                     at: i,
                     from: blast[0],
-                    stopped,
                 });
                 break;
             }
+            // **A wipeout is a cube coming apart where it stands, so no dome has anything to say
+            // about it.** Nothing crosses a wall, and nothing here crosses anything. A neighbouring
+            // shield used to hold the cube together for free, re-roll its face and hand it a second
+            // turn on top — the only ward in the game that cost its owner nothing, and the reason the
+            // shield read as three cubes wearing one name. It is gone with `shieldSpan`.
             case 'broken':
-                if (shielding(final[i - 1]) || shielding(final[i + 1])) {
-                    const swap = refaced(c);
-                    if (!swap) {
-                        note(c, 'broken.saved');
-                        break;
-                    }
-                    note(c, 'broken.saved', { rolledFaceId: swap.id });
-                    c.face = swap;
-                    settle(c);
-                    c.copy = true;
-                    giveTurn(c);
-                    break;
-                }
                 broken.push(c.special.id);
                 final.splice(i, 1);
                 note(c, 'broken', { at: i });
                 break;
-            case 'burn':
-                if (i + 1 >= final.length) {
+            case 'burn': {
+                const j = i + stepOf(c);
+                if (j < 0 || j >= final.length) {
                     note(c, 'burn.nothing');
                     break;
                 }
-                const burnWard = warded(final[i + 1]);
+                // **The Binder cannot burn the Binder.** Fire does not burn fire, and the Singe
+                // already stepped over both halves of the cube — a Flamejet that refused another
+                // Flamejet but happily took an Electrocution made the immunity read as a property of
+                // the picture rather than of the cube. It is the cube.
+                if (final[j].face && ['burn', 'clone'].includes(final[j].face.kind)) {
+                    note(c, 'burn.fireproof');
+                    break;
+                }
+                if (!reaches(i, j)) {
+                    note(c, 'burn.walled');
+                    break;
+                }
+                const burnWard = warded(final[j]);
                 if (burnWard) {
                     note(c, `burn.${burnWard}`);
                     break;
                 }
-                final.splice(i + 1, 1);
-                note(c, 'burn');
+                final.splice(j, 1);
+                note(c, 'burn', { at: j });
                 break;
+            }
             case 'clone': {
-                const hasLeft = i - 1 >= 0;
-                const hasRight = i + 1 < final.length;
+                // Reads the cube behind it and writes onto the cube in front, whichever way round
+                // "behind" and "in front" are for this cube.
+                const step = stepOf(c);
+                const from = i - step;
+                const to = i + step;
+                const hasLeft = from >= 0 && from < final.length;
+                const hasRight = to >= 0 && to < final.length;
                 if (!hasLeft && !hasRight) {
                     note(c, 'clone.alone');
                     break;
                 }
-                if (!hasLeft) {
-                    if (iced(final[i + 1])) {
-                        note(c, 'clone.iced');
-                        break;
-                    }
-                    final.splice(i + 1, 1);
-                    note(c, 'clone.destroy');
+                if (hasRight && !reaches(i, to)) {
+                    note(c, 'clone.walled');
                     break;
                 }
-                const cloneWard = hasRight ? warded(final[i + 1]) : null;
+                if (!hasLeft) {
+                    // **The electrocution wards like everything else now.** It was the one
+                    // destruction in the game a blessing could not stop, and the exception was an
+                    // oversight rather than a rule: every other branch of this same face asked.
+                    if (spend(final[to])) {
+                        note(c, 'clone.blessed');
+                        break;
+                    }
+                    final.splice(to, 1);
+                    note(c, 'clone.destroy', { at: to });
+                    break;
+                }
+                const cloneWard = hasRight ? blest(final[to]) : null;
                 if (cloneWard) {
                     note(c, `clone.${cloneWard}`);
                     break;
                 }
-                const src = final[i - 1];
+                const src = final[from];
                 const copy = enliven(turned(src));
                 if (!hasRight) {
                     if (final.length >= config.maxCubes) {
                         note(c, 'clone.noroom');
                         break;
                     }
-                    final.push(copy);
+                    if (step === 1) final.push(copy); else final.unshift(copy);
                     note(c, 'clone.append', { srcFaceId: faceIdOf(src) });
                     break;
                 }
-                final[i + 1] = copy;
+                final[to] = copy;
                 note(c, 'clone', { srcFaceId: faceIdOf(src) });
                 break;
             }
             case 'cull': {
-                const { first, last } = shieldSpan(i);
+                // **A dome no longer blocks the shot, it only shelters what is under it.** The span
+                // used to stop at the nearest shield either way, so a Gungan cast a shadow down the
+                // whole line behind it; a bubble does not. The Tusken can shoot clean over a dome to
+                // a position on the far side, and cannot touch anything sheltering beneath one.
                 const others = [];
-                for (let k = first; k <= last; k++) if (k !== i) others.push(k);
+                for (let k = 0; k < final.length; k++) if (k !== i && reaches(i, k)) others.push(k);
                 if (!others.length) {
                     note(c, 'cull.nothing');
                     break;
                 }
                 const victim = others[crypto.randomInt(0, others.length)];
-                const cullWard = warded(final[victim]);
+                const cullWard = blest(final[victim]);
                 if (cullWard) {
                     note(c, `cull.${cullWard}`);
                     break;
@@ -1182,12 +1515,18 @@ const resolveLine = function (line, call, bag, opts = {}) {
                     break;
                 }
                 const wings = c.face.wings || {};
-                const tookRight = right && !iced(final[i + 1]) && !spend(final[i + 1]);
-                const tookLeft = left && !iced(final[i - 1]) && !spend(final[i - 1]);
-                if (tookRight) final[i + 1] = razed(wings.right, wings.left);
-                if (tookLeft) final[i - 1] = razed(wings.left, wings.right);
+                // Whatever Ben is standing in at this moment — the crowd's mark, or an engine that
+                // turned him earlier in the walk. Bare unless something painted him, since `raze` is
+                // not a side and has no colour of its own.
+                const worn = c.side || null;
+                const canRight = right && reaches(i, i + 1);
+                const canLeft = left && reaches(i, i - 1);
+                const tookRight = canRight && !spend(final[i + 1]);
+                const tookLeft = canLeft && !spend(final[i - 1]);
+                if (tookRight) final[i + 1] = razed(wings.right, wings.left, worn);
+                if (tookLeft) final[i - 1] = razed(wings.left, wings.right, worn);
                 if (!tookLeft && !tookRight) {
-                    note(c, 'raze.iced');
+                    note(c, 'raze.blessed');
                     break;
                 }
                 note(c, 'raze', { both: !!(tookLeft && tookRight) });
@@ -1227,8 +1566,9 @@ const resolveLine = function (line, call, bag, opts = {}) {
                 const before = notes.length;
                 const got = drawOne();
                 const its = notes.splice(before);
-                final.splice(i + 1, 0, got);
-                note(c, 'draw', { faceId: faceIdOf(got), special: !!got.special });
+                const seat = stepOf(c) === 1 ? i + 1 : i;
+                final.splice(seat, 0, got);
+                note(c, 'draw', { faceId: faceIdOf(got), special: !!got.special, at: seat });
                 notes.push(...its);
                 break;
             }
@@ -1237,12 +1577,12 @@ const resolveLine = function (line, call, bag, opts = {}) {
                 const already = new Set(hold);
                 for (const w of wrecked) {
                     if (!w || takenIn.has(w)) continue;
-                    hold.push({ ...w });
+                    hold.push(keepSlot(w));
                     takenIn.add(w);
                 }
                 for (const x of line) {
                     if (!x.slot || up.has(x.slot) || already.has(x.slot) || takenIn.has(x.slot)) continue;
-                    hold.push({ ...x.slot });
+                    hold.push(keepSlot(x.slot));
                     takenIn.add(x.slot);
                 }
                 const own = (c.slot && c.slot.held.length) ? c.slot.held : null;
@@ -1256,26 +1596,43 @@ const resolveLine = function (line, call, bag, opts = {}) {
                     break;
                 }
                 const before = notes.length;
-                const got = liftOne(from);
+                const got = liftOne(from, 'pop', true);
                 const its = notes.splice(before);
-                final.splice(i + 1, 0, got);
+                const seat = stepOf(c) === 1 ? i + 1 : i;
+                final.splice(seat, 0, got);
                 note(c, 'scavenge', {
-                    faceId: faceIdOf(got), special: !!got.special, own: !!own, at: i + 1,
+                    faceId: faceIdOf(got), special: !!got.special, own: !!own, at: seat,
+                    mended: got.mended,
                 });
                 notes.push(...its);
                 break;
             }
             case 'haul': {
-                const target = final[i + 1];
-                if (!target || target.gone || freshlyFreed.has(target)) {
+                const j = i + stepOf(c);
+                const target = (j >= 0 && j < final.length) ? final[j] : null;
+                if (!target || freshlyFreed.has(target)) {
                     note(c, 'haul.nothing');
+                    break;
+                }
+                if (!reaches(i, j)) {
+                    note(c, 'haul.walled');
+                    break;
+                }
+                // **Rubble is taken and not kept.** A wing's slot is a bare `plainSlot` — nothing on
+                // it says it was ever a wing, because wing-ness lives on the position rather than on
+                // the cube. So a wing put into a hold is already laundered: what comes back out on a
+                // parole or a hold-break is an ordinary cube nobody owned. The crawler still clears
+                // the position, and gets nothing for it.
+                if (target.gone) {
+                    final.splice(j, 1);
+                    note(c, 'haul.rubble', { faceId: faceIdOf(target), at: j });
                     break;
                 }
                 const mine = c.slot || (c.slot = plainSlot());
                 mine.held.push(target.slot || plainSlot());
-                final.splice(i + 1, 1);
+                final.splice(j, 1);
                 note(c, 'haul', {
-                    faceId: faceIdOf(target), special: !!target.special, at: i + 1,
+                    faceId: faceIdOf(target), special: !!target.special, at: j,
                     held: mine.held.length,
                 });
                 break;
@@ -1284,6 +1641,7 @@ const resolveLine = function (line, call, bag, opts = {}) {
                 const doomed = [];
                 for (let k = 0; k < final.length; k++) {
                     const x = final[k];
+                    if (k !== i && !reaches(i, k)) continue;
                     if (k !== i && spend(x)) continue;
                     if (x.face && x.face.kind === 'razed') doomed.push(k);
                     else if (x.special && !x.gone) doomed.push(k);
@@ -1298,28 +1656,39 @@ const resolveLine = function (line, call, bag, opts = {}) {
                 break;
             }
             case 'engine': {
-                const j = c.face.dir === 'left' ? i - 1 : i + 1;
+                // A mirrored Sebulba points the other way, and the note reports the direction the
+                // engine actually fired in rather than the one painted on the face.
+                const dir = flipped(c) ? OTHER_DIR[c.face.dir] : c.face.dir;
+                const j = dir === 'left' ? i - 1 : i + 1;
                 const target = final[j];
+                if (target && !reaches(i, j)) {
+                    note(c, 'engine.walled', { dir });
+                    break;
+                }
                 if (!isCube(target)) {
-                    note(c, 'engine.nothing', { dir: c.face.dir });
+                    note(c, 'engine.nothing', { dir });
                     break;
                 }
                 if (target.side === call) {
-                    note(c, 'engine.already', { dir: c.face.dir, side: call });
+                    note(c, 'engine.already', { dir, side: call });
                     break;
                 }
-                if (iced(target)) {
-                    note(c, 'engine.iced', { dir: c.face.dir });
+                if (target.frozen) {
+                    note(c, 'engine.iced', { dir });
                     break;
                 }
-                target.side = call;
-                if (target.face && SIDED.has(target.face.kind)) target.face = null;
-                note(c, 'engine', { dir: c.face.dir, side: call });
+                const repainted = turnTo(target, call);
+                note(c, 'engine', { dir, side: call, repainted });
                 break;
             }
             case 'freeze': {
+                // **A wing is a legal target for everything.** Six faces used to step over a
+                // flattened position, which made Ben's rubble selectively invisible — and the
+                // selection was arbitrary, since a mine, a Tusken and Order 66 all hit one happily.
+                // A landing spent on a wing is wasted, because the wing is discarded before the next
+                // throw either way, and that is the point: Ben is now a decoy that soaks effects.
                 const targets = [i - 1, i + 1]
-                    .filter(j => j >= 0 && j < final.length && final[j] && !final[j].gone);
+                    .filter(j => j >= 0 && j < final.length && final[j] && reaches(i, j));
                 if (!targets.length) {
                     note(c, 'freeze.nothing');
                     break;
@@ -1338,22 +1707,35 @@ const resolveLine = function (line, call, bag, opts = {}) {
             }
             case 'scorch': {
                 const targets = [i - 1, i + 1]
-                    .filter(j => j >= 0 && j < final.length && final[j] && !final[j].gone);
+                    .filter(j => j >= 0 && j < final.length && final[j] && reaches(i, j));
                 if (!targets.length) {
                     note(c, 'scorch.nothing');
                     break;
                 }
                 const burned = [];
+                // **Which position, not just how many.** A Singe takes one neighbour or both, and a
+                // count cannot tell two identical cubes apart — the client had to diff the state
+                // arrays to work out which Greed lost a face. Positions are the only handle a cube
+                // has on the wire, so an effect that hits one has to say which.
+                const singed = [];
                 for (const j of targets) {
                     const x = final[j];
-                    if (x.face && x.face.kind === 'burn') continue;
+                    // **The whole Binder is fireproof, not just the Flamejet.** Half the cube being
+                    // immune and the other half not made the immunity read as a bug on the face it
+                    // did not cover; the cube is one object and answers as one.
+                    if (x.face && (x.face.kind === 'burn' || x.face.kind === 'clone')) continue;
                     if (iced(x)) continue;
                     if (!x.slot) continue;
+                    // The blessing answers the fire. It is not destruction — the cube stands — but it
+                    // takes a face off for the rest of the climb, which is the only other permanent
+                    // harm in the game, and a ward that ignored it was a ward with a hole in it.
+                    if (spend(x)) continue;
                     if (x.slot.frozen) { x.slot.frozen = null; continue; }
                     if (liveFaces(x.special, x.slot.burned).length <= config.minFaces) continue;
                     const id = faceIdOf(x);
                     x.slot.burned = [...x.slot.burned, id];
                     burned.push(id);
+                    singed.push(j);
                     // Dead where it stands, not only gone from the cube: without the second half a
                     // Ratts charred by Baroonda would still detonate, and the fire would change a
                     // cube's odds and nothing you can see.
@@ -1363,22 +1745,22 @@ const resolveLine = function (line, call, bag, opts = {}) {
                     note(c, 'scorch.nothing');
                     break;
                 }
-                note(c, 'scorch', { burned, both: burned.length > 1 });
+                note(c, 'scorch', { burned, both: burned.length > 1, at: i, hitAt: singed });
                 break;
             }
             case 'vault':
-                sealed = call;
-                note(c, 'vault', { side: call });
-                break;
-            case 'seam':
-                note(c, 'seam', { bonus: config.seamBonus * rungs, rungs });
+                // A second vault on the same rung does not re-seal the door the first one shut, it
+                // swings it across — so an even number of them seals the side you did *not* call and
+                // forces the repeat the rule normally forbids.
+                sealed = sealed === null ? call : OTHER[sealed];
+                note(c, 'vault', { side: sealed, moved: sealed !== call });
                 break;
             case 'jail': {
                 const room = Math.max(0, config.jailSize - (c.slot ? c.slot.held.length : 0));
                 const pool = final
                     .map((_, j) => j)
-                    .filter(j => j !== i && final[j] && !final[j].gone && final[j].slot
-                        && !freshlyFreed.has(final[j]));
+                    .filter(j => j !== i && final[j] && final[j].slot
+                        && reaches(i, j) && !freshlyFreed.has(final[j]));
                 if (!pool.length || !room) {
                     note(c, 'jail.nothing');
                     break;
@@ -1390,10 +1772,22 @@ const resolveLine = function (line, call, bag, opts = {}) {
                 }
                 taking.sort((a, b) => a - b);
                 const cell = c.slot || (c.slot = plainSlot());
-                for (const j of taking) cell.held.push(final[j].slot);
+                // **An arrest can come up holding rubble**, and rubble does not go in a cell — see
+                // the crawler above for why a wing in a hold is a cube nobody owned. The warrant is
+                // spent either way: a wing takes one of the four and gives the cell nothing back, so
+                // a prison that lands beside a wide Ben arrests less than it looks like it did.
+                let scrapped = 0;
+                for (const j of taking) {
+                    if (final[j].gone) scrapped += 1;
+                    else cell.held.push(final[j].slot);
+                }
                 for (const j of [...taking].reverse()) final.splice(j, 1);
                 note(c, 'jail', {
-                    taken: taking.length, at: i, held: cell.held.length, hitAt: taking,
+                    taken: taking.length - scrapped,
+                    scrapped,
+                    at: i,
+                    held: cell.held.length,
+                    hitAt: taking,
                 });
                 break;
             }
@@ -1412,7 +1806,8 @@ const resolveLine = function (line, call, bag, opts = {}) {
                 // release for Malastare's lock.
                 const edge = function (from, step) {
                     for (let k = from; k >= 0 && k < final.length; k += step) {
-                        if (k === i || !holy(final[k])) return k;
+                        if (k === i) return k;
+                        if (!holy(final[k]) && reaches(i, k)) return k;
                     }
                     return -1;
                 };
@@ -1422,8 +1817,8 @@ const resolveLine = function (line, call, bag, opts = {}) {
                     note(c, 'plunge.blessed');
                     break;
                 }
-                for (let k = 0; k < head; k += 1) spend(final[k]);
-                for (let k = final.length - 1; k > tail; k -= 1) spend(final[k]);
+                for (let k = 0; k < head; k += 1) if (reaches(i, k)) spend(final[k]);
+                for (let k = final.length - 1; k > tail; k -= 1) if (reaches(i, k)) spend(final[k]);
                 const ends = [head, tail];
                 const selfless = !ends.includes(i);
                 for (const k of [...ends].reverse()) final.splice(k, 1);
@@ -1432,14 +1827,22 @@ const resolveLine = function (line, call, bag, opts = {}) {
             }
             case 'crowd': {
                 const ahead = { blue: 0, red: 0 };
-                for (const x of final) if (x && !x.gone && ahead[x.side] != null) ahead[x.side] += 1;
+                // Coloured wings are in the count for the same reason they are in the majority — the
+                // leader the crowd runs to is what the line actually looks like.
+                for (const x of final) if (x && ahead[x.side] != null) ahead[x.side] += 1;
                 const side = ahead.blue > ahead.red ? 'blue' : ahead.red > ahead.blue ? 'red' : call;
                 const hit = [];
                 for (const j of [i - 1, i + 1]) {
                     const x = final[j];
-                    if (!x || x.gone || !x.slot) continue;
-                    if (iced(x)) continue;
-                    if (x.face && x.face.kind === 'razed') continue;
+                    if (!x || !x.slot) continue;
+                    if (!reaches(i, j)) continue;
+                    if (x.frozen) continue;
+                    // **A wild cannot hold paint**, so painting one spends half a landing on a mark
+                    // that will never be read: `settle` puts a wild back to the call every throw, by
+                    // the rule that makes it a wild at all. Passed over rather than painted, the same
+                    // way a face already counting for the leader is — the crowd has two paints and
+                    // both of them should land somewhere they can still be seen next rung.
+                    if (x.face && x.face.kind === 'wild') continue;
                     if (x.side === side) continue;
                     // **Through `faceIdOf`, not `x.face.id`.** A plain cube carries no face object at
                     // all, so reading the id off one skipped every ordinary cube on the table — most
@@ -1456,14 +1859,16 @@ const resolveLine = function (line, call, bag, opts = {}) {
                     note(c, 'crowd.nothing');
                     break;
                 }
-                note(c, 'crowd', { side, painted: hit.length, both: hit.length > 1 });
+                note(c, 'crowd', {
+                    side, painted: hit.length, both: hit.length > 1, at: i, hitAt: hit,
+                });
                 break;
             }
             case 'blessing': {
                 const pool = [];
                 for (let j = 0; j < final.length; j += 1) {
                     const x = final[j];
-                    if (x !== c && !x.gone && x.slot && !x.slot.blessed) pool.push(j);
+                    if (x !== c && x.slot && !x.slot.blessed && reaches(i, j)) pool.push(j);
                 }
                 if (!pool.length) {
                     note(c, 'blessing.nothing');
@@ -1541,11 +1946,15 @@ const resolveLine = function (line, call, bag, opts = {}) {
     // a Tusken culled or a Greed Ben razed is a payout from beyond the grave; the other way round, a
     // paying face the Mirror reflected pays twice, because there really are two on the table. Greed
     // was the last to move here, and scoring it in pass one is what let Ben lie across a Greed Cube
-    // and leave the multiple standing on nothing. A frozen face pays nothing, for the same reason it
-    // takes no turn.
+    // and leave the multiple standing on nothing.
+    //
+    // **A frozen face pays.** It used to be skipped here alongside the `gone` positions, which put
+    // the ice on both sides of one rule at once: a frozen cube still counted for its colour, still
+    // took its place in the line, and then silently paid nothing — so Ando Prime landing beside a
+    // Greed read as a cube quietly eating the multiple. Ice suspends the **turn**, not the cube.
     const mults = [];
     for (const c of final) {
-        if (c.gone || c.frozen || !c.face) continue;
+        if (c.gone || !c.face) continue;
         switch (c.face.kind) {
             case 'greed':
                 mult += config.greedBonus;
@@ -1572,7 +1981,11 @@ const resolveLine = function (line, call, bag, opts = {}) {
                 const earned = config.heatBonus * spent;
                 mult += earned;
                 pay(c, 'heat', null, earned, spent);
-                c.slot.heat = spent;
+                // **The ice holds the face against its own schedule.** Heat is the one paying face
+                // that spends itself as it pays, so a frozen Turbine that advanced would both erase
+                // the face and hold it. The freeze wins: it pays this step again next rung, which is
+                // what "the ice holds the face you are looking at" has to mean to stay true.
+                if (!c.frozen) c.slot.heat = spent;
                 break;
             }
             case 'guide': {
@@ -1648,7 +2061,7 @@ const resolveLine = function (line, call, bag, opts = {}) {
     for (const c of [...line, ...joined]) {
         if (!c.slot || standing.has(c.slot) || carried.has(c.slot) || takenIn.has(c.slot)) continue;
         carried.add(c.slot);
-        hold.push({ ...c.slot });
+        hold.push(keepSlot(c.slot));
     }
 
     const slotFor = function (c) {

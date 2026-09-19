@@ -60,21 +60,40 @@ check('plain blue faces', PLAIN_FACES.filter(f => f.side === 'blue').length, 3);
 // Phase two: slots
 // ---------------------------------------------------------------------------
 //
-// The set grew from a list of ids to a list of slots, and the whole reason it shipped without a
-// migration is that an untouched slot still encodes as a bare id. Both directions are asserted,
-// because either one drifting silently costs somebody a run.
+// The set grew from a list of ids to a list of slots, and then from anonymous slots to **named
+// instances**: `SPECIALS` is the class and a slot is one cube built from it, so two Greed Cubes on
+// one line are two cubes rather than the same string twice. The bare-id encoding that let slots ship
+// without a migration is gone with the anonymity — but reading it still works, which is the
+// migration, and is asserted here because a stored run must survive the change.
+//
+// `named` strips the name before comparing shape; the name itself is checked on its own terms.
+const named = v => (v && typeof v === 'object'
+    ? Object.fromEntries(Object.entries(v).filter(([k]) => k !== 'uid')) : v);
+const shape = raw => raw.map(named);
+const bare = sl => named({ ...sl });
 
-check('a plain slot encodes as 0', engine.encodeSet([slot(null)]), [0]);
-check('a special slot encodes as its id', engine.encodeSet([slot('wild')]), ['wild']);
-check('a legacy set decodes', engine.decodeSet([0, 'wild']), [slot(null), slot('wild')]);
-check('a legacy set round-trips unchanged', engine.encodeSet(engine.decodeSet([0, 'wild', 0])), [0, 'wild', 0]);
-check('a Firebase object set decodes', engine.decodeSet({ 0: 0, 1: 'greed' }), [slot(null), slot('greed')]);
+check('a plain slot encodes its id as 0, never null', shape(engine.encodeSet([slot(null)])), [{ id: 0 }]);
+check('a special slot encodes its id', shape(engine.encodeSet([slot('wild')])), [{ id: 'wild' }]);
+check('every encoded slot is named', engine.encodeSet([slot(null), slot('wild')]).every(v => !!v.uid), true);
+check('a legacy bare set still decodes', engine.decodeSet([0, 'wild']).map(bare),
+    [bare(slot(null)), bare(slot('wild'))]);
+check('and the cubes it decodes into are named',
+    engine.decodeSet([0, 'wild']).every(sl => !!sl.uid), true);
+check('a legacy set round-trips its ids', shape(engine.encodeSet(engine.decodeSet([0, 'wild', 0]))),
+    [{ id: 0 }, { id: 'wild' }, { id: 0 }]);
+check('a Firebase object set decodes', engine.decodeSet({ 0: 0, 1: 'greed' }).map(bare),
+    [bare(slot(null)), bare(slot('greed'))]);
+// **A name is the cube**, so it has to survive the wire rather than being reminted on the far side.
+check('a name survives the round trip', (function () {
+    const one = engine.slotOf('wild');
+    return engine.decodeSet(engine.encodeSet([one]))[0].uid === one.uid;
+}()), true);
 check('a scorched slot survives the round trip',
-    engine.decodeSet(engine.encodeSet([{ id: 'wild', burned: ['end'], frozen: null }])),
-    [{ ...slot('wild'), burned: ['end'] }]);
+    engine.decodeSet(engine.encodeSet([{ id: 'wild', burned: ['end'], frozen: null }])).map(bare),
+    [bare({ ...slot('wild'), burned: ['end'] })]);
 check('a frozen slot survives the round trip',
-    engine.decodeSet(engine.encodeSet([{ id: null, burned: [], frozen: 'side:blue' }])),
-    [{ ...slot(null), frozen: 'side:blue' }]);
+    engine.decodeSet(engine.encodeSet([{ id: null, burned: [], frozen: 'side:blue' }])).map(bare),
+    [bare({ ...slot(null), frozen: 'side:blue' })]);
 // The bag is not a set and must not gain slots, or `specialById` is handed an object.
 check('the bag stays bare ids', engine.decodeBag(engine.encodeBag(['wild', null])), ['wild', null]);
 
@@ -215,7 +234,7 @@ check('an untouched Wild has six faces', engine.liveFaces(die && SPECIALS.find(s
 const stats = {
     throws: 0, freeze: 0, scorch: 0, vault: 0, blessing: 0, seam: 0, jail: 0, plunge: 0, crowd: 0,
     heldFaces: 0, thawed: 0, iced: 0, burned: 0, leanFree: 0, plungeSelf: 0, jailbreak: 0,
-    painted: 0, spared: 0, blocks: 0,
+    painted: 0, spared: 0, blocks: 0, vaultsSwung: 0,
 };
 
 // A rack with the die and enough around it for the positional faces to have neighbours worth having.
@@ -334,6 +353,16 @@ for (let t = 0; t < CLIMBS; t++) {
         if (plunged) {
             check('a plunge takes two', plunged.destroyed, 2);
             if (plunged.self) stats.plungeSelf++;
+        }
+
+        // **The vault doors swing rather than stack.** The first seals the side that was called and
+        // every one after it moves the seal across, so the parity of the count is the whole rule —
+        // an even number of them locks the caller onto the side they just called.
+        const vaults = res.notes.filter(n => n.kind === 'vault');
+        if (vaults.length) {
+            const swung = vaults.length % 2 === 0;
+            check('the vault seals by parity', res.sealed, swung ? (call === 'red' ? 'blue' : 'red') : call);
+            if (vaults.length > 1) stats.vaultsSwung++;
         }
 
         // **Nobody is scorched past the floor**, and a burn is one face at a time.
@@ -620,6 +649,7 @@ const makeWorld = function () {
     console.log(`    faces painted over     ${stats.painted}`);
     console.log(`    cubes a blessing kept  ${stats.spared}`);
     console.log(`    blessings spent        ${stats.blocks}`);
+    console.log(`    rungs with a door swung ${stats.vaultsSwung}`);
     console.log('  plumbing');
     console.log(`    sealed sides refused   ${sealedSeen}`);
     console.log(`    rungs carrying a hold  ${jailSeen}`);

@@ -297,7 +297,10 @@ exports.cubeState = function (user_profile) {
         pressedLast: typeof c.pressedLast === 'string' ? c.pressedLast : null,
         comb: comb,
         emblem: emblemOf(c, comb),
-        pick: !!c.pick,
+        // Only while there is something to choose. A prestige that pressed no skin appends an empty
+        // cell, so a comb of nothing but empties raised a prompt with no answer — and `/emblem`,
+        // the only thing that lowers it, refuses every id a player could send it.
+        pick: !!c.pick && comb.some(Boolean),
         nudge: !!c.nudge,
         bribe: !!c.bribe,
         bribes: count(c.bribes),
@@ -618,7 +621,7 @@ const PERKS = {
     sidebet: {
         kind: 'sidebet',
         label: 'Side Bet',
-        description: 'Once a run, name one of the three prices Watto has chalked up. It pays onto the multiple, and the deeper you leave it the less it is worth.',
+        description: 'Each rung, ante one off the multiple to name one of the three prices Watto has chalked up. A hit pays the price back onto the multiple — long odds pay best, and the deeper you leave it the less a hit compounds.',
     },
 };
 

@@ -738,7 +738,8 @@ module.exports = function mountCube(app, ctx) {
     // Rate limits are tighter than the shop's on purpose: a press is a spend, and the reroll is the
     // one action in the mode a player might reasonably want to hammer.
 
-    // Two cubes in, one out. Costs a build token.
+    // Two or three cubes in, one out. Costs a build token. The rung sets the *widest* cut, not the
+    // required one — see `weldCounts`.
     //
     // **`major` and `keep` are the two the press has never been sent.** `major` is a cube id — which
     // parent an uneven cut pours the most faces from, part of Deep Cuts. `keep` is The Keeper,

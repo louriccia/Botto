@@ -90,8 +90,8 @@ exports.SPECIALS = [
     },
     {
         id: 'gungan', name: 'Gungan Shield Cube',
-        blurb: 'Every face stops the blast from a mine on its own side of the line, and is destroyed '
-            + 'doing it. It also holds a neighbour that wipes out together.',
+        blurb: 'Every face raises a dome over itself and both its neighbours. Nothing crosses it in '
+            + 'either direction — and only a cube already inside it can bring the shield down.',
         faces: rep(6, { kind: 'shield' }),
     },
     {
@@ -153,53 +153,176 @@ exports.SPECIALS = [
     },
 ];
 
+// **Every price is measured, never guessed** — `scripts/cubeSideBet.js` runs each proposition over
+// real climbs on racks built to farm it, and the price is the fair net return at the *highest* rate
+// any rack reaches at any level, rounded down to the half. Priced against the ceiling rather than the
+// average on purpose: the book quotes blind, so it has to survive the player who built for the card —
+// that player gets close to fair odds and everyone else pays for not having the rack. Re-run the
+// script after touching any cube's faces; a price that outlives the odds it was cut from is a faucet.
 exports.SIDE_BETS = [
     {
-        id: 'broken', band: 'likely', price: 2, say: 'A cube shatters',
+        id: 'planet', band: 'likely', price: 2, say: 'A planet lands',
+        needs: ['freeze', 'vault', 'scorch', 'blessing', 'seam', 'jail', 'plunge', 'crowd'],
+        hit: r => r.notes.some(n => ['freeze', 'vault', 'scorch', 'blessing', 'seam', 'jail', 'plunge', 'crowd'].includes(n.kind)),
+    },
+    {
+        id: 'shortcut', band: 'likely', price: 3.5, say: 'A free clear lands',
+        needs: ['shortcut'], hit: r => r.notes.some(n => n.kind === 'shortcut'),
+    },
+    {
+        id: 'draw', band: 'likely', price: 4.5, say: 'The Pit Droid digs one out of the bag',
+        needs: ['draw'], hit: r => r.notes.some(n => n.kind === 'draw'),
+    },
+    {
+        // Moved down from `likely` when the book was re-measured: at 25.5% it is rarer than both the
+        // dome and the reflection, which sit in `middle`, and a band that is not monotone in rate is
+        // a band whose name is not telling the truth.
+        id: 'reroll', band: 'middle', price: 6.5, say: 'A reroll banks',
+        needs: ['reroll'], hit: r => r.notes.some(n => n.kind === 'reroll'),
+    },
+    {
+        id: 'wild', band: 'likely', price: 5.5, say: 'A wild lands your way',
+        needs: ['wild'], hit: r => r.notes.some(n => n.kind === 'wild'),
+    },
+    {
+        id: 'broken', band: 'likely', price: 2.5, say: 'A cube shatters',
         needs: ['broken'], hit: r => r.notes.some(n => n.kind === 'broken'),
     },
     {
-        id: 'invert', band: 'likely', price: 3, say: 'The line flips',
+        id: 'burn', band: 'likely', price: 5, say: 'The Binder burns its neighbour',
+        needs: ['burn'], hit: r => r.notes.some(n => n.kind === 'burn'),
+    },
+    {
+        id: 'invert', band: 'likely', price: 5, say: 'The line flips',
         needs: ['invert'], hit: r => r.notes.some(n => n.kind === 'invert'),
     },
     {
-        id: 'tie', band: 'likely', price: 7.1, say: 'Nobody wins the line',
+        id: 'tie', band: 'likely', price: 6, say: 'Nobody wins the line',
         needs: null, spoils: ['wild', 'raze', 'cull'],
         hit: r => !r.ended && !!r.faceIds.length && !r.majority,
     },
     {
-        id: 'burn', band: 'likely', price: 6.0, say: 'A cube gets burned',
-        needs: ['burn'], hit: r => r.notes.some(n => n.kind === 'burn'),
-    },
-    {
-        id: 'mirror', band: 'middle', price: 4, say: 'A reflection lands',
+        id: 'mirror', band: 'middle', price: 7, say: 'A reflection lands',
         needs: ['mirror'], hit: r => r.notes.some(n => n.kind === 'mirror' && n.copied > 0),
     },
     {
-        id: 'clone', band: 'middle', price: 7.7, say: 'A cube gets copied',
+        id: 'clone', band: 'middle', price: 7, say: 'The Binder prints a copy',
         needs: ['clone'], hit: r => r.notes.some(n => n.kind === 'clone'),
     },
+    // Conditioned on the *call* winning, not on a wide margin either way: half of all landslides
+    // belong to the other side, and a rung lost by one pays nothing because the run died with it.
     {
-        id: 'grow', band: 'middle', price: 9.5, say: 'Padmé slips in matching twins',
+        id: 'landslide', band: 'middle', price: 6.5, say: 'Your side by three or more',
+        needs: null, spoils: ['side', 'wild'],
+        hit: (r, call) => {
+            const blue = r.cubes.filter(s => s === 'blue').length;
+            return r.majority === call && Math.abs(blue - (r.cubes.length - blue)) >= 3;
+        },
+    },
+    {
+        id: 'payday', band: 'middle', price: 7, say: 'Three pay faces in one throw',
+        needs: ['greed', 'boost', 'heat', 'guide', 'seam', 'mult'],
+        hit: r => r.notes.filter(n => ['greed', 'boost', 'heat', 'guide', 'seam', 'mult'].includes(n.kind)).length >= 3,
+    },
+    {
+        id: 'pair', band: 'middle', price: 7, say: 'Fode grows a red and a blue',
+        needs: ['pair'], hit: r => r.notes.some(n => n.kind === 'pair'),
+    },
+    {
+        id: 'grow', band: 'middle', price: 7.5, say: 'Padmé slips in matching twins',
         needs: ['twins'],
         hit: r => r.notes.some(n => n.kind === 'twins'),
     },
     {
-        id: 'raze', band: 'long', price: 19.9, say: 'Ben razes a neighbour',
+        id: 'scavenge', band: 'middle', price: 10, say: 'The Scavenger pulls one back',
+        needs: ['scavenge'], hit: r => r.notes.some(n => n.kind === 'scavenge'),
+    },
+    {
+        id: 'haul', band: 'middle', price: 13, say: 'The Sandcrawler swallows one',
+        needs: ['haul'], hit: r => r.notes.some(n => n.kind === 'haul'),
+    },
+    // A look settles more of this card than of any other — a seen face that is not a side is a
+    // position that cannot count, and a seen side or wild moves the odds the way the farmer wants.
+    // Pulled on the kinds a look can *improve*; the rest only kill it, which is the house's problem
+    // to offer and the player's to decline.
+    {
+        id: 'pure', band: 'middle', price: 13, say: 'Every cube your way',
+        needs: null, spoils: ['side', 'wild'],
+        hit: r => !!r.pure,
+    },
+    {
+        id: 'carnage', band: 'middle', price: 13.5, say: 'Two shatter in one throw',
+        needs: ['broken'],
+        hit: r => r.notes.filter(n => n.kind === 'broken').length >= 2,
+    },
+    {
+        id: 'cull', band: 'long', price: 15, say: 'The Tusken shoots one down',
+        needs: ['cull'],
+        hit: r => r.notes.some(n => n.kind === 'cull' || n.kind === 'cull.shield'),
+    },
+    {
+        id: 'raze', band: 'long', price: 15.5, say: 'Ben flattens his neighbours',
         needs: ['raze'], hit: r => r.notes.some(n => n.kind === 'raze'),
     },
     {
-        id: 'purge', band: 'long', price: 15, say: 'Order 66',
+        id: 'purge', band: 'long', price: 17.5, say: 'Order 66',
         needs: ['purge'], hit: r => r.notes.some(n => n.kind === 'purge'),
     },
     {
-        id: 'saved', band: 'long', price: 11, say: 'A cube holds together',
-        needs: ['shield'], spoils: ['shield', 'broken'],
-        hit: r => r.notes.some(n => n.kind === 'broken.saved'),
+        id: 'holdbreak', band: 'long', price: 21, say: 'A hold breaks open',
+        // **A shield holds nothing, so it must not chalk this card.** `hold.break` is a captor being
+        // destroyed with prisoners inside it, and the only captors are Oovo IV and the Sandcrawler.
+        // Listing `shield` here offered the card to a Gungan-only rack that could never win it —
+        // which is the one thing `drawBook` exists to prevent. It read as plausible while the shield
+        // "held a neighbour together" through a wipeout; the dome does not even do that.
+        needs: ['jail', 'haul'], hit: r => r.notes.some(n => n.kind === 'hold.break'),
     },
     {
-        id: 'engine', band: 'long', price: 23, say: 'Sebulba turns a cube',
+        id: 'blessing', band: 'long', price: 23, say: 'A cube gets blessed',
+        needs: ['blessing'], hit: r => r.notes.some(n => n.kind === 'blessing'),
+    },
+    // **`saved` is gone with the wipeout save.** It paid on `broken.saved`, and the dome does not
+    // hold a neighbour together — a wipeout is a cube coming apart where it stands, and nothing
+    // crosses a boundary for the shield to stop. A card whose note the engine no longer emits is not
+    // a long shot, it is a trap, which is the rule `drawBook` is built on.
+    //
+    // **Its replacement is a different card in a different band, and inheriting the old price would
+    // have been a faucet of the exact kind the header warns about.** A dome turning something away
+    // is not rare: it measured **26.9%** at the best rack and level, against a shatter-save that was
+    // a genuine long shot. `cubeSideBet.js` prices that at +6.2, so it rounds down to 6 and sits in
+    // the middle band beside the Binder's copy, which it is a near neighbour of in rate.
+    {
+        // Sits in `likely` by a tenth of a point over `tie`, which is inside the noise at 40,000
+        // climbs — the two swapped places between runs. `tie` stays put because it is the only
+        // `likely` card with no `needs`, and so the one that keeps the band from coming up empty on
+        // a rack matching nothing else.
+        id: 'walled', band: 'likely', price: 6, say: 'A dome turns something away',
+        needs: ['shield'], spoils: ['shield'],
+        hit: r => r.notes.some(n => n.kind === 'end.shielded'
+            || ['burn.walled', 'clone.walled', 'haul.walled', 'engine.walled'].includes(n.kind)),
+    },
+    {
+        id: 'jail', band: 'long', price: 23.5, say: 'One gets a life sentence',
+        needs: ['jail'], hit: r => r.notes.some(n => n.kind === 'jail'),
+    },
+    {
+        id: 'plunge', band: 'long', price: 23, say: 'Both ends drop off the road',
+        needs: ['plunge'], hit: r => r.notes.some(n => n.kind === 'plunge'),
+    },
+    {
+        id: 'crowd', band: 'long', price: 27.5, say: 'The bandwagon paints the line',
+        needs: ['crowd'], hit: r => r.notes.some(n => n.kind === 'crowd'),
+    },
+    {
+        id: 'engine', band: 'long', price: 38.5, say: 'Sebulba turns a cube',
         needs: ['engine'], hit: r => r.notes.some(n => n.kind === 'engine'),
+    },
+    // The one long shot every rack can chase, so the long band is never empty: a pure that is also
+    // wide. Peaks on a bare-side rack at L3 (~3.5%), and effect faces only push it further away.
+    {
+        id: 'sweep', band: 'long', price: 52.5, say: 'Five up, every one yours',
+        needs: null, spoils: ['side', 'wild'],
+        hit: r => !!r.pure && r.cubes.length >= 5,
     },
 ];
 
@@ -302,7 +425,8 @@ exports.cube = {
         },
         {
             name: 'The Third Cube',
-            blurb: 'The press takes three cubes at once, two faces from each.',
+            blurb: 'The press can take a third cube, cutting two faces from each of the three. '
+                + 'Two-cube presses still work.',
         },
         {
             name: 'Deep Cuts',

@@ -206,6 +206,13 @@ usually already matches it. It takes the shown face where that face isn't alread
 another where it is. A cube already painted end to end is a real endpoint and the face passes over
 it, exactly as the scorch floor works.
 
+**An ordinary colour face is the point, and a wild is passed over.** The paint outranks the face's own
+colour — a Shmi's red painted blue counts blue every time that face comes up, for the rest of the climb,
+until it is scorched off or painted again. That is the whole of *The third layer* below applied to the
+most common face in the game, and it is what makes the drift real rather than decorative. **A wild is
+the exception**: it settles to the side you called by the rule that makes it a wild, so a mark on one
+could never be read, and the crowd spends its paint somewhere it will still be visible next rung.
+
 **Both neighbours**, matching Baroonda. Two faces of permanent change per landing is a lot over a
 climb, which is the point: this is the face that makes a run's table *drift*.
 
@@ -275,6 +282,13 @@ cost is rack-dependent rather than flat, which is the good kind.
 
 One rung to start. Sealing for the **rest of the run** is the harsher dial and can always be turned
 later; taking the only choice the game offers away for a whole climb is much harder to walk back.
+
+**Two vaults on one rung swing the door rather than shutting it twice.** The first seals the side you
+called; each one after it moves the seal to the other side. So an even count locks you onto the side
+you just called and *forces* the repeat the rule exists to forbid — the streak-rider's face, read
+backwards. That is worth more than idempotence: a second Aquilaris landing next to the first would
+otherwise be a face that did nothing, and this way the count of them is a thing the player can see
+coming and read off the line before the call.
 
 ---
 
