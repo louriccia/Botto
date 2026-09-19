@@ -62,7 +62,7 @@ dome**: a reach only lands when actor and target stand under the same shield, or
 | **raze** (Ben) | — | Both neighbours become wings, **cut in his colour** | ✓ flattened | Blessing spent, that side spared | Not reached | ✓ | ✓ | Hold breaks | ✓ | `raze.nothing` / `raze.blessed` |
 | **pair** / **twins** | — | — | — | — | — | — | — | — | — | Inserts two plain cubes either side |
 | **draw** | — | — | — | — | — | — | — | — | — | `draw.empty` |
-| **scavenge** | — | — | — | — | — | — | — | **Own cell first**, junkyard second | — | `scavenge.empty` |
+| **scavenge** | — | — | — | — | — | — | — | **Own cell first**, junkyard second | — | `scavenge.empty` — and it **mends one singe** on whatever it brings back |
 | **haul** | — | The position on its right, captured whole | Captured, ice intact | Captured — blessing not read | `haul.walled` | **Destroyed, not kept** (`haul.rubble`) | ✓ | Nested inside it | **Skipped** | `haul.nothing` |
 | **purge** (Order 66) | Dies | **A plain cube survives.** Every special dies | ✓ destroyed | Spared, blessing spent | Not reached | ✓ destroyed | ✓ | Hold breaks | ✓ | `purge.nothing` |
 | **engine** (Sebulba) | — | Turned to your call; a **painted** face is repainted for good | Blocked, ice kept | ✓ | `engine.walled` | — (no side) | `engine.already` | — | ✓ | `engine.nothing` |
@@ -124,6 +124,11 @@ for the run, and a Jawa can pull it straight back out.
 ---
 
 ## 5. Position, side, and the things that are not cubes
+
+**A cube can be turned around.** `slot.mirrored` is permanent and read by all seven handed faces —
+`burn`, `clone`, `haul`, `engine`, `mirror`, `draw`, `scavenge`. A reflection sets it, and reflecting
+a mirrored cube turns it back. So every row above that names a side — *the position on its right*,
+*reads left and writes right* — means *the side this cube faces*, not a fixed direction.
 
 **A cube is an instance, and it has a name.** `SPECIALS` is the class; a slot is one cube built from
 it, carrying its own singes, paint, ice, heat, blessing and prisoners, plus a `uid` that survives the

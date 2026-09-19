@@ -155,6 +155,9 @@ const slotFor = function (spot, special) {
         id: special ? special.id : null,
         burned: Array.isArray(spot && spot.burned) ? spot.burned.map(String) : [],
         blessed: !!(spot && spot.blessed),
+        // Which way round the cube is. Settable here because a reflection is otherwise the only way
+        // to produce one, and a sandbox that cannot build the state cannot be used to check it.
+        mirrored: !!(spot && spot.mirrored),
         heat: num(spot && spot.heat),
         // Facedown plain cubes, which is exactly what a fixture's `holds` replays as and what the
         // board draws for a captive it cannot name.

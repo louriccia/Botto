@@ -108,11 +108,20 @@ Worth reading beside "Cut on purpose" in `docs/planet-octahedron.md`: `sink` was
 `jail` and `plunge` were "three faces spending on the same verb". That was this classification
 arrived at by feel, two years before there was a word for it.
 
-### F — No face changes position
+### F — No face changes position — **answered**
 
 The line is reordered exactly once in the whole game, by the player's Swap. Yet handedness is
 everywhere — Burn hits its right, the Binder writes left to right, the Sandcrawler carries off its
 right, Sebulba points one engine or the other, Ben lies across both.
+
+> **Answered by `slot.mirrored`.** A reflection turns the *cube* now, not the picture on the face it
+> happened to be showing — so a mirrored Binder burns its left and clones rightward, a mirrored
+> Sandcrawler carries off its left, a mirrored Sebulba points the other way, for the rest of the
+> climb. All seven handed faces read one boolean, and the status is an involution. Handedness is
+> still the thing nothing else touches; it is no longer the thing nothing can change.
+>
+> A frozen cube also holds its **place** now, not only its face — so position has stopped being
+> purely a property of the throw. See §4.5 and §4.6 of `docs/face-interaction-revisions.md`.
 
 Position already changes on its own: `throwSet` lands the cubes in a new order every throw, because
 position is a property of the throw rather than of the cube. So the model is there, and nothing on
@@ -124,13 +133,24 @@ Ord Ibanna drops whatever stands on the head and the tail. It is the only face i
 the line **has** ends. A positional idea with a single inhabitant, and the obvious home for its
 inverse.
 
-### H — Permanence only ever runs one way
+### H — Permanence only ever runs one way — **answered, and narrower than this**
 
 A scorch takes a face off a cube for the rest of the climb. A heat burns itself off as it pays. The
 prison holds and releases; the frost holds and thaws.
 
 **Nothing ever adds a face to a cube.** Outside the rack, a cube can only get worse — which means
 there is no such thing as a run that improves what it is holding, only one that spends it.
+
+> **Answered, and the hole was smaller than it looked.** Going to build a repair face turned up that
+> only three things are ever written permanently to a cube — `painted`, `burned`, `heat` — and two of
+> them are not damage at all. **Paint is reversible**: a turn moves or removes a mark. **A spent heat
+> face is how the Turbine pays more**, so healing it would be a nerf. And ice holds a face and a place
+> and still pays. So the game had exactly *one* irreversible harm: Baroonda's singe.
+>
+> A whole face dedicated to undoing one other face would be dead most games, so it is a rider rather
+> than a face: **the Jawa mends one burned face on whatever it drags out of the wreckage.** It can
+> never be a wasted landing, because it only happens when there is something to salvage. That — and a
+> shattered cube being salvageable at all — is the run that improves what it is holding.
 
 ---
 

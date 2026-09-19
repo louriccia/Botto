@@ -21,9 +21,21 @@ const rollResponse = (thrown, settled) => ({
     // and a cube whose ice an effect broke against is held on the throw and thawed by the payout.
     // Every step carries its own for the same reason.
     thrownState: thrown.rolledState,
-    // The line as it ended up, and the walk that got there. The seven fields below are the
+    // The line as it ended up, and the walk that got there. The nine fields below are the
     // resolved `lineState`, flat rather than nested — see `thrownState`.
+    //
+    // **Flat means enumerated, and enumerated means this list is a thing that goes stale.** Two
+    // fields were added to `lineState` and not to this list, and neither reached the client at all:
+    // a whole feature's worth of state existed on both sides of the wire and not in it. If you add
+    // to `lineState`, add here — `cubeThree.js` fails if you do not.
     line: thrown.res.faceIds,
+    // The cubes' names. A cube is an instance of its class, so two Greed Cubes side by side are two
+    // cubes — this is what lets the client say which of them was singed, and follow one across a
+    // shuffle.
+    uids: thrown.res.uids,
+    // Which way round each cube is. A reflection turns the cube rather than the picture, so this is
+    // permanent and the client has to draw it.
+    mirrored: thrown.res.mirrored,
     frozen: thrown.res.frozen,
     burned: thrown.res.burned,
     painted: thrown.res.painted,

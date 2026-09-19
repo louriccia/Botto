@@ -133,6 +133,18 @@ check('a set written before any of it existed reads back clean',
     });
 check('and is named on the way in', !!engine.decodeSet(['wild', 0])[0].uid, true);
 
+// **`rollResponse` flattens `lineState` by enumeration, so the two drift silently.** They did: two
+// fields were added to `lineState` and not to the response, and neither reached the client at all —
+// the state existed on both sides of the wire and not in it, which is invisible from either end.
+// Read out of the source rather than by calling it, because building a real response needs a run.
+{
+    const wire = require('fs').readFileSync(`${__dirname}/../src/game/cube/wire.js`, 'utf8');
+    const keys = Object.keys(engine.lineState([]));
+    const missing = keys.filter(k => !wire.includes(`thrown.res.${k}`));
+    ok('every lineState field reaches the client', !missing.length,
+        `rollResponse never sends: ${missing.join(', ')}`);
+}
+
 // ---------------------------------------------------------------------------
 // Phase three: the Turbine burns its own list
 // ---------------------------------------------------------------------------
