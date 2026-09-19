@@ -1382,21 +1382,26 @@ const resolveLine = function (line, call, bag, opts = {}) {
                 // shield destroyed here is an ordinary victim: wreckage a Jawa can pull back, rather
                 // than a shatter spent for the run.
                 const blast = [];
-                let walled = 0;
+                const walledAt = [];
                 for (let k = first; k <= last; k++) {
-                    if (k !== i && !reaches(i, k)) { walled += 1; continue; }
+                    if (k !== i && !reaches(i, k)) { walledAt.push(k); continue; }
                     if (k === i || !spend(final[k])) blast.push(k);
                 }
-                const spared = (last - first + 1) - blast.length - walled;
+                const spared = (last - first + 1) - blast.length - walledAt.length;
                 for (const k of [...blast].reverse()) final.splice(k, 1);
 
                 detonated = c.special ? c.special.name : 'the cube';
-                note(c, walled ? 'end.shielded' : 'end', {
+                // `walledAt` is what the client pops a "blocked" mark on. It replaced `stopped`,
+                // which named the shields the blast was absorbed by — there are none now, because a
+                // dome is a boundary rather than a thing in the way. Dropping it silently left
+                // `blockedBy` returning nothing and the stop invisible.
+                note(c, walledAt.length ? 'end.shielded' : 'end', {
                     destroyed: blast.length,
-                    shields: walled,
+                    shields: walledAt.length,
                     spared,
                     at: i,
                     from: blast[0],
+                    walledAt,
                 });
                 break;
             }
@@ -1425,7 +1430,7 @@ const resolveLine = function (line, call, bag, opts = {}) {
                     break;
                 }
                 if (!reaches(i, j)) {
-                    note(c, 'burn.walled');
+                    note(c, 'burn.walled', { at: j, walledAt: [j] });
                     break;
                 }
                 const burnWard = warded(final[j]);
@@ -1450,7 +1455,7 @@ const resolveLine = function (line, call, bag, opts = {}) {
                     break;
                 }
                 if (hasRight && !reaches(i, to)) {
-                    note(c, 'clone.walled');
+                    note(c, 'clone.walled', { at: to, walledAt: [to] });
                     break;
                 }
                 if (!hasLeft) {
@@ -1615,7 +1620,7 @@ const resolveLine = function (line, call, bag, opts = {}) {
                     break;
                 }
                 if (!reaches(i, j)) {
-                    note(c, 'haul.walled');
+                    note(c, 'haul.walled', { at: j, walledAt: [j] });
                     break;
                 }
                 // **Rubble is taken and not kept.** A wing's slot is a bare `plainSlot` — nothing on
@@ -1662,7 +1667,7 @@ const resolveLine = function (line, call, bag, opts = {}) {
                 const j = dir === 'left' ? i - 1 : i + 1;
                 const target = final[j];
                 if (target && !reaches(i, j)) {
-                    note(c, 'engine.walled', { dir });
+                    note(c, 'engine.walled', { dir, at: j, walledAt: [j] });
                     break;
                 }
                 if (!isCube(target)) {
