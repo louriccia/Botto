@@ -197,7 +197,7 @@ const base = measure(NUDGE_RACK, false, NUDGE_CLIMBS);
 console.log(`  un-nudged baseline: EV ${base.ev.toFixed(3)} ±${base.se.toFixed(3)}`
     + `  (Watto's cube, tieLean ${config.tieLean})`);
 console.log('  nudgeLean  reads as   nudged EV        fork      an evening');
-for (const n of [0.60, 0.575, 0.55, 0.525, 0.50]) {
+for (const n of [0.60, 0.575, 0.55, 0.525, 0.51, 0.50]) {
     config.nudgeLean = n;
     const on = measure(NUDGE_RACK, true, NUDGE_CLIMBS);
     const fork = ((on.ev / base.ev) - 1) * 100;

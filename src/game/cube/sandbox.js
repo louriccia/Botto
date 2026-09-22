@@ -136,7 +136,9 @@ const makeWorld = function ({ stake, bribe }) {
 //   id       which cube stands here, or null/absent for an ordinary one.
 //   face     which face it shows. Absent means **roll it** — a position the caller does not care
 //            about, which is most of them on a line being built to test one face.
-//   frozen   Ando Prime is holding this cube on the face it shows: no turn, no pay.
+//   frozen   Ando Prime is holding this cube on the face it shows. It pays like any other face,
+//            and it spends its own turn melting — so it is untouchable to everything standing to
+//            its left and ordinary to everything on its right.
 //   burned   face ids Baroonda has taken off this cube for good.
 //   painted  'red' | 'blue' — the crowd's mark on the face showing, which is what it counts for.
 //   blessed  Nugtosh's blessing, riding the cube.

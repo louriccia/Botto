@@ -21,6 +21,11 @@ const rollResponse = (thrown, settled) => ({
     // and a cube whose ice an effect broke against is held on the throw and thawed by the payout.
     // Every step carries its own for the same reason.
     thrownState: thrown.rolledState,
+    // Seats in the thrown line holding a cube that walked out of a cell as the line came down,
+    // rather than one that came out of the bag. Nothing else on the wire tells them apart — that is
+    // the point of a parole — so this is what the board throws its `Paroled!` label off as the
+    // throw lands.
+    paroled: thrown.res.paroled || [],
     // The line as it ended up, and the walk that got there. The nine fields below are the
     // resolved `lineState`, flat rather than nested — see `thrownState`.
     //

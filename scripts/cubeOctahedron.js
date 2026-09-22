@@ -97,7 +97,7 @@ check('a frozen slot survives the round trip',
 // The bag is not a set and must not gain slots, or `specialById` is handed an object.
 check('the bag stays bare ids', engine.decodeBag(engine.encodeBag(['wild', null])), ['wild', null]);
 
-// `liveFaces` is where the scorch actually bites, and the floor with it.
+// `liveFaces` is where the scorch actually bites, and `minFaces` — now zero — with it.
 check('an untouched Wild has six faces', engine.liveFaces(die && SPECIALS.find(s => s.id === 'wild'), []).length, 6);
 {
     // **Counted off the cube rather than typed.** These read `5 wild + 1 Ratts` once, which was the
@@ -117,7 +117,10 @@ check('an untouched Wild has six faces', engine.liveFaces(die && SPECIALS.find(s
     check('scorching a wild takes exactly one', of(oneWild, 'wild'), wilds - 1);
     ok('and concentrates the mine', of(oneWild, 'end') / oneWild.length > mines / wild.faces.length,
         'burning a good face has to make the bad one likelier — that is what pays for the other case');
-    check('the floor holds', engine.liveFaces(wild, ['wild', 'wild', 'wild', 'wild', 'wild', 'end', 'end']).length,
+    // **There is no floor.** A burn that hits a face the cube does not have is not a burn, so the
+    // over-long list is trimmed to what is really there — six burns, six faces, nothing left. A cube
+    // can be worn down to a blank, which rolls no face and no side and takes no turn.
+    check('there is no floor', engine.liveFaces(wild, ['wild', 'wild', 'wild', 'end', 'end', 'end']).length,
         config.minFaces);
     check('a plain cube scorches to 3-2', engine.liveFaces(null, ['side:blue']).filter(f => f.side === 'blue').length, 2);
 }
@@ -325,15 +328,19 @@ for (let t = 0; t < CLIMBS; t++) {
         // is thrown from, and the only thing that clears one is a destroyer being turned away.
         const blessed = res.notes.find(n => n.kind === 'blessing');
         if (blessed) ok('a blessing names a face', typeof blessed.faceId === 'string');
-        // **A plunge always takes two or takes none**, which is what keeps it parity-preserving on a die
-        // that is sideless everywhere else — a blessed cube on an end does not stop it, it makes the
-        // ledge crumble one further in. Persistence is asserted in the controlled test above rather than
-        // here: on a rack with a mine in it a blessed cube can be destroyed, or spend the blessing, on
-        // the roll it was given, and neither is a failure.
+        // **A plunge takes two positions, or one when the only one left is its own.** Two was once the
+        // whole rule, for parity on a die that is sideless everywhere else; the lone plunge is the
+        // exception, and it is a cube going over the edge rather than a face that did nothing. A
+        // blessed cube on an end does not stop it — it makes the ledge crumble one further in, and
+        // pays a blessing for the privilege. Persistence is asserted in the controlled test above
+        // rather than here: on a rack with a mine in it a blessed cube can be destroyed, or spend the
+        // blessing, on the roll it was given, and neither is a failure.
         const fell = res.notes.find(n => n.kind === 'plunge');
         if (fell) {
-            check('a plunge still takes two', fell.destroyed, 2);
-            ok('and it takes them from the ends inward', Array.isArray(fell.at) && fell.at.length === 2);
+            ok('a plunge takes one position or two', fell.destroyed === 2 || fell.destroyed === 1,
+                `it took ${fell.destroyed}`);
+            ok('and it names every one it took', Array.isArray(fell.at) && fell.at.length === fell.destroyed);
+            if (fell.destroyed === 1) ok('a lone plunge is the die taking itself', fell.self === true);
         }
         // Nothing else clears one. Counted rather than asserted per-throw: a blessing can leave with the
         // cube it was on, which is not the same as being spent.
@@ -347,13 +354,7 @@ for (let t = 0; t < CLIMBS; t++) {
         }
         if (kinds.some(k => k.endsWith('.iced'))) stats.iced++;
 
-        // **A plunge takes exactly two positions**, which is what keeps it from manufacturing ties on
-        // a die that is sideless everywhere else.
-        const plunged = res.notes.find(n => n.kind === 'plunge');
-        if (plunged) {
-            check('a plunge takes two', plunged.destroyed, 2);
-            if (plunged.self) stats.plungeSelf++;
-        }
+        if (fell && fell.self) stats.plungeSelf++;
 
         // **The vault doors swing rather than stack.** The first seals the side that was called and
         // every one after it moves the seal across, so the parity of the count is the whole rule —
@@ -365,10 +366,13 @@ for (let t = 0; t < CLIMBS; t++) {
             if (vaults.length > 1) stats.vaultsSwung++;
         }
 
-        // **Nobody is scorched past the floor**, and a burn is one face at a time.
+        // **The floor is whatever `minFaces` says, and it says none** — a cube can be burned down to a
+        // blank. What is still asserted is that nothing burns *past* empty: a slot that has lost more
+        // faces than it ever had is bookkeeping coming apart, not a fire.
         for (const s of res.set) {
             const sp = s.id ? engine.specialById(s.id) : null;
-            ok('a cube keeps at least one face', engine.liveFaces(sp, s.burned).length >= config.minFaces,
+            const live = engine.liveFaces(sp, s.burned).length;
+            ok('a cube never burns past empty', live >= config.minFaces && live >= 0,
                 `${s.id || 'plain'} burned ${JSON.stringify(s.burned)}`);
         }
         const scorched = res.notes.find(n => n.kind === 'scorch');

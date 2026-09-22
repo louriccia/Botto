@@ -152,16 +152,34 @@ check('rule 2 · a clone copies the hold, independently', () => {
 
 // The same rule through the glass, which is where it matters most: a reflected Oovo IV is a second
 // cell rather than a second door onto the first.
+// **Three prisoners, so that the parole leaves two to copy.** A jailer gives one back as the line is
+// thrown now — see the parole in `resolveLine` — so a cell loaded with two is a cell holding one by
+// the time the Mirror reaches it, and the reflection this is about would be of a cube carrying a
+// single cube. Two is the number worth asserting: it says the cell was copied rather than that a
+// hold survived.
+//
+// **And the roll is sampled rather than run once**, because the cube that walks is shuffled into the
+// throw like any other. Land it between the die and the Mirror and the Mirror reflects *it* — a
+// perfectly correct roll in which the die was never copied and there is nothing here to measure. The
+// rule is about the rolls where the reflection happened; the count below is only there so a change
+// that stops them happening at all cannot pass as a run of quiet skips.
 check('rule 2 · a reflection copies the hold', () => {
-    const res = engine.resolveLine([
-        at(DIE, null, [{ id: 'gungan' }, { id: 'boost' }]),
-        at('mirror', 'mirror'),
-        plain(),
-    ], 'blue', [], {});
-    const dice = res.set.filter(s => s.id === DIE);
-    assert.strictEqual(dice.length, 2, 'the reflection is a real cube, cell and all');
-    dice.forEach(d => assert.strictEqual(engine.countHeld(d.held), 2));
-    assert.strictEqual(res.held, 4, 'four cubes held where there were two');
+    seed(5);
+    let copied = 0;
+    for (let i = 0; i < 200; i++) {
+        const res = engine.resolveLine([
+            at(DIE, null, [{ id: 'gungan' }, { id: 'boost' }, { id: 'multiplier' }]),
+            at('mirror', 'mirror'),
+            plain(),
+        ], 'blue', [], {});
+        const dice = res.set.filter(s => s.id === DIE);
+        if (dice.length < 2) continue;
+        copied += 1;
+        assert.strictEqual(dice.length, 2, 'the reflection is a real cube, cell and all');
+        dice.forEach(d => assert.strictEqual(engine.countHeld(d.held), 2));
+        assert.strictEqual(res.held, 4, 'four cubes held where there were two');
+    }
+    assert.ok(copied > 100, `the die was reflected on only ${copied}/200 rolls`);
 });
 
 // Rule 3, and the reason it is worded the way it is. Ben razes the crawler standing on his left, so
@@ -184,7 +202,13 @@ check('rule 3 · freed cubes come back beside the cube taking the turn', () => {
 });
 
 // The same rule with the actor in the hole: a captor that destroys itself spills where it stood.
+// **Pinned, because the blast can take back what the break let out.** The prisoners land beside the
+// cube that came apart and `blastReach` is 2, so on about a third of rolls the wipeout catches one of
+// them on its way out — which is the reach rule doing its job, not the break failing to free anybody.
+// Same reasoning as the parole check further down, which avoids mines and wipeouts for it. The seed
+// holds a roll where the blast does not reach, so what is left is the freeing.
 check('rule 3 · a wipeout spills its own hold', () => {
+    seed(3);
     const res = engine.resolveLine([
         plain(),
         at(CRAWLER, 'broken', [{ id: 'gungan' }, { id: 'boost' }]),

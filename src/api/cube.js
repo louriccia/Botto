@@ -45,6 +45,10 @@ const boardOf = function (ctx, req) {
     return {
         player: s,
         balance: balanceOf(profile),
+        // When `balance` was read, on this process's clock — the same clock `/purse/stream` stamps its
+        // pushes with. The two travel on different connections and can cross in flight, so the client
+        // keeps whichever figure is newer rather than whichever arrived last.
+        balanceAt: Date.now(),
         // Exactly one of these is ever set: a run in progress, a bust holding a reroll offer, or a
         // roll parked on a tie. They share one node and are not the same thing.
         run: live || null,
@@ -326,6 +330,61 @@ module.exports = function mountCube(app, ctx) {
             console.error('[api] /cube/state:', err);
             res.status(500).json({ error: 'Could not read the board.' });
         }
+    });
+
+    // **The purse, live.** The board only ever learned the balance from its own requests, so truguts
+    // that moved anywhere else — a drop, the shop, a challenge, a reset from a script — sat unseen
+    // until the Activity was reopened.
+    //
+    // Server-sent events over a plain GET, read by the client with `fetch` rather than `EventSource`,
+    // because `EventSource` cannot send the `Authorization` header every route here signs in with.
+    // The two counters are watched directly in the database rather than through the mirror: the
+    // mirror is swapped wholesale on every change under `users`, so there is nothing on it to listen
+    // to, and a listener under a path this process already holds costs Firebase nothing extra.
+    //
+    // The current figure goes out on connect, so a reconnect is also a resync.
+    app.get('/purse/stream', auth, rateLimit({ perMinute: 12 }), (req, res) => {
+        res.set({
+            'Content-Type': 'text/event-stream',
+            'Cache-Control': 'no-cache, no-transform',
+            Connection: 'keep-alive',
+            // Asks any proxy in front of us not to hold the stream back to fill a buffer.
+            'X-Accel-Buffering': 'no',
+        });
+        res.flushHeaders();
+
+        const base = `users/${req.player.userKey}/random`;
+        // `undefined` until each counter has been heard from once; `null` is a counter that is absent.
+        const counters = { truguts_earned: undefined, truguts_spent: undefined };
+        let queued = false;
+        let last = null;
+        const send = function () {
+            queued = false;
+            if (Object.values(counters).includes(undefined)) return;
+            const balance = balanceOf(counters);
+            if (balance === last) return;
+            last = balance;
+            res.write(`event: purse\ndata: ${JSON.stringify({ balance, at: Date.now() })}\n\n`);
+        };
+
+        // Both counters fire on attach, and a single move can touch both; coalesced into one push so
+        // the client never sees the half-written figure between them.
+        const refs = Object.keys(counters).map((field) => {
+            const ref = ctx.database.ref(`${base}/${field}`);
+            const on = ref.on('value', (snap) => {
+                counters[field] = snap.val();
+                if (!queued) { queued = true; setImmediate(send); }
+            }, err => console.error(`[api] /cube/purse/stream ${field}:`, err.message));
+            return () => ref.off('value', on);
+        });
+
+        // Heroku's router closes a response that has sent nothing for 55 seconds.
+        const beat = setInterval(() => res.write(': beat\n\n'), 25000);
+
+        req.on('close', () => {
+            clearInterval(beat);
+            refs.forEach(off => off());
+        });
     });
 
     // -----------------------------------------------------------------------

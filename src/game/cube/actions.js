@@ -54,13 +54,15 @@ exports.throwLevel = throwLevel;
 
 const resolveThrown = function (ctx, run, { line, set, bag: drawnBag, kind, wrecked = [] }) {
     const { s } = ctx;
-    const rolled = engine.rolledFaces(line);
-    const rolledState = engine.lineState(line);
     const res = engine.resolveLine(line, run.call, drawnBag, {
         hold: run.hold || [],
         wrecked,
         rungs: (Number(run.rungs) || 0) + 1,
     });
+    // **The throw is read inside the resolve now, not out here.** A parole comes down with the toss,
+    // so the line this was taken from was one cube short of the line that was actually thrown — see
+    // the snapshot in `resolveLine`. Same instant it was always taken at, one scope further in.
+    const { rolled, rolledState } = res;
 
     const tie = !res.overflow && !!res.faceIds.length && !res.majority;
 
@@ -945,6 +947,31 @@ exports.setLoadout = function (ctx, { ids }) {
     return { ok: true, equipped, owned: s.cubes, slots };
 };
 
+// **What was done to the line, carried across the park as one value.** A tie is not a settled roll:
+// the cubes on the table are still the ones that landed, and the ice, the reflections, the singes and
+// the char are all still on them when the tie-breaker comes out. Parked without this, `resumeTie`
+// rebuilt a `res` that had none of it, so the answer went onto the wire with every one of these
+// fields missing — and the client, which reads an absent list as `nobody said` but an absent
+// `frozen` as `not frozen`, thawed every held cube the moment Watto rolled.
+//
+// As JSON rather than as fields, because Firebase drops nulls and empty arrays out of an array and
+// half of these are full of both: an unpainted position or a cube with nothing singed off it would
+// vanish and shift everything after it one seat over. Off `STATE_KEYS`, so a field added to
+// `lineState` is carried without this having to be touched.
+const encodeState = res => JSON.stringify(
+    Object.fromEntries(engine.STATE_KEYS.map(k => [k, res[k] ?? null])));
+
+const decodeState = function (raw) {
+    if (!raw) return {};
+    try {
+        return JSON.parse(raw) || {};
+    } catch {
+        // A tie parked before the state was stored, or a truncated write. The line draws with
+        // whatever the client last saw, which is what it did before any of this existed.
+        return {};
+    }
+};
+
 exports.parkTie = function (ctx, thrown, { reverse = 0 } = {}) {
     const { database, db, discordId } = ctx;
     const { run, res, set, bag } = thrown;
@@ -969,6 +996,7 @@ exports.parkTie = function (ctx, thrown, { reverse = 0 } = {}) {
         betUsed: !!run.betUsed || !!run.bet,
         betPaid: Number(thrown.betPaid) || 0,
         reverse, cost: thrown.cost, worth: thrown.worth, tie: true,
+        state: encodeState(res),
     });
 };
 
@@ -991,6 +1019,7 @@ const resumeTie = function (parked) {
         betUsed: !!parked.betUsed || !!parked.bet,
     };
     const res = {
+        ...decodeState(parked.state),
         cubes: Object.values(parked.roll || {}),
         faceIds: Object.values(parked.faces || {}),
         majority: null,

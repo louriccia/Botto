@@ -91,7 +91,8 @@ exports.SPECIALS = [
     {
         id: 'gungan', name: 'Gungan Shield Cube',
         blurb: 'Every face raises a dome over itself and both its neighbours. Nothing crosses it in '
-            + 'either direction — and only a cube already inside it can bring the shield down.',
+            + 'either direction — and only a cube already inside it can bring the shield down. '
+            + 'Domes that touch fuse into one wider dome.',
         faces: rep(6, { kind: 'shield' }),
     },
     {
@@ -109,6 +110,14 @@ exports.SPECIALS = [
         blurb: 'Two faces point an engine either way and burn that cube over to your call. '
             + 'Two shatter the cube.',
         faces: [
+            // `dir` is the direction as drawn, and it stays that way: a *mirrored* Sebulba fires
+            // the other way, and that is read off the cube at resolve time rather than stored here,
+            // because a face is picked fresh out of this list every throw and anything written onto
+            // it would last one rung.
+            //
+            // `mirrored` names the other half of a drawn pair, and is for the one thing that *is* a
+            // single throw: a Binder's copy, which faces back at what it was cut from. Ben's wings
+            // are the only other art with a partner. See `copied` in the engine.
             ...rep(2, { kind: 'engine', dir: 'left', mirrored: 'engine:right' }),
             ...rep(2, { kind: 'engine', dir: 'right', mirrored: 'engine:left' }),
             ...rep(2, BROKEN),
@@ -281,10 +290,16 @@ exports.SIDE_BETS = [
         id: 'blessing', band: 'long', price: 23, say: 'A cube gets blessed',
         needs: ['blessing'], hit: r => r.notes.some(n => n.kind === 'blessing'),
     },
-    // **`saved` is gone with the wipeout save.** It paid on `broken.saved`, and the dome does not
-    // hold a neighbour together — a wipeout is a cube coming apart where it stands, and nothing
-    // crosses a boundary for the shield to stop. A card whose note the engine no longer emits is not
-    // a long shot, it is a trap, which is the rule `drawBook` is built on.
+    // **`saved` is gone with the shield's wipeout save.** It paid on `broken.saved`, and the dome
+    // does not hold a neighbour together — a wipeout is a cube coming apart where it stands, and
+    // nothing crosses a boundary for the shield to stop. A card whose note the engine no longer
+    // emits is not a long shot, it is a trap, which is the rule `drawBook` is built on.
+    //
+    // **The save itself came back on Malastare's ward and the card did not**, deliberately. It is
+    // `broken.blessed` now, and it costs the blessing — so it is a second reading of a card the
+    // book already sells (`blessing`, at 23) rather than a proposition of its own, and a rack that
+    // can win it is a rack already holding the octahedron. Re-run `cubeSideBet.js` before adding
+    // one: the rate is the blessing's rate times a wipeout landing under it, not either alone.
     //
     // **Its replacement is a different card in a different band, and inheriting the old price would
     // have been a faucet of the exact kind the header warns about.** A dome turning something away
@@ -392,7 +407,7 @@ exports.cube = {
     maxCubes: Infinity,
     overflowAt: 100,
     tieLean: 0.6,
-    nudgeLean: 0.50,
+    nudgeLean: 0.51,
     bribeEdge: 0.03,
     bribeStep: 1.5,
     levelStep: LEVEL_STEP,
@@ -411,7 +426,9 @@ exports.cube = {
     guideBonus: 0.5,
     seamBonus: 0.5,
     jailSize: 4,
-    minFaces: 1,
+    // No floor: a cube can be burned down to nothing, and a blank cube rolls no face and no
+    // side. Kept as a dial so a gauntlet can put the old last-face ward back for a run.
+    minFaces: 0,
     pureBonus: 0.25,
     weldTiers: [
         {

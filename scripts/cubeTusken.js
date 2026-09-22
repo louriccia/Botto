@@ -42,15 +42,16 @@ const byId = id => SPECIALS.find(sp => sp.id === id);
 const faceOf = (sp, kind) => sp.faces.find(f => f.kind === kind);
 
 // A position is spelled by what it is: `red`/`blue` for a plain cube, `T` for the Tusken, `S` for a
-// shield, and a `!` suffix for either frozen. Ice matters here — a frozen shield is still a shield
-// standing in the way, and a frozen target eats the cull instead of dying to it.
+// shield, `F` for the Singe, and a `!` suffix for any of them frozen. Ice matters here — a frozen
+// shield is still a shield standing in the way, and a frozen target eats the cull instead of dying to
+// it.
 const build = spec => spec.map(function (x) {
     const frozen = x.endsWith('!');
     const key = frozen ? x.slice(0, -1) : x;
-    if (key === 'T' || key === 'S') {
-        const id = key === 'T' ? 'symbiont' : 'gungan';
+    if (key === 'T' || key === 'S' || key === 'F') {
+        const id = key === 'T' ? 'symbiont' : key === 'S' ? 'gungan' : 'octahedron';
         const sp = byId(id);
-        const face = faceOf(sp, key === 'T' ? 'cull' : 'shield');
+        const face = faceOf(sp, key === 'T' ? 'cull' : key === 'S' ? 'shield' : 'scorch');
         return {
             side: null,
             special: sp,
@@ -66,7 +67,7 @@ const build = spec => spec.map(function (x) {
     };
 });
 
-const faceIdOf = x => (x === 'T' ? 'cull' : x === 'S' ? 'shield' : `side:${x}`);
+const faceIdOf = x => (x === 'T' ? 'cull' : x === 'S' ? 'shield' : x === 'F' ? 'scorch' : `side:${x}`);
 
 // Which position the cull took, as an index into the line as thrown — found by walking the resolved
 // face ids against the thrown ones and stopping at the first that does not line up, which is the
@@ -83,28 +84,32 @@ const shotAt = function (spec) {
     return { at: thrown.length - 1, kinds };
 };
 
-// Every position the shot could reach, worked out the way a player would: a shield covers itself
-// and the position either side of it, and two positions can reach each other when they stand under
-// the same dome or both in the open. Deliberately not the engine's own loops — a test that computes
-// the reach the way the code does proves only that the code is itself.
+// Every position the shot could reach, worked out the way a player would: a shield covers itself and
+// the position either side of it, **shields whose covers touch are one dome**, and two positions can
+// reach each other when they stand under the same dome or both in the open.
+//
+// The fusing is the part worth spelling out, because it is a rule about the gap rather than about the
+// shields: covers run `s - 1 .. s + 1`, so two shields join while they are at most three apart. In
+// seats that is 4, 5 and 6 wide at 0, 1 and 2 cubes between them, and two separate 3-seat domes from
+// the third cube on. Written here as "sort the shields, start a new dome when the gap is too wide",
+// which is the sentence a player would say; the engine merges spans instead, and the two agreeing is
+// the point. Deliberately not the engine's own loops — a test that computes the reach the way the
+// code does proves only that the code is itself.
 const reachOf = function (spec) {
     const i = spec.findIndex(x => x === 'T' || x === 'T!');
     const shield = k => spec[k] === 'S' || spec[k] === 'S!';
-    const domes = function (k) {
-        const out = [];
-        for (let s = Math.max(0, k - 1); s <= Math.min(spec.length - 1, k + 1); s++) {
-            if (shield(s)) out.push(s);
-        }
-        return out;
-    };
-    const mine = domes(i);
+    const domes = [];
+    for (let s = 0; s < spec.length; s++) {
+        if (!shield(s)) continue;
+        const last = domes[domes.length - 1];
+        if (last && s - last.hi <= 3) last.hi = s;
+        else domes.push({ lo: s, hi: s });
+    }
+    const under = k => domes.findIndex(d => k >= d.lo - 1 && k <= d.hi + 1);
+    const mine = under(i);
     const seen = [];
     for (let k = 0; k < spec.length; k++) {
-        if (k === i) continue;
-        const theirs = domes(k);
-        if (mine.length || theirs.length) {
-            if (mine.some(sd => theirs.includes(sd))) seen.push(k);
-        } else seen.push(k);
+        if (k !== i && under(k) === mine) seen.push(k);
     }
     return seen;
 };
@@ -131,13 +136,55 @@ const LINES = [
     ['red', 'S', 'T', 'blue', 'red'],
     // Two domes with open ground between them, and the Tusken standing in the open.
     ['S', 'red', 'blue', 'T', 'red', 'blue', 'S'],
-    // Overlapping domes: position 1 stands under both, so it is reachable from either.
+    // Overlapping domes: the two fuse into one bubble over positions 0-3, and the Tusken standing
+    // outside it reaches only the open cube past his shoulder.
     ['S', 'red', 'S', 'blue', 'T', 'red'],
+    // **Two shields back to back: one 4-wide dome.** The Tusken is under it at position 3 and can
+    // take anything beneath it, including both shields — and nothing in the open beyond.
+    ['red', 'S', 'S', 'T', 'blue', 'red'],
+    // **One cube between them: 5 wide.** Standing at the far end of the bubble, the Tusken reaches
+    // straight through to the other end of it — the case the un-merged rule got wrong, where the two
+    // outermost seats shared no single shield and read as walled off from each other.
+    ['red', 'T', 'S', 'blue', 'S', 'red', 'blue'],
+    // **Two cubes between them: 6 wide**, and every seat under it is in reach of every other.
+    ['red', 'T', 'S', 'blue', 'red', 'S', 'blue', 'red'],
+    // **Three cubes between them: the dome breaks in half.** One more cube than the line above and
+    // the same two shields are two separate 3-seat domes again, so the Tusken under the left one is
+    // shut out of the right one entirely.
+    ['red', 'T', 'S', 'blue', 'red', 'blue', 'S', 'red', 'blue'],
+    // **Fusing is transitive, so a third shield extends the same bubble rather than starting one.**
+    // Three shields at arm's length each: the middle one is what joins the outer two, and every seat
+    // from the first shield's left neighbour to the last one's right is one dome.
+    ['T', 'S', 'red', 'S', 'blue', 'S', 'red'],
+    // And a chain that breaks once in the middle: the first two fuse, the third is four seats past
+    // and stands alone. The Tusken is in the wide one and cannot reach the lone one at all.
+    ['red', 'T', 'S', 'blue', 'S', 'red', 'blue', 'blue', 'S', 'red'],
 ];
 
+// **Two identical cubes side by side are one target as far as this file can see.** `shotAt` names the
+// victim by walking the resolved faces against the thrown ones and stopping at the first that does not
+// line up — and taking either half of an `S S` pair leaves the same line behind, so the walk reports
+// the *end* of the run both times. That is a limit of reading the result, not of the reach, and it
+// only shows up now because a 4-wide dome cannot be built without standing two shields together.
+//
+// So positions are folded into runs of the same token before they are counted: a run is one bucket,
+// and it is expected to be picked as often as it has members.
+const runEndIn = function (thrown, k) {
+    let e = k;
+    while (e + 1 < thrown.length && thrown[e + 1] === thrown[k]) e++;
+    return e;
+};
+
 for (const spec of LINES) {
+    const thrown = spec.map(x => (x.endsWith('!') ? x.slice(0, -1) : x));
     const want = reachOf(spec);
-    const hits = new Map(want.map(k => [k, 0]));
+    // Bucket -> how many reachable positions report into it.
+    const share = new Map();
+    for (const k of want) {
+        const r = runEndIn(thrown, k);
+        share.set(r, (share.get(r) || 0) + 1);
+    }
+    const hits = new Map([...share.keys()].map(k => [k, 0]));
     let missed = 0;
     let shielded = 0;
     for (let n = 0; n < THROWS; n++) {
@@ -148,11 +195,11 @@ for (const spec of LINES) {
     }
     const name = spec.join(' ');
 
-    const stray = [...hits.keys()].filter(k => !want.includes(k));
+    const stray = [...hits.keys()].filter(k => !share.has(k));
     ok(`${name} — the shot never reaches under a dome`, !stray.length,
         `hit ${JSON.stringify(stray)}, reach is ${JSON.stringify(want)}`);
-    ok(`${name} — nothing in reach is safe`, want.every(k => hits.get(k) > 0),
-        `never hit ${JSON.stringify(want.filter(k => !hits.get(k)))}`);
+    ok(`${name} — nothing in reach is safe`, [...share.keys()].every(k => hits.get(k) > 0),
+        `never hit ${JSON.stringify([...share.keys()].filter(k => !hits.get(k)))}`);
     // **A Tusken can now come up with nothing to shoot** — boxed in by domes he is not under, or
     // standing under one with nothing else beneath it. That is a real outcome rather than a hole in
     // the reach, so it is asserted both ways round.
@@ -165,13 +212,13 @@ for (const spec of LINES) {
 
     // Uniform over what it can see. The tolerance is loose enough to survive the noise of a few
     // thousand throws and tight enough that a shield quietly kept out of the pool would show up.
-    for (const k of want) {
-        near(`${name} — position ${k} is picked evenly`, hits.get(k) / THROWS, 1 / want.length, 0.03);
+    for (const [k, n] of share) {
+        near(`${name} — position ${k} is picked evenly`, hits.get(k) / THROWS, n / want.length, 0.03);
     }
 
     // The shield is noted separately, so the feed can say what ate the shot rather than reporting a
     // cube going missing. Every hit on a shield must carry that note and no other hit may.
-    const onShields = want.filter(k => spec[k] === 'S' || spec[k] === 'S!')
+    const onShields = [...share.keys()].filter(k => spec[k] === 'S' || spec[k] === 'S!')
         .reduce((sum, k) => sum + (hits.get(k) || 0), 0);
     ok(`${name} — a shielded hit is noted as one`, shielded === onShields,
         `${shielded} notes for ${onShields} hits on a shield`);
@@ -229,6 +276,95 @@ for (const spec of LINES) {
     // One shot in two, over the two positions sharing the dome with him.
     near('the frozen shield is aimed at as often as anything else under it',
         (hits.get(2) || 0) / THROWS, 1 / 2, 0.03);
+}
+
+// ---------------------------------------------------------------------------
+// Phase three: a dome the fire put out
+// ---------------------------------------------------------------------------
+//
+// **A charred shield is not a shield.** The Gungan is the only cube in the game whose face does a job
+// without being rolled for, so it is the only one a *partially* destructive effect can interrupt: a
+// Singe burns one of its six shield faces off and chars the one it is standing on, and the cube is
+// still there wearing a dead face. The engine reads the face's *kind*, which is now `charred`, so the
+// dome is down for the rest of the rung — it comes back next throw, off one of the five shield faces
+// the cube has left.
+//
+// Worth pinning down because the face *id* does not say it. `faceIdOf` still reports `shield` — the id
+// is what was burnt — and only the `charred` flag beside it says the position counts for nothing. Both
+// halves are asserted, because anything reading the ids alone draws a dome that is not there.
+{
+    const res = engine.resolveLine(build(['red', 'S', 'F', 'S', 'blue']), 'red', []);
+    ok('a Singe between two shields chars both', res.notes.some(n => n.kind === 'scorch'),
+        JSON.stringify(res.notes.map(n => n.kind)));
+    ok('both shields are charred', res.charred[1] && res.charred[3], JSON.stringify(res.charred));
+    ok('a shield face came off each of them',
+        res.burned[1].includes('shield') && res.burned[3].includes('shield'),
+        JSON.stringify(res.burned));
+    ok('and the face id still reads as a shield',
+        res.faceIds[1] === 'shield' && res.faceIds[3] === 'shield', JSON.stringify(res.faceIds));
+}
+
+{
+    // The Tusken's own answer to the same thing: a charred shield projects nothing, so a cube that was
+    // sheltering under it is in the open the moment the fire lands. The Singe fires before the cull —
+    // `red S F T` puts the Tusken next to the Singe and outside the shield's dome, and the shield is
+    // out of his reach while it stands. Charred, it is not.
+    //
+    // Both are long enough to be certain rather than likely: a dome that survived the fire would keep
+    // position 1 out of reach every single throw, not merely most of them.
+    const hits = new Map();
+    for (let n = 0; n < THROWS; n++) {
+        const { at } = shotAt(['red', 'S', 'F', 'T']);
+        if (at !== null) hits.set(at, (hits.get(at) || 0) + 1);
+    }
+    ok('a charred shield no longer shelters anything', (hits.get(0) || 0) > 0,
+        `the cube under the dead dome was never hit: ${JSON.stringify([...hits])}`);
+    ok('and is no longer sheltered itself', (hits.get(1) || 0) > 0,
+        `the charred shield was never hit: ${JSON.stringify([...hits])}`);
+}
+
+{
+    // The control, and the reason the line above proves anything: the same line with the Singe swapped
+    // for a plain cube keeps its dome, and the Tusken standing outside it reaches neither the shield
+    // nor what is under it.
+    const hits = new Map();
+    for (let n = 0; n < THROWS; n++) {
+        const { at } = shotAt(['red', 'S', 'blue', 'T']);
+        if (at !== null) hits.set(at, (hits.get(at) || 0) + 1);
+    }
+    ok('an unburnt dome still shelters', !hits.has(0) && !hits.has(1),
+        JSON.stringify([...hits]));
+}
+
+{
+    // **A frozen shield keeps its dome, and the fire says so.** This is the case that reads as the
+    // rule being broken: the Singe goes off, a neighbour visibly burns, and the shield beside it is
+    // untouched and still blocking. It is correct — ice answers fire, so the freeze is spent instead
+    // of the face — but the engine used to report only the positions that *did* burn, which made a
+    // spent ward indistinguishable from a dome that had ignored the fire. Every other destroyer
+    // suffixes its note; this one swallowed the ward in silence.
+    const res = engine.resolveLine(build(['red', 'S!', 'F', 'red']), 'red', []);
+    const n = res.notes.find(x => x.kind === 'scorch' || x.kind === 'scorch.spared');
+    ok('the singe reports the shield it could not burn', !!n && (n.sparedAt || []).includes(1),
+        JSON.stringify(res.notes));
+    ok('and names the ice as what stopped it',
+        !!n && n.spared[(n.sparedAt || []).indexOf(1)] === 'iced', JSON.stringify(n));
+    ok('the shield is not charred', !res.charred[1], JSON.stringify(res.charred));
+    ok('and lost no face', !res.burned[1].length, JSON.stringify(res.burned));
+}
+
+{
+    // The same for a blessed shield, and this is the one that was actively misreported: with nothing
+    // else in reach the note was `scorch.nothing` — "the fire found nothing" — on a roll that had just
+    // spent the player's blessing.
+    const line = build(['S', 'F']);
+    line[0].slot.blessed = true;
+    const res = engine.resolveLine(line, 'red', []);
+    const n = res.notes.find(x => x.kind === 'scorch.spared');
+    ok('a fire put out by a blessing is not a fire that found nothing',
+        !!n && !res.notes.some(x => x.kind === 'scorch.nothing'),
+        JSON.stringify(res.notes.map(x => x.kind)));
+    ok('and it names the blessing', !!n && n.spared.includes('blessed'), JSON.stringify(n));
 }
 
 {
