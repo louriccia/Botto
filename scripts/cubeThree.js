@@ -129,7 +129,7 @@ check('a hold round-trips, nested',
 check('a set written before any of it existed reads back clean',
     shapeOf(engine.decodeSet(['wild', 0]))[0], {
         mirrored: false,
-        id: 'wild', burned: [], painted: [], frozen: null, heat: 0, blessed: false, held: [],
+        id: 'wild', burned: [], painted: [], frozen: null, heat: 0, blessed: false, held: [], joined: [],
     });
 check('and is named on the way in', !!engine.decodeSet(['wild', 0])[0].uid, true);
 

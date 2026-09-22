@@ -450,6 +450,16 @@ const splittable = function (s, run, line) {
     return (line || []).map((c, i) => (engine.canSplitAt(line, i) ? i : -1)).filter(i => i >= 0);
 };
 
+// The other half of the same arm: every neighbouring pair the torch will fuse, as `[left, right]`.
+const joinable = function (s, run, line) {
+    if (!s.split || !isArmed(run.armed, 'split')) return [];
+    const out = [];
+    for (let i = 0; i + 1 < (line || []).length; i++) {
+        if (engine.canJoinAt(line, i, i + 1)) out.push([i, i + 1]);
+    }
+    return out;
+};
+
 // What can still be done to a line that is down. Three places answer this — the hold, the board and
 // an alteration's own reply — and the client reads all three, so three spellings of it are three
 // chances for the buttons to disagree with each other. Swap and Scrap need a second cube; Split
@@ -460,10 +470,11 @@ const offers = function (s, armed, line) {
         swap: pair && !!s.shuffle && isArmed(armed, 'swap'),
         scrap: pair && !!s.scrap && isArmed(armed, 'scrap'),
         split: splittable(s, { armed }, line),
+        join: joinable(s, { armed }, line),
     };
 };
 
-exports.alterShown = function (ctx, { a, b, scrap, split } = {}) {
+exports.alterShown = function (ctx, { a, b, scrap, split, join } = {}) {
     const { s, db, discordId } = ctx;
     const live = persist.ladderOf(db, discordId);
     const shown = persist.shownOf(db, discordId);
@@ -475,7 +486,8 @@ exports.alterShown = function (ctx, { a, b, scrap, split } = {}) {
     const swapping = Number.isInteger(a) && Number.isInteger(b) && a !== b;
     const scrapping = Number.isInteger(scrap);
     const splitting = Number.isInteger(split);
-    if ([swapping, scrapping, splitting].filter(Boolean).length !== 1) {
+    const joining = Array.isArray(join) && join.length === 2 && join.every(Number.isInteger);
+    if ([swapping, scrapping, splitting, joining].filter(Boolean).length !== 1) {
         return refuse('one_thing', 'One change at a time.');
     }
 
@@ -514,6 +526,32 @@ exports.alterShown = function (ctx, { a, b, scrap, split } = {}) {
         took.line.splice(split, 1, ...parts);
         if (seen === split) seen = null;
         else if (seen != null && seen > split) seen += parts.length - 1;
+        armed = disarm(armed, 'split');
+    }
+    if (joining) {
+        // **One arm, two ways to spend it.** Split and Join share the Fusioncutter's charge, so a rung
+        // does one or the other — and a seat fused on one rung can be split on a later one.
+        if (!s.split) return refuse('not_owned', "You haven't taken the Fusioncutter off the rack.");
+        if (!isArmed(armed, 'split')) return refuse('not_armed', 'The Fusioncutter is not armed for this rung.');
+        const [i, j] = [Math.min(...join), Math.max(...join)];
+        if (i < 0 || j >= n) return refuse('bad_join', 'Those are not both on the line.');
+        if (j - i !== 1) return refuse('not_neighbours', 'Only two cubes side by side will fuse.');
+        const x = engine.joinAt(took.line, i, j, s.pressTier || 1);
+        if (!x) {
+            const pair = [took.line[i], took.line[j]];
+            if (pair.some(c => c.frozen)) return refuse('too_cold', 'That cube is frozen shut.');
+            if (pair.some(c => !c.special)) return refuse('plain_cube', 'A plain cube has nothing to fuse.');
+            if (pair.some(c => engine.weldParents(c.slot && c.slot.id))) {
+                return refuse('already_welded', 'Split it apart first.');
+            }
+            if (pair[0].special.id === pair[1].special.id) {
+                return refuse('same_cube', 'Two of the same cube will not fuse.');
+            }
+            return refuse('cannot_join', 'Those will not fuse.');
+        }
+        took.line.splice(i, 2, x);
+        if (seen === i || seen === j) seen = null;
+        else if (seen != null && seen > j) seen -= 1;
         armed = disarm(armed, 'split');
     }
 

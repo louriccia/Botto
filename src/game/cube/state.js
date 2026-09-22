@@ -605,8 +605,10 @@ const PERKS = {
     },
     split: {
         kind: 'split',
-        label: 'Split',
-        description: 'Once a run, break a welded cube on the line back into the cubes it was pressed from.',
+        label: 'Fusioncutter',
+        description: 'Armed for a rung, either cut a welded cube on the line back into the cubes it was '
+            + 'pressed from, or fuse two neighbours into one seat for the rest of the climb. A fused seat '
+            + 'can be cut apart on a later rung, and comes back as the cubes that went in.',
     },
     premonition: {
         kind: 'premonition',

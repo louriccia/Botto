@@ -440,13 +440,14 @@ const slotOf = function (v) {
             heat: Number(v.heat) || 0,
             blessed: !!v.blessed,
             held: Object.values(v.held || {}).map(slotOf),
+            joined: Object.values(v.joined || {}).map(slotOf),
         };
     }
     return {
         uid: newUid(),
         mirrored: false,
         id: v ? String(v) : null,
-        burned: [], painted: [], frozen: null, heat: 0, blessed: false, held: [],
+        burned: [], painted: [], frozen: null, heat: 0, blessed: false, held: [], joined: [],
     };
 };
 
@@ -481,7 +482,7 @@ exports.slotOf = slotOf;
 const plainSlot = () => ({
     uid: newUid(),
     mirrored: false,
-    id: null, burned: [], painted: [], frozen: null, heat: 0, blessed: false, held: [],
+    id: null, burned: [], painted: [], frozen: null, heat: 0, blessed: false, held: [], joined: [],
 });
 exports.plainSlot = plainSlot;
 
@@ -510,6 +511,7 @@ const keepSlot = sl => ({
     burned: [...(sl.burned || [])],
     painted: [...(sl.painted || [])],
     held: cloneHeld(sl.held),
+    joined: cloneHeld(sl.joined),
 });
 
 const liveFaces = function (special, burned) {
@@ -628,6 +630,7 @@ exports.encodeSet = function (set) {
         if (slot.frozen) out.frozen = slot.frozen;
         if (slot.heat) out.heat = slot.heat;
         if (slot.held.length) out.held = slot.held.map(one);
+        if (slot.joined.length) out.joined = slot.joined.map(one);
         return out;
     };
     return (set || []).map(one);
@@ -716,10 +719,112 @@ exports.canSplitAt = function (line, at) {
     return !!exports.weldParents(pos.slot && pos.slot.id);
 };
 
+// **What a weld picked up goes back to the cube whose face it landed on.** Every face on a weld
+// carries `from`, so a burn or a paint on one is a burn or a paint on a face of a particular parent —
+// up to how many of that face the parent put into the cut. Heat goes to the parent that brought heat
+// faces; a blessing is one charge and goes to one parent; a reflection turned the whole seat, so it
+// turns every parent. Without this a split was a free cleanse: a charred weld came apart into two
+// fresh cubes.
+const handBack = function (special, slot, parents) {
+    const room = (k, id) => special.faces
+        .filter(f => f.from === parents[k].id && (id === null ? f.kind === 'heat' : f.id === id)).length;
+    const give = function (marks, idOf, put) {
+        const used = parents.map(() => new Map());
+        for (const m of marks) {
+            const id = idOf(m);
+            const k = parents.findIndex((p, n) => (used[n].get(id) || 0) < room(n, id));
+            if (k < 0) continue;
+            used[k].set(id, (used[k].get(id) || 0) + 1);
+            put(parents[k], m);
+        }
+    };
+    give(slot.burned || [], m => m, (p, m) => p.burned.push(m));
+    give(slot.painted || [], m => m.slice(0, m.lastIndexOf('|')), (p, m) => p.painted.push(m));
+    give(Array.from({ length: slot.heat || 0 }), () => null, (p) => { p.heat += 1; });
+    if (slot.blessed) {
+        const k = parents.findIndex(p => !p.blessed);
+        if (k >= 0) parents[k].blessed = true;
+    }
+    if (slot.mirrored) for (const p of parents) p.mirrored = !p.mirrored;
+    return parents;
+};
+
+// **A fused seat comes apart into the cubes that went in**, names and marks and all; a pressed weld
+// has no originals on the table and comes apart into new ones. Either way, what the weld picked up
+// while it was one cube is handed back to the parent it belongs to.
 exports.splitAt = function (line, at) {
     if (!exports.canSplitAt(line, at)) return null;
-    const parents = exports.weldParents(line[at].slot.id);
-    return exports.throwSet(parents.map(id => ({ ...plainSlot(), id })));
+    const { slot, special } = line[at];
+    const kept = slot.joined || [];
+    const parents = kept.length
+        ? kept.map(p => ({ ...keepSlot(p), frozen: null }))
+        : exports.weldParents(slot.id).map(id => ({ ...plainSlot(), id }));
+    return exports.throwSet(handBack(special || specialById(slot.id), slot, parents));
+};
+
+// **Fusing: two neighbours into one seat, for the rest of the climb.** Cut the way the press cuts —
+// the same split table at the player's press tier, and the same rule that a cut carries a downside
+// whenever either cube still has one, bar `weldPurity` — but out of each cube's **live** faces only,
+// so a burned face or a spent heat stays gone rather than coming back on the fused cube. The originals
+// ride inside the new seat untouched, marks and all, and a split hands them back.
+//
+// Refused for anything the press would refuse, plus ice (a frozen cube holds its place), a cube with
+// prisoners, and a cube already fused or pressed — two into one, not three.
+const fusible = function (c) {
+    if (!c || c.frozen || c.gone || !c.special || !c.slot || c.special.noWeld) return false;
+    if (exports.weldParents(c.slot.id)) return false;
+    if ((c.slot.held || []).length) return false;
+    return rollFaces(c.special, c.slot).length > 0;
+};
+
+exports.canJoinAt = function (line, a, b) {
+    const l = line || [];
+    if (!Number.isInteger(a) || !Number.isInteger(b) || Math.abs(a - b) !== 1) return false;
+    const x = l[a];
+    const y = l[b];
+    return fusible(x) && fusible(y) && x.special.id !== y.special.id;
+};
+
+exports.joinCut = function (slots, tier = 1) {
+    const parents = slots.map(sl => baseById(sl.id));
+    if (parents.some(p => !p || p.noWeld)) return null;
+    const live = slots.map((sl, k) => rollFaces(parents[k], sl));
+    const anyDownside = live.some(fs => fs.some(f => DOWNSIDE.has(f.kind)));
+    const pure = anyDownside && chance(config.weldPurity);
+    let last = null;
+    for (let attempt = 0; attempt < 60; attempt++) {
+        const take = rollSplit(slots.length, tier) || slots.map(() => 3);
+        const order = orderFor(slots.length, null);
+        const picks = parents.map((p, k) => {
+            const pool = live[k].filter(f => !pure || !DOWNSIDE.has(f.kind));
+            const from = pool.length ? pool : live[k];
+            const want = Math.min(take[order[k]] ?? take[take.length - 1], from.length);
+            const chosen = pickIdx(from.length, want).map(i => from[i].id);
+            const used = new Set();
+            const idx = chosen.map((fid) => {
+                const i = p.faces.findIndex((f, n) => f.id === fid && !used.has(n));
+                used.add(i);
+                return i;
+            });
+            return { id: p.id, idx, keeps: chosen.some(fid => DOWNSIDE.has((p.faces.find(f => f.id === fid) || {}).kind)) };
+        });
+        last = weldId(picks);
+        if (!anyDownside || pure || picks.some(pk => pk.keeps)) return last;
+    }
+    return last;
+};
+
+exports.joinAt = function (line, a, b, tier = 1) {
+    if (!exports.canJoinAt(line, a, b)) return null;
+    const pair = [line[Math.min(a, b)], line[Math.max(a, b)]];
+    const id = exports.joinCut(pair.map(c => c.slot), tier);
+    if (!id || !specialById(id)) return null;
+    const [x] = exports.throwSet([{
+        ...plainSlot(),
+        id,
+        joined: pair.map(c => ({ ...keepSlot(c.slot), frozen: null })),
+    }]);
+    return x;
 };
 
 exports.relineFrom = function (set, faces, state = {}) {
@@ -1204,6 +1309,9 @@ const resolveLine = function (line, call, bag, opts = {}) {
                 uid: newUid(),
                 mirrored,
                 held: cloneHeld(src.slot ? src.slot.held : [], true),
+                // A copy of a fused seat is fused from copies: splitting it later hands back two new
+                // cubes, not a second set of the originals.
+                joined: cloneHeld(src.slot ? src.slot.joined : [], true),
                 frozen: null,
             };
             if (x.slot.held.length) made.push({ slot: x.slot, faceId: faceIdOf(x) });

@@ -414,7 +414,9 @@ exports.cube = {
     againBonus: 1,
 
     armShare: 0.21,
-    armShares: { scrap: 0.21, swap: 0.05 },
+    // The Fusioncutter (`split`) measured at ~57–77% of Scrap once it could fuse as well as cut — see
+    // scripts/cubeJoin.js — against 0% on any rung without a weld when it could only cut.
+    armShares: { scrap: 0.21, swap: 0.05, split: 0.15 },
     armFloor: 0.1,
     lookShare: 0.17,
     betAnte: 1,

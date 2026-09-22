@@ -507,8 +507,8 @@ module.exports = function mountCube(app, ctx) {
     });
 
     // **Finishes a roll held for a look at the line**, doing at most one thing to it on the way past:
-    // Swap exchanges two positions, Scrap takes one off, Split breaks a weld into the cubes it was
-    // pressed from, and passing does none of them. One route rather than four because they are one moment
+    // Swap exchanges two positions, Scrap takes one off, the Fusioncutter either splits a weld into the
+    // cubes it was pressed from or fuses two neighbours into one, and passing does none of them. One route rather than four because they are one moment
     // — the line is down, unresolved, and this is what closes it — and because a client that could alter a
     // line twice would be a client that could spend three trees' worth of agency on one rung.
     //
@@ -520,14 +520,16 @@ module.exports = function mountCube(app, ctx) {
         const b = Number.isInteger(req.body?.b) ? req.body.b : null;
         const scrap = Number.isInteger(req.body?.scrap) ? req.body.scrap : null;
         const split = Number.isInteger(req.body?.split) ? req.body.split : null;
+        const join = Array.isArray(req.body?.join) && req.body.join.length === 2
+            && req.body.join.every(Number.isInteger) ? req.body.join : null;
         // **A change leaves the roll held; only an empty body ends it.** Not so a second change can be
         // made — one hold is one change, see `alterShown` — but so the change is *watchable*: the board
         // replays the line with the cube that moved, then settles of its own accord. Applying and
         // settling in one request would resolve the effects onto a line the player never saw.
-        const changing = a != null || b != null || scrap != null || split != null;
+        const changing = a != null || b != null || scrap != null || split != null || join != null;
         if (changing) {
             const alt = actions.alterShown(rctx, {
-                a, b, scrap, split,
+                a, b, scrap, split, join,
             });
             if (!alt.ok) return refused(res, alt);
             return res.json({ ...alt, board: boardOf(rctx, req) });
