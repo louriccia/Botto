@@ -1,0 +1,246 @@
+{
+  "takenAt": "2026-09-18T16:13:51.742Z",
+  "discordId": "256236315144749059",
+  "userKey": "-N8PFNb3Bmoi7zfk_cP4",
+  "name": "LightningPirate",
+  "cube": {
+    "bestAt": {
+      "cubes": 1787326790734,
+      "multiple": 1786887999378,
+      "streak": 1787271763999
+    },
+    "bestCubes": 58,
+    "bestLevel": 4,
+    "bestMultiple": 49.3836408224,
+    "bestStanding": 494080435062,
+    "bestStreak": 15,
+    "bribe": true,
+    "bribes": 6,
+    "buyReroll": true,
+    "calls": {
+      "blue": 1011,
+      "red": 8412
+    },
+    "clears": 1,
+    "cold": 1,
+    "coldest": 10,
+    "comb": {
+      "26": "sq:red",
+      "27": "sq:red",
+      "28": "sq:red",
+      "29": "sq:red",
+      "30": "sq:red",
+      "31": "sq:red"
+    },
+    "cubes": {
+      "anakin": true,
+      "binder": true,
+      "boost": true,
+      "greed": true,
+      "guide": true,
+      "gungan": true,
+      "mirror": true,
+      "multiplier": true,
+      "pitdroid": true,
+      "reroll": true,
+      "scavenger": true,
+      "sebulba": true,
+      "shmi": true,
+      "shortcut": true,
+      "symbiont": true,
+      "turbine": true,
+      "wild": true
+    },
+    "emblem": "sq:red",
+    "equipped": [
+      "binder",
+      "symbiont",
+      "pitdroid",
+      "mirror",
+      "sebulba",
+      "scavenger",
+      "greed",
+      "octahedron"
+    ],
+    "faces": {
+      "anakin": {
+        "broken": 10,
+        "side:blue": 41,
+        "side:red": 16
+      },
+      "binder": {
+        "burn": 584,
+        "clone": 586
+      },
+      "boost": {
+        "boost": 125,
+        "broken": 61
+      },
+      "greed": {
+        "end": 128,
+        "greed": 730
+      },
+      "guide": {
+        "end": 5,
+        "guide": 27
+      },
+      "gungan": {
+        "broken": 25,
+        "end": 16,
+        "shield": 607
+      },
+      "mirror": {
+        "invert": 445,
+        "mirror": 478
+      },
+      "multiplier": {
+        "broken": 3,
+        "mult:blue": 12,
+        "mult:red": 10
+      },
+      "octahedron": {
+        "blessing": 45,
+        "boonta": 1,
+        "crowd": 64,
+        "freeze": 43,
+        "jail": 26,
+        "lockout": 1,
+        "plunge": 34,
+        "scorch": 21,
+        "seam": 56,
+        "vault": 42
+      },
+      "pitdroid": {
+        "draw": 450,
+        "purge": 72
+      },
+      "reroll": {
+        "broken": 211,
+        "end": 109,
+        "reroll": 327
+      },
+      "scavenger": {
+        "broken": 83,
+        "haul": 182,
+        "scavenge": 271
+      },
+      "sebulba": {
+        "broken": 229,
+        "engine:left": 237,
+        "engine:right": 251
+      },
+      "shmi": {
+        "broken": 91,
+        "end": 5,
+        "side:blue": 109,
+        "side:red": 395
+      },
+      "shortcut": {
+        "end": 55,
+        "shortcut": 289
+      },
+      "symbiont": {
+        "cull": 151,
+        "pair": 300,
+        "raze": 132,
+        "twins": 320
+      },
+      "turbine": {
+        "broken": 50,
+        "heat": 241
+      },
+      "wild": {
+        "end": 224,
+        "wild": 714
+      }
+    },
+    "keeper": true,
+    "month": {
+      "at": {
+        "cubes": 1789672165088,
+        "multiple": 1789610574244,
+        "streak": 1788444172893
+      },
+      "cubes": 39,
+      "id": "2026-09",
+      "multiple": 47.46942032639999,
+      "streak": 8
+    },
+    "nudge": true,
+    "points": 3,
+    "premonition": true,
+    "pressTier": 4,
+    "pressed": {
+      "flag:0": 12,
+      "flag:2": 19,
+      "sq:blue": 215,
+      "sq:orange": 139,
+      "sq:purple": 56,
+      "sq:red": 876
+    },
+    "pressedLast": "sq:red",
+    "prestige": 32,
+    "rerolls": 0,
+    "rolled": {
+      "blue": 6543,
+      "red": 7936
+    },
+    "salvage": true,
+    "scrap": true,
+    "shuffle": true,
+    "sidebet": true,
+    "sides": {
+      "blue": "sq:blue",
+      "red": "sq:red"
+    },
+    "skins": {
+      "flag:0": true,
+      "flag:2": true,
+      "sq:orange": true,
+      "sq:purple": true
+    },
+    "split": true,
+    "stake": 2521,
+    "streak": 0,
+    "ties": {
+      "blue": 416,
+      "boonta": 1,
+      "bribed": 20,
+      "lostBlue": 340,
+      "lostRed": 46,
+      "red": 410,
+      "rolled": 826,
+      "total": 847,
+      "won": 440,
+      "wonBlue": 76,
+      "wonRed": 364
+    },
+    "totalLost": 1086115844472,
+    "totalSpent": 28531842168,
+    "totalWon": 344727649385,
+    "unlocked": 4,
+    "week": {
+      "at": {
+        "cubes": 1789672165088,
+        "multiple": 1789610574244,
+        "streak": 1789736827040
+      },
+      "cubes": 39,
+      "id": "2026-38",
+      "multiple": 47.46942032639999,
+      "streak": 7
+    },
+    "weldSeen": {
+      "greed+wild": [
+        "greed:015+wild:045"
+      ]
+    },
+    "wins": {
+      "blue": 517,
+      "red": 4437
+    }
+  },
+  "trugutsEarned": 194697224231,
+  "trugutsSpent": 194697224212,
+  "ladder": null
+}
