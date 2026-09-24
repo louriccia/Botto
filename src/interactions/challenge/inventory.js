@@ -1,4 +1,4 @@
-const { equipCitizenRole, equipEmojiRole, manageTruguts, randomChallengeItem, inventoryComponents, inventoryEmbed, Collections, collectionReward, collectionRewardEmbed, openCoffers, cofferKeys, COFFER_BULK_LIMIT, cofferEmbed, itemString, tradeEmbed, tradeComponents, availableItemsforScrap, availableItemsforCollection, availableItemsforRepairs, heatValue, applyHeat } = require('./functions.js');
+const { equipCitizenRole, equipEmojiRole, manageTruguts, randomChallengeItem, inventoryComponents, inventoryEmbed, Collections, collectionReward, collectionRewardEmbed, openCoffers, cofferKeys, COFFER_BULK_LIMIT, cofferEmbed, itemString, tradeEmbed, tradeComponents, availableItemsforScrap, availableItemsforCollection, availableItemsforRepairs, collectionLockKeys, heatValue, applyHeat } = require('./functions.js');
 const heat_tuning = require('../../data/challenge/heat.js');
 const { postMessage, editMessage } = require('../../discord.js');
 const { planets } = require('../../data/sw_racer/planet.js')
@@ -366,21 +366,7 @@ exports.inventory = async function ({ interaction, user_profile, profile_ref, db
             return
         }
         //lock the specific live items that satisfy the collection
-        //(the chance cube needs 3 of each side; other collections one of each id)
-        let available = availableItemsforCollection({ user_profile })
-        let lock_keys = []
-        if (selected_collection.key == 'chance_cube') {
-            [95, 96].forEach(id => {
-                lock_keys.push(...available.filter(i => i.id == id).slice(0, 3).map(i => i.key))
-            })
-        } else {
-            [...new Set(selected_collection.items)].forEach(id => {
-                let match = available.find(i => i.id == id && !lock_keys.includes(i.key))
-                if (match) {
-                    lock_keys.push(match.key)
-                }
-            })
-        }
+        let lock_keys = collectionLockKeys({ user_profile, collection: selected_collection })
         for (const lock_key of lock_keys) {
             await profile_ref.child('items').child(lock_key).update({ locked: true })
         }
