@@ -752,8 +752,9 @@ exports.achievementProgress = function ({ db, player } = {}) {
     achievements.bounty_hunter.count = exports.bountyAchievement(db, player)
     achievements.bankroller_clan.count = exports.sponsorAchievement(db, player)
     achievements.force_sight.count = exports.predictionAchievement(db, player)
-    let user_profile = Object.values(db.user).find(u => u.discordID == player)
-    achievements.big_time_swindler.count = user_profile.truguts_earned + user_profile.truguts_spent
+    //challenge truguts live on the user's random profile, not the top-level user
+    let user_profile = Object.values(db.user).find(u => u.discordID == player)?.random
+    achievements.big_time_swindler.count = (Number(user_profile?.truguts_earned) || 0) + (Number(user_profile?.truguts_spent) || 0)
 
     return achievements
 }
@@ -1991,7 +1992,8 @@ exports.racerSelector = function ({ customid, placeholder, min, max, description
         racer_selector.addOptions({
             label: racer.name,
             value: String(racer.racernum - 1),
-            description: ((prefix ? prefix + " · " : '') + (descriptions ? descriptions[i].substring(0, 50) : racer.pod.substring(0, 50))).substring(0, 100),
+            //descriptions are indexed by racer id, not the speed-sorted index
+            description: ((prefix ? prefix + " · " : '') + (descriptions ? descriptions[racer.racernum - 1].substring(0, 50) : racer.pod.substring(0, 50))).substring(0, 100),
             emoji: {
                 name: racer.flag.split(":")[1],
                 id: racer.flag.split(":")[2].replace(">", "")
