@@ -8,7 +8,8 @@ were built to pay sponsors truguts that nobody paid in. This replaces them with 
 that invest in **deeds** to exact challenge setups and sign **racers** to contracts, where every
 trugut a sponsor earns is one somebody else spent.
 
-**Status: stage 0 on `challenge/sponsor-rent`, uncommitted.** Everything past stage 0 (§13) is
+**Status: stage 0 committed on `challenge/sponsor-rent`, not yet deployed** — and production is
+still paying player sponsors (§1.3), so deploying it is urgent. Everything past stage 0 (§13) is
 plan. Every number is a starting value, not a measurement; the ones most likely to move are
 called out where they appear.
 
@@ -38,7 +39,33 @@ The disabled `sponsorplayer` paid the sponsor `take%` of a player's revenue on t
 bug. It's commented out in `submit.js` and the shop, but `users/*/random/sponsors` still holds the
 records.
 
-### 1.3 Everything that's missing
+### 1.3 What the live data shows
+
+Read from Firebase on 2026-09-27:
+
+- **300 challenge sponsorships** on 280 setups, from 11 accounts; 20 setups sponsored twice. About
+  📀1.19M was spent on them in all.
+- **They paid out 📀20.19B**, all of it minted — about 17,000× what was spent. One account took 40%.
+- **Player sponsorships paid out 📀507.68B** before they were retired — 25× more. Together, sponsors
+  minted 📀528B, about 4.9% of every trugut in circulation.
+- **Player sponsorships are still paying in production.** 📀2.05B has gone to racers' player sponsors
+  since the 2026-07-27 retirement commit, the latest on 2026-09-25, plus 📀1.62B to accounts that
+  match no sponsorship. Every local branch has the retirement; production doesn't.
+- **Racers land on a setup that's already sponsored 6.2% of the time**, and on those runs the old
+  code paid sponsors 27% on top of what the racers earned.
+- **Most racing on sponsored setups is by the setup's own sponsor.** Run over the last 90 days of
+  live challenges, stage 0 charges 📀0.09B of rent where the old code paid 📀24.49B: sponsoring has
+  mostly been a way to multiply your own winnings.
+- **The economy's scale:** the median payout per run over the last 90 days is 📀40.1M (15 active
+  racers); the median balance is 📀120k, and one account holds 92.9% of the 📀10.76 trillion in
+  circulation. Flat amounts in this design — the 📀1,000 minimum, Grand Opening's circuit price,
+  `beat_sponsor`'s 📀1,200 — are rounding errors to active racers and real money to everyone else.
+- **Data problems:** sponsorship records carry stale names (key by member id, never name); one
+  stored a Discord id as a number, which rounded it to an id that matches no account; and 155
+  payouts landed on challenges whose saved `sponsors` list was empty, because that list is rebuilt
+  at render. Migration has to work from the sponsorship records.
+
+### 1.4 Everything that's missing
 
 - No way to choose what you sponsor — the shop rolls a random setup and that's it.
 - No identity: no sponsor name, no ledger of what you hold or what it earned.
@@ -661,16 +688,21 @@ who improve before a tycoon outbids them. Scouting early is a small syndicate's 
 
 ## 13. Implementation plan
 
-### Stage 0 — Stop the printing · **done, uncommitted**
-Branch `challenge/sponsor-rent`. Sponsor income is 10% of the racer's winnings, split by weight
+### Stage 0 — Stop the printing · **committed, not yet deployed**
+Branch `challenge/sponsor-rent`, rebased on `master`. **Deploying it is urgent:** production is
+running code from before the player-sponsorship retirement and is still minting for player sponsors
+(§1.3). `master` already has that retirement, so deploying stage 0 stops both leaks at once. Sponsor income is 10% of the racer's winnings, split by weight
 (`sponsorHolders`, `splitByWeight`, `sponsorRent`). No stacking, no prediction revenue, no rent on
 the daily or below level 5, no *Sorry About the Mess* doubling, and reroll costs are split instead of
 paid to each sponsor. Rent is saved per submission for receipts. Also fixes the impossible-time
 check in `submit.js` (§10).
 
 ### Stage 1 — Data and audit
+The first audit ran on 2026-09-27 (§1.3); its scripts become the repo's audit script. Open from it:
+**whether flat amounts should scale** with a setup's typical payouts or the investor's balance.
+
 - `deedId(challenge)` and a `challenge/deeds/{id}` store with per-syndicate totals.
-- A read-only audit: sponsorships per deed, stacking, lifetime `sponsor_earnings` paid, landing
+- The read-only audit, kept runnable: sponsorships per deed, stacking, lifetime `sponsor_earnings` paid, landing
   frequency from `challenge/times`, how many active players are past level 5, and the economy-wide
   rent rate (§6.5).
 - A migration dry run (§14), reviewed before anything is written.
