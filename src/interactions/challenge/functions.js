@@ -270,14 +270,22 @@ exports.initializeChallenge = function ({ user_profile, member_id, type, name, a
     return challenge
 }
 
-exports.getSponsors = function (challenge, db) {
-    // if (challenge.submissions) {
-    //     return challenge
-    // }
-    challenge.sponsors = {}
-    if (!challenge.sponsor) {
-        challenge.sponsor = {}
+//A sponsorship's key: the exact single-track setup it covers. Multi-track challenges can't be
+//sponsored, so they have none.
+exports.deedId = function (challenge) {
+    if (!challenge || Array.isArray(challenge.track) || !challenge.conditions) {
+        return null
     }
+    const c = challenge.conditions
+    return [challenge.track, challenge.racer, c.laps, c.nu ? 1 : 0, c.mirror ? 1 : 0, c.skips ? 1 : 0, c.backwards ? 1 : 0].join('_')
+}
+
+//The sponsors of the setup as it stands, and the card's sponsor line. Both are rebuilt every
+//time rather than kept from the roll: a bribe that moved the challenge off a sponsored setup
+//used to leave the old setup's sponsors, title and sponsor time on it.
+exports.getSponsors = function (challenge, db) {
+    challenge.sponsors = {}
+    challenge.sponsor = {}
     Object.values(db.ch.sponsors).filter(sponsor => exports.matchingChallenge(sponsor, challenge)).forEach(sponsor => {
         //this map is keyed by member id and the key is what later writes address, so a sponsor
         //without one can't be keyed at all -- it would collapse every such sponsor into a single
@@ -290,14 +298,23 @@ exports.getSponsors = function (challenge, db) {
                 challenge.sponsors[sponsor_id].take += truguts.sponsor_cut
             }
         }
-        if (sponsor.time) {
-            challenge.sponsor = JSON.parse(JSON.stringify(sponsor.sponsor))
-            challenge.sponsor.time = sponsor.time
-        }
         if (sponsor.title) {
             challenge.sponsor.title = sponsor.title
         }
     })
+
+    //The sponsor time is the fastest time any of the setup's sponsors has actually submitted on
+    //it -- never a typed number, which let a sponsor set a slow one that every racer beat for
+    //beat_sponsor. No sponsor has raced it: no sponsor time.
+    const sponsor_ids = new Set(Object.keys(challenge.sponsors))
+    if (sponsor_ids.size) {
+        const fastest = Object.values(db.ch.times ?? {})
+            .filter(t => sponsor_ids.has(String(t.user)) && Number.isFinite(Number(t.time)) && exports.matchingChallenge(t, challenge))
+            .sort((a, b) => Number(a.time) - Number(b.time))[0]
+        if (fastest) {
+            challenge.sponsor = { ...challenge.sponsor, member: String(fastest.user), name: fastest.name, time: fastest.time }
+        }
+    }
     return challenge
 }
 
@@ -1023,7 +1040,11 @@ exports.challengeWinnings = function ({ current_challenge, submitted_time, user_
         earnings += `\`+📀${number_with_commas(bounty_total)}\` :dart:\n`
         earnings_subtotal += bounty_total
     }
-    if (current_challenge.sponsor?.time && Number(submitted_time.time) - Number(current_challenge.sponsor?.time) < 0) {
+    //beating the sponsor time pays once per racer per setup -- not every run that beats it --
+    //and not to the setup's own sponsors, whose times it is
+    const sponsor_time = Number(current_challenge.sponsor?.time)
+    const beat_sponsor_before = (best ?? []).some(b => String(b.user) == String(member) && b.date < submitted_time.date && Number(b.time) < sponsor_time)
+    if (sponsor_time && Number(submitted_time.time) < sponsor_time && !current_challenge.sponsors?.[member] && !beat_sponsor_before) {
         earnings += `\`+📀${number_with_commas(truguts.beat_sponsor)}\` 📢\n`
         earnings_subtotal += truguts.beat_sponsor
     }
@@ -2489,7 +2510,7 @@ exports.shopOptions = function ({ user_profile, player, db, selection } = {}) {
             pricemap: true,
             price: { "0": circuits[0].sponsor, "1": circuits[1].sponsor, "2": circuits[2].sponsor, "3": circuits[3].sponsor },
             description: "Sponsor a random challenge and earn truguts!",
-            info: "Invest in a random challenge and make truguts on all its earnings. Select a circuit to sponsor and generate your random challenge based on your current odds. Next, you'll get a chance to set a title and sponsor time.",
+            info: "Sponsor a random challenge and collect rent: 10% of what other racers win on it, split between its sponsors. Select a circuit to sponsor and generate your random challenge based on your current odds. Next, you'll get a chance to set a title. Your fastest time on it becomes the sponsor time racers chase.",
             fields: [{ name: 'Additional Effect', value: "Complete the **Space Bar** collection to maximize your sponsor take: *Sorry About the Mess - Collect a cut when rivals sponsor your challenges (arrives with Syndicates)*" }],
             emoji: {
                 name: "📣"
@@ -4392,20 +4413,11 @@ exports.sponsorEmbed = function (sponsorchallenge, user_profile, db) {
     const sponsorEmbed = new EmbedBuilder()
         .setTitle((title ? `*"${title}"*\n` : '') + exports.generateChallengeTitle(sponsorchallenge))
         .setAuthor({ name: "Sponsored Challenge", iconURL: "https://em-content.zobj.net/thumbs/120/twitter/322/game-die_1f3b2.png" })
-        .setDescription("Step 1: Set a custom title and time\nStep 2: Publish your challenge and get players to complete it\nStep 3: Profit")
+        .setDescription("Step 1: Set a custom title\nStep 2: Publish your challenge and get players to complete it\nStep 3: Race it yourself -- your fastest time is the sponsor time racers chase")
         .setFooter({ text: "Truguts: 📀" + exports.currentTruguts(user_profile) })
         .setColor("#ED4245")
 
-    let time = exports.validateTime(sponsorchallenge?.time) ?? null
     let best = Object.values(db.ch.times).filter(t => exports.matchingChallenge(t, sponsorchallenge))
-    if (time) {
-        best.push({
-            time: time,
-            sponsor: true,
-            user: sponsorchallenge.sponsor.member,
-            name: sponsorchallenge.sponsor.name
-        })
-    }
     sponsorEmbed.addFields(
         { name: "Goal Times", value: exports.goalTimeList(sponsorchallenge, null, best).list, inline: true },
         { name: 'Best Times', value: exports.generateLeaderboard({ best, member: null, current_challenge: sponsorchallenge, db, user_profile }) ?? 'No times', inline: true }
@@ -4441,7 +4453,7 @@ exports.sponsorComponents = function (user_profile) {
     row1.addComponents(
         new ButtonBuilder()
             .setCustomId("challenge_random_sponsor_details")
-            .setLabel("Set Title & Time")
+            .setLabel("Set Title")
             .setStyle(ButtonStyle.Secondary)
             .setEmoji('🏷️'),
         new ButtonBuilder()

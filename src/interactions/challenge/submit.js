@@ -1,4 +1,4 @@
-const { showsSetting, updateChallenge, playButton, isActive, expiredEmbed, challengeWinnings, getBest, goalTimeList, predictionScore, manageTruguts, decayHeat, banishment, bribePerks, planetKey, currentTruguts, predictionAchievement, bountyAchievement, achievementEmbed, randomChallengeItem, challengeProgression, playerLevel, convertLevel, progressionReward, fitField } = require('./functions.js');
+const { showsSetting, updateChallenge, playButton, isActive, expiredEmbed, challengeWinnings, getSponsors, getBest, goalTimeList, predictionScore, manageTruguts, decayHeat, banishment, bribePerks, planetKey, currentTruguts, predictionAchievement, bountyAchievement, achievementEmbed, randomChallengeItem, challengeProgression, playerLevel, convertLevel, progressionReward, fitField } = require('./functions.js');
 const { postMessage, editMessage } = require('../../discord.js');
 const { items } = require('../../data/challenge/item.js')
 const { raritysymbols } = require('../../data/challenge/rarity.js')
@@ -191,6 +191,10 @@ exports.submit = async function ({ current_challenge, current_challenge_ref, int
     }
 
     let total_revenue = 0
+
+    //the saved sponsors and sponsor time are from the roll; a bribe may have moved the challenge
+    //off that setup since, so they're worked out again from the setup being submitted
+    current_challenge = getSponsors(current_challenge, db)
 
     //award winnings for this submission
     let goals = goalTimeList(current_challenge, user_profile)

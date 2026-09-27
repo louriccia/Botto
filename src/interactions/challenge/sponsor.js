@@ -1,4 +1,4 @@
-const { updateChallenge, sponsorComponents, sponsorEmbed, validateTime, sponsorAchievement, achievementEmbed } = require('./functions.js');
+const { updateChallenge, sponsorComponents, sponsorEmbed, sponsorAchievement, achievementEmbed } = require('./functions.js');
 const { postMessage } = require('../../discord.js');
 const { EmbedBuilder, ActionRowBuilder, ModalBuilder, TextInputBuilder, TextInputStyle } = require('discord.js');
 const { achievement_data } = require('../../data/challenge/achievement.js');
@@ -9,14 +9,12 @@ exports.sponsor = async function ({ interaction, args, db, member_id, botto_name
     const sponsor_ref = database.ref('challenge/sponsorships')
     const challenges_ref = database.ref('challenge/challenges')
 
-    if (args[2] == 'details') { //set title / time
+    if (args[2] == 'details') { //set title -- the sponsor time is a sponsor's real time, never typed
         sponsorchallenge = db.ch.sponsors[interaction.message.id]
         if (interaction.isModalSubmit()) {
             let title = interaction.fields.getTextInputValue('customTitle')
-            let time = interaction.fields.getTextInputValue('customTime')
-            time = validateTime(time)
 
-            sponsor_ref.child(interaction.message.id).update({ title, time })
+            sponsor_ref.child(interaction.message.id).update({ title })
 
             user_profile = db.user[user_key].random
             sponsorchallenge = db.ch.sponsors[interaction.message.id]
@@ -32,17 +30,8 @@ exports.sponsor = async function ({ interaction, args, db, member_id, botto_name
                 .setMaxLength(70)
                 .setValue(sponsorchallenge.title ?? "")
                 .setRequired(false)
-            const customTime = new TextInputBuilder()
-                .setCustomId('customTime')
-                .setLabel('Custom Time')
-                .setStyle(TextInputStyle.Short)
-                .setMaxLength(9)
-                .setPlaceholder("--:--.---")
-                .setValue(sponsorchallenge.time ?? "")
-                .setRequired(false)
             const ActionRow1 = new ActionRowBuilder().addComponents(customTitle)
-            const ActionRow2 = new ActionRowBuilder().addComponents(customTime)
-            sponsorModal.addComponents(ActionRow1, ActionRow2)
+            sponsorModal.addComponents(ActionRow1)
             await interaction.showModal(sponsorModal)
         }
 
