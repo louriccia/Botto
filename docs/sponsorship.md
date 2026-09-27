@@ -8,9 +8,9 @@ were built to pay sponsors truguts that nobody paid in. This replaces them with 
 that invest in **deeds** to exact challenge setups and sign **racers** to contracts, where every
 trugut a sponsor earns is one somebody else spent.
 
-**Status: stage 0 committed on `challenge/sponsor-rent`, not yet deployed** — and production is
-still paying player sponsors (§1.3), so deploying it is urgent. Everything past stage 0 (§13) is
-plan. Every number is a starting value, not a measurement; the ones most likely to move are
+**Status: stage 0 committed on `challenge/sponsor-rent`, not yet merged.** Merging deploys it, and
+it's urgent: challenge sponsors are still minting, and bribed challenges pay the wrong sponsors
+(§1.3). Everything past stage 0 (§13) is plan. Every number is a starting value, not a measurement; the ones most likely to move are
 called out where they appear.
 
 ---
@@ -48,9 +48,12 @@ Read from Firebase on 2026-09-27:
 - **They paid out 📀20.19B**, all of it minted — about 17,000× what was spent. One account took 40%.
 - **Player sponsorships paid out 📀507.68B** before they were retired — 25× more. Together, sponsors
   minted 📀528B, about 4.9% of every trugut in circulation.
-- **Player sponsorships are still paying in production.** 📀2.05B has gone to racers' player sponsors
-  since the 2026-07-27 retirement commit, the latest on 2026-09-25, plus 📀1.62B to accounts that
-  match no sponsorship. Every local branch has the retirement; production doesn't.
+- **Bribed challenges pay the sponsors of the setup they were rolled on.** A challenge's saved
+  sponsors list is set at the roll; a bribe that changes the setup leaves it in place, and payouts
+  read it. Since player sponsorships were retired on 2026-07-27, 📀3.67B went this way — 41 payouts,
+  every one on a bribed challenge — against 📀3.20B to the sponsors of the setups actually raced.
+  (It first looked like player sponsorships were still paying; they aren't.) The card keeps the old
+  setup's title and sponsor time too, so `beat_sponsor` is paid against the wrong time.
 - **Racers land on a setup that's already sponsored 6.2% of the time**, and on those runs the old
   code paid sponsors 27% on top of what the racers earned.
 - **Most racing on sponsored setups is by the setup's own sponsor.** Run over the last 90 days of
@@ -689,9 +692,11 @@ who improve before a tycoon outbids them. Scouting early is a small syndicate's 
 ## 13. Implementation plan
 
 ### Stage 0 — Stop the printing · **committed, not yet deployed**
-Branch `challenge/sponsor-rent`, rebased on `master`. **Deploying it is urgent:** production is
-running code from before the player-sponsorship retirement and is still minting for player sponsors
-(§1.3). `master` already has that retirement, so deploying stage 0 stops both leaks at once. Sponsor income is 10% of the racer's winnings, split by weight
+Branch `challenge/sponsor-rent`, rebased on `master`; merging deploys it. **It's urgent:** every
+challenge-sponsor payout still mints, and bribed challenges pay the sponsors of the setup they were
+rolled on (§1.3). Stage 0 works sponsors out from the sponsorship records and the setup actually
+raced, at payout time. The stale title and sponsor time on a bribed card are left for stage 1's
+sponsor-time fix. Sponsor income is 10% of the racer's winnings, split by weight
 (`sponsorHolders`, `splitByWeight`, `sponsorRent`). No stacking, no prediction revenue, no rent on
 the daily or below level 5, no *Sorry About the Mess* doubling, and reroll costs are split instead of
 paid to each sponsor. Rent is saved per submission for receipts. Also fixes the impossible-time
@@ -707,7 +712,8 @@ The first audit ran on 2026-09-27 (§1.3); its scripts become the repo's audit s
   rent rate (§6.5).
 - A migration dry run (§14), reviewed before anything is written.
 - Refund the old player sponsorships (§9.8).
-- Sponsor time against a real time, once per racer per deed. Until stage 3 there's no Ace, so it's
+- Sponsor time against a real time, once per racer per deed, and cleared when a bribe moves the
+  challenge off the sponsored setup (§1.3). Until stage 3 there's no Ace, so it's
   the sponsor's own best time on the setup.
 
 ### Stage 2 — Syndicates
