@@ -6,7 +6,7 @@ const { raritysymbols } = require('../../data/challenge/rarity.js')
 const { EmbedBuilder } = require('discord.js');
 const { time_to_seconds } = require('../../generic.js');
 const { achievement_data } = require('../../data/challenge/achievement.js');
-const { swe1r_guild } = require('../../data/discord/guild.js');
+const { swe1r_guild, test_guild } = require('../../data/discord/guild.js');
 const { WhyNobodyBuy } = require('../../data/discord/emoji.js');
 
 const { database, db } = require('../../firebase.js')
@@ -57,8 +57,11 @@ exports.submit = async function ({ current_challenge, current_challenge_ref, int
     let rta = time_to_seconds(subrta)
     let platform = subplatform.toLowerCase()
 
-    //submitted time is impossible
-    if ((challengeend - current_challenge.created) < time * 1000 && !current_challenge.rescue && !current_challenge.guild == '1135800421290627112') {
+    //submitted time is impossible: faster than the time since the challenge was rolled. The
+    //test guild is exempt so a test run can be submitted straight away. This used to read
+    //`!current_challenge.guild == test_guild`, which is (!guild) == test_guild -- always false,
+    //so the check never ran anywhere.
+    if ((challengeend - current_challenge.created) < time * 1000 && !current_challenge.rescue && current_challenge.guild != test_guild) {
         current_challenge_ref.update({ completed: true, funny_business: true })
         profile_ref.update({ funny_business: (user_profile.funny_business ?? 0) + 1 })
         const holdUp = new EmbedBuilder()
@@ -191,7 +194,7 @@ exports.submit = async function ({ current_challenge, current_challenge_ref, int
 
     //award winnings for this submission
     let goals = goalTimeList(current_challenge, user_profile)
-    let winnings = challengeWinnings({ current_challenge, submitted_time: submissiondata, user_profile, best: getBest(db, current_challenge), goals, member: member_id, db, perks: winnings_perks })
+    let winnings = challengeWinnings({ current_challenge, submitted_time: submissiondata, user_profile, best: getBest(db, current_challenge), goals, member: member_id, db, perks: winnings_perks, settle: true })
 
     //award saboteur cut
     if (winnings.sabotage) {
@@ -201,6 +204,9 @@ exports.submit = async function ({ current_challenge, current_challenge_ref, int
         winnings.earnings *= (dp ? 0 : 0.5)
         profile_ref.child('effects').child('sabotage').child(winnings.sabotage).update({ used: true, challenge: interaction.message.id })
     }
+
+    //sponsor rent comes out of what the player keeps, so it's a transfer, not new truguts
+    winnings.earnings -= winnings.rent.total
 
     user_profile = manageTruguts({ user_profile, profile_ref, transaction: 'd', amount: winnings.earnings })
 
@@ -221,6 +227,9 @@ exports.submit = async function ({ current_challenge, current_challenge_ref, int
     }
     if (winnings.sabotage) {
         ern.sabotage = winnings.sabotage
+    }
+    if (winnings.rent.total) {
+        ern.rent = winnings.rent.total
     }
     current_challenge_ref.child("earnings").child(member_id).set(ern)
     total_revenue += winnings.earnings
@@ -270,22 +279,11 @@ exports.submit = async function ({ current_challenge, current_challenge_ref, int
         })
     }
     */
-    if (current_challenge.sponsors) {
-        //challenge sponsors
-        Object.keys(current_challenge.sponsors).forEach(async sponsor_id => {
-            let sponsor = current_challenge.sponsors[sponsor_id]
-
-            let thissponsor = db.user[sponsor.user]?.random
-            let sponsor_earnings = Math.round(total_revenue * ((thissponsor?.effects?.sorry_mess ? 2 : 1)) * sponsor.take)
-            let thissponsorref = userref.child(sponsor.user).child("random")
-            manageTruguts({ user_profile: thissponsor, profile_ref: thissponsorref, transaction: 'd', amount: sponsor_earnings })
-
-            if (!earning_update[sponsor_id]) {
-                earning_update[sponsor_id] = 0
-            }
-            earning_update[sponsor_id] += sponsor_earnings
-        })
-    }
+    //challenge sponsors are paid the rent taken from this submission, and nothing else
+    winnings.rent.shares.forEach(share => {
+        manageTruguts({ user_profile: db.user[share.user].random, profile_ref: userref.child(share.user).child("random"), transaction: 'd', amount: share.amount })
+        earning_update[share.id] = (earning_update[share.id] ?? 0) + share.amount
+    })
     await current_challenge_ref.child('sponsor_earnings').update(earning_update)
 
     //close bounties

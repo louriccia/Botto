@@ -65,7 +65,7 @@ exports.collections = [
     {
         name: 'Space Bar',
         emoji: '🍸',
-        reward: 'Sorry About the Mess - Sponsor take is doubled',
+        reward: 'Sorry About the Mess - Collect a cut when rivals sponsor your challenges (arrives with Syndicates)',
         key: 'sorry_mess',
         items: [97, 98, 99, 100, 101]
     },
