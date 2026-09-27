@@ -301,22 +301,19 @@ exports.getSponsors = function (challenge, db) {
     return challenge
 }
 
-//The sponsors a payout can go to, one entry per member. Keys are member ids except the
-//literal "undefined" a mid-publish render once stored, where the account still knows the
-//id; a stale duplicate of a sponsor already listed is dropped. Each sponsorship of the
-//setup is one sponsor_cut of take.
+//The sponsors a payout can go to, one entry per member, each sponsorship of the setup one
+//sponsor_cut of take. Worked out from the sponsorship records and the setup actually raced,
+//never from the challenge's saved sponsors list: that list is set when the challenge is
+//rolled, so after a bribe changed the setup it still named the sponsors of the setup it was
+//rolled on -- and they were paid for a challenge that wasn't theirs.
 exports.sponsorHolders = function ({ current_challenge, db } = {}) {
-    const holders = new Map()
-    Object.entries(current_challenge?.sponsors ?? {}).forEach(([key, sponsor]) => {
-        const sponsor_id = key && key !== 'undefined' ? key : db.user[sponsor?.user]?.discordID
-        const profile = db.user[sponsor?.user]?.random
-        if (!sponsor_id || holders.has(sponsor_id) || !profile) {
-            return
-        }
-        const weight = Number(sponsor.take) || truguts.sponsor_cut
-        holders.set(sponsor_id, { id: sponsor_id, user: sponsor.user, weight })
-    })
-    return [...holders.values()]
+    if (!current_challenge?.conditions) {
+        return []
+    }
+    const raced = exports.getSponsors({ track: current_challenge.track, racer: current_challenge.racer, conditions: current_challenge.conditions, sponsor: {} }, db)
+    return Object.entries(raced.sponsors)
+        .filter(([, sponsor]) => db.user[sponsor?.user]?.random)
+        .map(([sponsor_id, sponsor]) => ({ id: sponsor_id, user: sponsor.user, weight: Number(sponsor.take) || truguts.sponsor_cut }))
 }
 
 //Split an amount across holders by weight so the shares sum to exactly the amount --
