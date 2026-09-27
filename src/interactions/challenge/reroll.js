@@ -1,4 +1,4 @@
-const { initializeChallenge, updateChallenge, playButton, notYoursEmbed, isActive, expiredEmbed, manageTruguts, applyHeat } = require('./functions.js');
+const { initializeChallenge, updateChallenge, playButton, notYoursEmbed, isActive, expiredEmbed, manageTruguts, applyHeat, sponsorHolders, splitByWeight } = require('./functions.js');
 const { editMessage } = require('../../discord.js');
 
 const { EmbedBuilder } = require('discord.js');
@@ -55,27 +55,13 @@ exports.reroll = async function ({ interaction, current_challenge, current_chall
     }
 
     //award sponsorship cut
-    //The map is keyed by member id and the entries themselves don't reliably carry one --
-    //a challenge rendered while a sponsorship was mid-publish was stored under the literal
-    //key "undefined", and reading the id back off the entry handed firebase that path.
-    //The key is the id; where it isn't, the sponsor's own account still knows it.
-    if (current_challenge.sponsors) {
-        const paid = new Set()
-        Object.entries(current_challenge.sponsors).forEach(([key, sponsor]) => {
-            const sponsor_id = key && key !== 'undefined' ? key : db.user[sponsor.user]?.discordID
-            if (!sponsor_id || paid.has(sponsor_id)) { //no id to pay or write to, or a stale duplicate of one already paid
-                return
-            }
-            paid.add(sponsor_id)
-            let sponsor_earnings = cost
-            const thissponsor = db.user[sponsor.user]?.random
-            if (thissponsor) {
-                const thissponsorref = userref.child(sponsor.user).child("random")
-                manageTruguts({ user_profile: thissponsor, profile_ref: thissponsorref, transaction: 'd', amount: sponsor_earnings })
-            }
-            current_challenge_ref.child('sponsors').child(sponsor_id).child('earnings').set((sponsor.earnings ?? 0) + sponsor_earnings)
-        })
-    }
+    //The reroll cost is split between the sponsors rather than paid to each in full, so a
+    //setup with several sponsors no longer turns one reroll into several.
+    const holders = sponsorHolders({ current_challenge, db }).filter(h => String(h.id) !== String(member_id))
+    splitByWeight(holders, cost).forEach(share => {
+        manageTruguts({ user_profile: db.user[share.user].random, profile_ref: userref.child(share.user).child("random"), transaction: 'd', amount: share.amount })
+        current_challenge_ref.child('sponsors').child(share.id).child('earnings').set((current_challenge.sponsors?.[share.id]?.earnings ?? 0) + share.amount)
+    })
 
     //Rerolling out from under a verdict is the escape hatch the heat design left open, and
     //a flat 1,200 (or free, for a citizen on home turf) was no price at all for voiding a

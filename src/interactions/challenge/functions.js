@@ -301,6 +301,66 @@ exports.getSponsors = function (challenge, db) {
     return challenge
 }
 
+//The sponsors a payout can go to, one entry per member. Keys are member ids except the
+//literal "undefined" a mid-publish render once stored, where the account still knows the
+//id; a stale duplicate of a sponsor already listed is dropped. Each sponsorship of the
+//setup is one sponsor_cut of take.
+exports.sponsorHolders = function ({ current_challenge, db } = {}) {
+    const holders = new Map()
+    Object.entries(current_challenge?.sponsors ?? {}).forEach(([key, sponsor]) => {
+        const sponsor_id = key && key !== 'undefined' ? key : db.user[sponsor?.user]?.discordID
+        const profile = db.user[sponsor?.user]?.random
+        if (!sponsor_id || holders.has(sponsor_id) || !profile) {
+            return
+        }
+        const weight = Number(sponsor.take) || truguts.sponsor_cut
+        holders.set(sponsor_id, { id: sponsor_id, user: sponsor.user, weight })
+    })
+    return [...holders.values()]
+}
+
+//Split an amount across holders by weight so the shares sum to exactly the amount --
+//sponsors are paid out of truguts that already exist, so rounding can't mint any
+exports.splitByWeight = function (holders, amount) {
+    const total_weight = holders.reduce((sum, h) => sum + h.weight, 0)
+    if (!holders.length || !(amount > 0) || !(total_weight > 0)) {
+        return []
+    }
+    const shares = holders.map(h => {
+        const exact = amount * h.weight / total_weight
+        return { ...h, amount: Math.floor(exact), remainder: exact - Math.floor(exact) }
+    })
+    let left = amount - shares.reduce((sum, s) => sum + s.amount, 0)
+    shares.slice().sort((a, b) => b.remainder - a.remainder).forEach(s => {
+        if (left > 0) {
+            s.amount++
+            left--
+        }
+    })
+    return shares.filter(s => s.amount > 0).map(({ remainder, ...s }) => s)
+}
+
+//Sponsor rent: a flat sponsor_rent of what the player keeps, split among the setup's
+//sponsors. It comes out of the player's winnings rather than on top of them, and a
+//player who sponsors the setup themself doesn't pay their own share. The daily is rent-free:
+//most of the server races it, so its sponsors would collect from everyone. So are rookies:
+//below sponsor_level a player's first brush with sponsorship shouldn't be a bill.
+exports.sponsorRent = function ({ current_challenge, amount, member, user_profile, db } = {}) {
+    const rookie = !user_profile?.progression || exports.playerLevel(user_profile.progression).level < truguts.sponsor_level
+    if (current_challenge?.type == 'cotd' || rookie) {
+        return { total: 0, shares: [] }
+    }
+    const holders = exports.sponsorHolders({ current_challenge, db })
+    const others = holders.filter(h => String(h.id) !== String(member))
+    const total_weight = holders.reduce((sum, h) => sum + h.weight, 0)
+    const others_weight = others.reduce((sum, h) => sum + h.weight, 0)
+    if (!others.length || !(amount > 0) || !(total_weight > 0)) {
+        return { total: 0, shares: [] }
+    }
+    const total = Math.round(amount * truguts.sponsor_rent * others_weight / total_weight)
+    return { total, shares: exports.splitByWeight(others, total) }
+}
+
 exports.getBounty = function (challenge, db) {
     if (!challenge.submissions) {
         Object.keys(db.ch.bounties).forEach(key => {
@@ -937,7 +997,12 @@ exports.hasRole = function ({ client, db, guild, member, role } = {}) {
 //no_rival suppresses the Bitter Rivalry bonus. It's set only on the nested call
 //that prices the rival's own run -- without it two players who rival each other
 //and both hold the collection would recurse into each other's receipt forever.
-exports.challengeWinnings = function ({ current_challenge, submitted_time, user_profile, best, goals, member, no_rival, perks, client } = {}) {
+//settle is set only by the call that actually pays: it prices sponsor rent from the
+//sponsors as they stand now. Every other call reads the rent that payout recorded,
+//since the sponsor list is rebuilt on every render and a receipt has to show what was
+//charged -- not what today's sponsors would charge, and nothing on a challenge settled
+//before rent existed.
+exports.challengeWinnings = function ({ current_challenge, submitted_time, user_profile, best, goals, member, no_rival, perks, client, settle } = {}) {
     //citizenship prices earnings now, so resolve it if the caller didn't. submit.js
     //passes the version built from the interaction's own member list, which is the
     //freshest there is; this fallback reads the boot-time role cache instead.
@@ -1172,9 +1237,14 @@ exports.challengeWinnings = function ({ current_challenge, submitted_time, user_
         sabotage += `\`-📀${number_with_commas(earnings_total * (dp ? 1 : 0.5))}\` 💥Sabotaged!\n`
         sabotage += `\`+📀${number_with_commas(earnings_total * (dp ? 1 : 0.5))}\` <@${db.user[s.player].discordID}>\n`
     }
+    const kept = earnings_total * (s ? (dp ? 0 : 0.5) : 1)
+    const rent = settle
+        ? exports.sponsorRent({ current_challenge, amount: kept, member, user_profile, db })
+        : { total: Number(current_challenge.earnings?.[member]?.rent) || 0, shares: [] }
+    const rent_line = rent.total ? `\`-📀${number_with_commas(rent.total)}\` 📢 Sponsor Rent\n` : ''
     const line = "▬▬▬▬▬▬▬▬▬▬▬"
-    if (multipliers || sabotage) {
-        earnings += `${line}\n**\`📀${number_with_commas(earnings_subtotal)}\` Sub-Total**\n${multipliers}${sabotage}${line}\n**\`📀${number_with_commas(earnings_total * (s ? (dp ? 0 : 0.5) : 1))}\` Total**`
+    if (multipliers || sabotage || rent_line) {
+        earnings += `${line}\n**\`📀${number_with_commas(earnings_subtotal)}\` Sub-Total**\n${multipliers}${sabotage}${rent_line}${line}\n**\`📀${number_with_commas(kept - rent.total)}\` Total**`
     } else {
         earnings += `${line}\n**\`📀${number_with_commas(earnings_total)}\` Total**`
     }
@@ -1183,7 +1253,9 @@ exports.challengeWinnings = function ({ current_challenge, submitted_time, user_
         earnings += "\n`+📀" + number_with_commas(truguts.rated * (user_profile.effects?.vote_confidence ? 2 : 1)) + "` Rated"
     }
 
-    let winnings = { earnings: earnings_total, receipt: exports.alignReceipt(earnings) }
+    //earnings stays the pre-sabotage, pre-rent total: the payout splits the saboteur's cut
+    //off it first, then takes rent.total out of what's left
+    let winnings = { earnings: earnings_total, receipt: exports.alignReceipt(earnings), rent }
     if (sabotage) {
         winnings.sabotage = sabotagekey
     }
@@ -2421,7 +2493,7 @@ exports.shopOptions = function ({ user_profile, player, db, selection } = {}) {
             price: { "0": circuits[0].sponsor, "1": circuits[1].sponsor, "2": circuits[2].sponsor, "3": circuits[3].sponsor },
             description: "Sponsor a random challenge and earn truguts!",
             info: "Invest in a random challenge and make truguts on all its earnings. Select a circuit to sponsor and generate your random challenge based on your current odds. Next, you'll get a chance to set a title and sponsor time.",
-            fields: [{ name: 'Additional Effect', value: "Complete the **Space Bar** collection to maximize your sponsor take: *Sorry About the Mess - Sponsor take is doubled*" }],
+            fields: [{ name: 'Additional Effect', value: "Complete the **Space Bar** collection to maximize your sponsor take: *Sorry About the Mess - Collect a cut when rivals sponsor your challenges (arrives with Syndicates)*" }],
             emoji: {
                 name: "📣"
             },
@@ -2499,7 +2571,7 @@ exports.shopOptions = function ({ user_profile, player, db, selection } = {}) {
             pricemap: true,
             description: 'Sponsor a player and earn truguts!',
             info: "Contribute truguts to a player of your choice and earn a percentage of their earnings every time they complete a challenge.\n`📀50,000` - 5%\n`📀100,000` - 10%\n`📀200,000` - 20%",
-            fields: [{ name: 'Additional Effect', value: "Complete the **Space Bar** collection to maximize your sponsor take: *Sorry About the Mess - Sponsor take is doubled*" }],
+            fields: [{ name: 'Additional Effect', value: "Complete the **Space Bar** collection to maximize your sponsor take: *Sorry About the Mess - Collect a cut when rivals sponsor your challenges (arrives with Syndicates)*" }],
             emoji: {
                 name: "📣"
             },

@@ -31,7 +31,9 @@ exports.truguts = {
     day_streak: 25,
     challenge_streak: 10,
     beat_sponsor: 1200,
-    sponsor_cut: 0.20,
+    sponsor_cut: 0.20, //one sponsorship's weight in the split, not a rate
+    sponsor_rent: 0.10, //share of a player's winnings paid to the setup's sponsors, split between them
+    sponsor_level: 5, //player level at which a player starts paying sponsor rent
     abandoned: 0.5,
     shuffle: 1200,
     lotto: 200,
