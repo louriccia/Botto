@@ -8,9 +8,8 @@ were built to pay sponsors truguts that nobody paid in. This replaces them with 
 that invest in **deeds** to exact challenge setups and sign **racers** to contracts, where every
 trugut a sponsor earns is one somebody else spent.
 
-**Status: stage 0 committed on `challenge/sponsor-rent`, not yet merged.** Merging deploys it, and
-it's urgent: challenge sponsors are still minting, and bribed challenges pay the wrong sponsors
-(§1.3). Everything past stage 0 (§13) is plan. Every number is a starting value, not a measurement; the ones most likely to move are
+**Status: stage 0 shipped 2026-09-27 (PR #45); stage 1 is on `challenge/sponsor-stage1`.** Everything
+past stage 1 (§13) is plan. Every number is a starting value, not a measurement; the ones most likely to move are
 called out where they appear.
 
 ---
@@ -63,6 +62,8 @@ Read from Firebase on 2026-09-27:
   racers); the median balance is 📀120k, and one account holds 92.9% of the 📀10.76 trillion in
   circulation. Flat amounts in this design — the 📀1,000 minimum, Grand Opening's circuit price,
   `beat_sponsor`'s 📀1,200 — are rounding errors to active racers and real money to everyone else.
+  **They stay flat by design:** investment is uncapped, so what a setup costs to hold scales with
+  what the rich put into it. The minimum is just the door.
 - **Data problems:** sponsorship records carry stale names (key by member id, never name); one
   stored a Discord id as a number, which rounded it to an id that matches no account; and 155
   payouts landed on challenges whose saved `sponsors` list was empty, because that list is rebuilt
@@ -210,7 +211,7 @@ Every investing syndicate got in through a racer's time, so a deed's investors c
 time as well as by money:
 
 - **Controller:** the syndicate that has invested the most. Money.
-- **Ace:** the investing syndicate whose racer has the fastest time with a proof link. Skill.
+- **Ace:** the investing syndicate whose racer has the fastest time. Skill.
 
 **The Ace takes 20% of the deed's rent off the top;** the other 80% is split by stake, the Ace's
 included. It's carved out of the same rent, so racers pay nothing extra.
@@ -227,7 +228,7 @@ included. It's carved out of the same rent, so racers pay nothing extra.
   faster than you."*
 - **The Ace's time is the deed's sponsor time.** Racers chase the fastest time among the
   investors; beating it pays `beat_sponsor` once per racer per deed. The typed *Custom Time* field
-  goes away. No time with a proof link among the investors means no sponsor time.
+  goes away. No time among the investors means no sponsor time.
 
 ### 5.4 Grand Openings
 
@@ -521,8 +522,7 @@ deducted — they were minted, so there's no one to return them to.
 
 **Times are on the honor system, and this design keeps it that way.** The random challenge system
 has always trusted what racers submit, and the community polices it as it polices the leaderboards.
-Nothing here adds verification. The Ace's proof link is there for people to look at, like every
-proof link today.
+Nothing here adds verification — the Ace needs no proof link, like every other time.
 
 **Accepted by design** — each needs a fake time: unlocking the 📜 Sponsor button on a deed you
 haven't raced, taking the Ace, earning Training Program XP from runs that didn't happen.
@@ -691,7 +691,7 @@ who improve before a tycoon outbids them. Scouting early is a small syndicate's 
 
 ## 13. Implementation plan
 
-### Stage 0 — Stop the printing · **committed, not yet deployed**
+### Stage 0 — Stop the printing · **shipped 2026-09-27 (PR #45)**
 Branch `challenge/sponsor-rent`, rebased on `master`; merging deploys it. **It's urgent:** every
 challenge-sponsor payout still mints, and bribed challenges pay the sponsors of the setup they were
 rolled on (§1.3). Stage 0 works sponsors out from the sponsorship records and the setup actually
@@ -702,19 +702,22 @@ the daily or below level 5, no *Sorry About the Mess* doubling, and reroll costs
 paid to each sponsor. Rent is saved per submission for receipts. Also fixes the impossible-time
 check in `submit.js` (§10).
 
-### Stage 1 — Data and audit
-The first audit ran on 2026-09-27 (§1.3); its scripts become the repo's audit script. Open from it:
-**whether flat amounts should scale** with a setup's typical payouts or the investor's balance.
-
-- `deedId(challenge)` and a `challenge/deeds/{id}` store with per-syndicate totals.
-- The read-only audit, kept runnable: sponsorships per deed, stacking, lifetime `sponsor_earnings` paid, landing
-  frequency from `challenge/times`, how many active players are past level 5, and the economy-wide
-  rent rate (§6.5).
-- A migration dry run (§14), reviewed before anything is written.
-- Refund the old player sponsorships (§9.8).
-- Sponsor time against a real time, once per racer per deed, and cleared when a bribe moves the
-  challenge off the sponsored setup (§1.3). Until stage 3 there's no Ace, so it's
-  the sponsor's own best time on the setup.
+### Stage 1 — Data and audit · **on `challenge/sponsor-stage1`**
+- **Sponsor time from real runs.** The card's sponsor line is rebuilt from the setup as it stands,
+  so a bribe that moves a challenge off a sponsored setup clears the old title and time. The sponsor
+  time is the fastest time any of the setup's sponsors has submitted on it — no proof link, and no
+  typed times (the modal's *Custom Time* field is gone). Until stage 3's Ace this is the same rule
+  the Ace will use. `beat_sponsor` pays once per racer per setup, and never to the setup's own
+  sponsors. Over the last 90 days of live runs it would have paid 12 times instead of 183; 189 of
+  the 281 sponsored setups get a real sponsor time, the rest none until a sponsor races them.
+- **`deedId(challenge)`**, the key the new design uses.
+- **`scripts/sponsorAudit.js`** — the audit, read-only and kept runnable. `--since=<date>` checks that
+  every sponsor payout since then equals the rent racers were charged.
+- **`scripts/sponsorMigrationDryRun.js`** — what stage 3's migration would write: 281 setups, 11
+  syndicates, 16 even splits, 193 titles carried over, nothing left unplaced.
+- **`scripts/refundPlayerSponsorships.js`** — the refund (§9.11): 72 records, 📀14.25M to 12 buyers.
+  A dry run by default; `--apply` pays, archiving each record first so a crash can't pay twice.
+- The `challenge/deeds/{id}` store waits for stage 3, which is the first thing to write to it.
 
 ### Stage 2 — Syndicates
 Founding, the ledger and `/syndicate`, on migrated data. No change to how money moves.
@@ -803,7 +806,7 @@ real history to price from.
   the biggest investor controls the deed.
 - A syndicate can invest in a deed once one of its racers has raced it (after launch). No cooldown.
   Minimum 📀1,000.
-- The Ace: the investing syndicate with the fastest time with a proof link takes 20% of rent off the
+- The Ace: the investing syndicate with the fastest time (no proof link) takes 20% of rent off the
   top, and its time is the sponsor time. `beat_sponsor` pays once per racer per deed.
 - Garages: +0.375% per other controlled variant of the same racer and track, capped at 25%.
 - No rent on the Challenge of the Day or below level 5.
@@ -822,7 +825,9 @@ real history to price from.
 - On deeds a racer's own syndicate shares with their sponsor, the racer's times count for the
   sponsor; offers disclose the overlap. A syndicate can't sign its founder.
 - Old player sponsorships are refunded in full.
-- Times stay on the honor system; only the impossible-time check is enforced.
+- Times stay on the honor system; only the impossible-time check is enforced. The Ace and the
+  sponsor time need no proof link.
+- Flat amounts stay flat: uncapped investment is how a setup's price scales.
 
 **Open**
 
