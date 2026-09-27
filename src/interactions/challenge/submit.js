@@ -6,7 +6,7 @@ const { raritysymbols } = require('../../data/challenge/rarity.js')
 const { EmbedBuilder } = require('discord.js');
 const { time_to_seconds } = require('../../generic.js');
 const { achievement_data } = require('../../data/challenge/achievement.js');
-const { swe1r_guild } = require('../../data/discord/guild.js');
+const { swe1r_guild, test_guild } = require('../../data/discord/guild.js');
 const { WhyNobodyBuy } = require('../../data/discord/emoji.js');
 
 const { database, db } = require('../../firebase.js')
@@ -57,8 +57,11 @@ exports.submit = async function ({ current_challenge, current_challenge_ref, int
     let rta = time_to_seconds(subrta)
     let platform = subplatform.toLowerCase()
 
-    //submitted time is impossible
-    if ((challengeend - current_challenge.created) < time * 1000 && !current_challenge.rescue && !current_challenge.guild == '1135800421290627112') {
+    //submitted time is impossible: faster than the time since the challenge was rolled. The
+    //test guild is exempt so a test run can be submitted straight away. This used to read
+    //`!current_challenge.guild == test_guild`, which is (!guild) == test_guild -- always false,
+    //so the check never ran anywhere.
+    if ((challengeend - current_challenge.created) < time * 1000 && !current_challenge.rescue && current_challenge.guild != test_guild) {
         current_challenge_ref.update({ completed: true, funny_business: true })
         profile_ref.update({ funny_business: (user_profile.funny_business ?? 0) + 1 })
         const holdUp = new EmbedBuilder()
