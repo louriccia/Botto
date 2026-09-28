@@ -1,4 +1,4 @@
-const { showsSetting, updateChallenge, playButton, isActive, expiredEmbed, challengeWinnings, getSponsors, getBest, goalTimeList, predictionScore, manageTruguts, decayHeat, banishment, bribePerks, planetKey, currentTruguts, predictionAchievement, bountyAchievement, achievementEmbed, randomChallengeItem, challengeProgression, playerLevel, convertLevel, progressionReward, fitField } = require('./functions.js');
+const { showsSetting, updateChallenge, playButton, isActive, expiredEmbed, challengeWinnings, getSponsors, recordLedger, getBest, goalTimeList, predictionScore, manageTruguts, decayHeat, banishment, bribePerks, planetKey, currentTruguts, predictionAchievement, bountyAchievement, achievementEmbed, randomChallengeItem, challengeProgression, playerLevel, convertLevel, progressionReward, fitField } = require('./functions.js');
 const { postMessage, editMessage } = require('../../discord.js');
 const { items } = require('../../data/challenge/item.js')
 const { raritysymbols } = require('../../data/challenge/rarity.js')
@@ -288,6 +288,7 @@ exports.submit = async function ({ current_challenge, current_challenge_ref, int
         manageTruguts({ user_profile: db.user[share.user].random, profile_ref: userref.child(share.user).child("random"), transaction: 'd', amount: share.amount })
         earning_update[share.id] = (earning_update[share.id] ?? 0) + share.amount
     })
+    recordLedger({ database, current_challenge, challenge_id: interaction.message.id, kind: 'rent', racer: member_id, shares: winnings.rent.shares })
     await current_challenge_ref.child('sponsor_earnings').update(earning_update)
 
     //close bounties

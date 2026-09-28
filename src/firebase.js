@@ -34,6 +34,8 @@ let db = {
         feedback: null,
         bounties: null,
         sponsors: null,
+        deeds: null,
+        ledger: null,
         lotto: null,
         flavor: null,
         clues: null,
@@ -127,6 +129,15 @@ fetchData(database.ref('challenge/banners'), function (data) {
 
 fetchData(database.ref('challenge/sponsorships'), function (data) {
     db.ch.sponsors = data;
+});
+
+//sponsorships as stakes in setups, and every sponsor payout since syndicates (docs/sponsorship.md)
+fetchData(database.ref('challenge/deeds'), function (data) {
+    db.ch.deeds = data ?? {};
+});
+
+fetchData(database.ref('challenge/ledger'), function (data) {
+    db.ch.ledger = data ?? {};
 });
 
 fetchData(database.ref('tourney/matches'), function (data) {

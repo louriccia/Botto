@@ -1,4 +1,4 @@
-const { initializeChallenge, updateChallenge, playButton, notYoursEmbed, isActive, expiredEmbed, manageTruguts, applyHeat, sponsorHolders, splitByWeight } = require('./functions.js');
+const { initializeChallenge, updateChallenge, playButton, notYoursEmbed, isActive, expiredEmbed, manageTruguts, applyHeat, sponsorHolders, splitByWeight, recordLedger } = require('./functions.js');
 const { editMessage } = require('../../discord.js');
 
 const { EmbedBuilder } = require('discord.js');
@@ -58,10 +58,12 @@ exports.reroll = async function ({ interaction, current_challenge, current_chall
     //The reroll cost is split between the sponsors rather than paid to each in full, so a
     //setup with several sponsors no longer turns one reroll into several.
     const holders = sponsorHolders({ current_challenge, db }).filter(h => String(h.id) !== String(member_id))
-    splitByWeight(holders, cost).forEach(share => {
+    const reroll_shares = splitByWeight(holders, cost)
+    reroll_shares.forEach(share => {
         manageTruguts({ user_profile: db.user[share.user].random, profile_ref: userref.child(share.user).child("random"), transaction: 'd', amount: share.amount })
         current_challenge_ref.child('sponsors').child(share.id).child('earnings').set((current_challenge.sponsors?.[share.id]?.earnings ?? 0) + share.amount)
     })
+    recordLedger({ database, current_challenge, challenge_id: interaction.message.id, kind: 'reroll', racer: member_id, shares: reroll_shares })
 
     //Rerolling out from under a verdict is the escape hatch the heat design left open, and
     //a flat 1,200 (or free, for a citizen on home turf) was no price at all for voiding a
