@@ -8,8 +8,8 @@ were built to pay sponsors truguts that nobody paid in. This replaces them with 
 that invest in **deeds** to exact challenge setups and sign **racers** to contracts, where every
 trugut a sponsor earns is one somebody else spent.
 
-**Status: stage 0 shipped 2026-09-27 (PR #45); stage 1 is on `challenge/sponsor-stage1`.** Everything
-past stage 1 (§13) is plan. Every number is a starting value, not a measurement; the ones most likely to move are
+**Status: stages 0 and 1 shipped 2026-09-27 (PRs #45, #46); stage 2 is on `challenge/syndicates`.**
+Everything past stage 2 (§13) is plan. Every number is a starting value, not a measurement; the ones most likely to move are
 called out where they appear.
 
 ---
@@ -702,7 +702,7 @@ the daily or below level 5, no *Sorry About the Mess* doubling, and reroll costs
 paid to each sponsor. Rent is saved per submission for receipts. Also fixes the impossible-time
 check in `submit.js` (§10).
 
-### Stage 1 — Data and audit · **on `challenge/sponsor-stage1`**
+### Stage 1 — Data and audit · **shipped 2026-09-27 (PR #46)**
 - **Sponsor time from real runs.** The card's sponsor line is rebuilt from the setup as it stands,
   so a bribe that moves a challenge off a sponsored setup clears the old title and time. The sponsor
   time is the fastest time any of the setup's sponsors has submitted on it — no proof link, and no
@@ -713,14 +713,39 @@ check in `submit.js` (§10).
 - **`deedId(challenge)`**, the key the new design uses.
 - **`scripts/sponsorAudit.js`** — the audit, read-only and kept runnable. `--since=<date>` checks that
   every sponsor payout since then equals the rent racers were charged.
-- **`scripts/sponsorMigrationDryRun.js`** — what stage 3's migration would write: 281 setups, 11
+- **`scripts/sponsorMigrate.js`** (then a dry run only) — what the migration would write: 281 setups, 11
   syndicates, 16 even splits, 193 titles carried over, nothing left unplaced.
 - **`scripts/refundPlayerSponsorships.js`** — the refund (§9.11): 72 records, 📀14.25M to 12 buyers.
   A dry run by default; `--apply` pays, archiving each record first so a crash can't pay twice.
-- The `challenge/deeds/{id}` store waits for stage 3, which is the first thing to write to it.
+- The old player sponsorships were refunded the same day: 📀14,250,000 to 12 buyers, every balance
+  checked against a snapshot, all 72 records archived.
 
-### Stage 2 — Syndicates
-Founding, the ledger and `/syndicate`, on migrated data. No change to how money moves.
+### Stage 2 — Syndicates · **on `challenge/syndicates`**
+Syndicates exist and can be seen; nothing about how money moves changes. Rent still splits by
+sponsorship count, as stage 0 set it up — which within one setup is the same as splitting by stake,
+because every sponsorship of a setup costs its circuit's price.
+
+- **Migration** (`scripts/sponsorMigrate.js --apply`): every sponsorship becomes a stake of its
+  circuit price at `challenge/deeds/{deedId}`, and every sponsor gets a syndicate. It's safe to run
+  again: stakes are recomputed from the sponsorship records each time. Some Discord ids have several
+  user records; the syndicate goes on the first, the one the bot uses.
+- **A stake is recorded when a sponsorship is bought,** and buying one founds a syndicate if the
+  player doesn't have one. The *Sponsor Challenge* shop item keeps selling until stage 3 turns it into
+  Grand Opening.
+- **The ledger** (`challenge/ledger`): every rent and reroll payout from now on, by setup and
+  syndicate. Payouts since the stage 0 deploy are backfilled. The old minted payouts aren't on it —
+  a syndicate's earnings start at the stage 0 deploy, and the old totals stay in the audit.
+- **`/syndicate view [player]`** — a syndicate's sponsorships, share of each, lead positions, rent
+  earned in all and in the last 30 days, and a menu to open any sponsorship's page: its sponsors and
+  shares, the rent, its sponsor time, and its last 30 days.
+- **`/syndicate found`** — name (unique, 2–32 characters, renamed at most once a week), emoji and
+  motto; emoji and motto change any time. Founding is free and doesn't need a sponsorship.
+  **`/syndicate help`** — the explainer, written for how sponsoring works today.
+  **`/syndicate reset player`** — moderators: back to the default name, motto cleared.
+- **Default names:** "{player}'s Syndicate", or the player's name alone where that runs past 32
+  characters.
+- **The card** reads `Sponsored by 📢 **Hutt & Sons** · rent 10%` (with `+N` for co-sponsors and
+  "no rent on the daily" on the daily), then what each syndicate earned once it's paid out.
 
 ### Stage 3 — Investing
 The race-to-invest rule and the 📜 Sponsor button, stakes and control, the Ace and its sponsor time,
@@ -788,10 +813,32 @@ investing for the Team rate, the Training Program, reach and the Ace.
 
 ## 16. Future: Wald Street listing
 
-Parked, not planned. A syndicate could list on the Wald Street Exchange, anchored on its rent and
-paying dividends from it. It needs its own treasury (shareholders would own part of it) and an
-anchor alts can't inflate — rent from racers outside its roster only. Design it once the rest has
-real history to price from.
+Parked, not planned — it comes after stage 5 and needs real rent history to price from. Sketched here
+so the earlier stages don't close it off.
+
+- **A syndicate is a royalty business.** Its value is its future rent — base rent, Ace cuts, Garage
+  rates — and its contracts' takes. Investments are sunk and can't be sold, so they have no value
+  beyond what they'll earn. A share of a syndicate is a share of its future rent.
+- **It needs its own treasury first.** A listed syndicate can't spend from its founder's balance: the
+  founder would pay all of every investment and keep only part of the income. On listing, rent and
+  contract takes go into the treasury, investments and contract fees come out of it, and the founder
+  takes money out only as dividends on their own shares.
+- **Listing.** Open to syndicates with a track record (e.g. 60 days and meaningful 30-day rent). The
+  founder picks a ticker and sells up to 49%; buyers pay into the **treasury**, not the founder, so a
+  listing raises money to grow. Keeping 51% means nobody takes a syndicate over through its stock.
+- **Price, on the existing `stockTick` engine.** The anchor is `(treasury + 90 days of trailing
+  rent) ÷ shares` instead of a fixed one; the trend follows this week's rent against last week's;
+  news comes from `news.js`, driven by what the syndicate actually did — a Full Garage completed, a
+  rival taking lead on three variants, a star signed — and player trades push the price as today.
+- **Dividends** at the 6pm tick: a declared share of the treasury's rent, split by shares held.
+- **Manipulation guard:** no single racer counts for more than about 5% of the rent the anchor uses,
+  so alts racing a syndicate's own deeds can't pump it. Founders already can't trade their own ticker.
+- **Delisting:** a syndicate whose rent dries up drifts to the minimum price; after enough days there
+  it's delisted, and shareholders get the treasury, split by shares.
+- **Nothing is minted:** the listing is buyers paying the treasury, dividends are rent passed on,
+  trades are transfers, and broker fees are destroyed as today.
+- **What it takes:** the treasury is the real work, and the exchange has to accept companies being
+  added and removed rather than a fixed 21. The anchor, trend, news and pressure reuse the engine.
 
 ---
 
@@ -824,7 +871,11 @@ real history to price from.
 - 10% base rent, and about 10% economy-wide is the intended bite.
 - On deeds a racer's own syndicate shares with their sponsor, the racer's times count for the
   sponsor; offers disclose the overlap. A syndicate can't sign its founder.
-- Old player sponsorships are refunded in full.
+- Old player sponsorships are refunded in full (done 2026-09-27).
+- The *Sponsor Challenge* shop item keeps selling through stage 2, each purchase recording a stake.
+- Syndicate earnings start at the stage 0 deploy; the old minted payouts stay out of them.
+- Default syndicate names are "{player}'s Syndicate"; names are unique, renamed at most weekly, and
+  moderators can reset one. Founding is free.
 - Times stay on the honor system; only the impossible-time check is enforced. The Ace and the
   sponsor time need no proof link.
 - Flat amounts stay flat: uncapped investment is how a setup's price scales.
