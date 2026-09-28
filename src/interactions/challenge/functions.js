@@ -280,6 +280,100 @@ exports.deedId = function (challenge) {
     return [challenge.track, challenge.racer, c.laps, c.nu ? 1 : 0, c.mirror ? 1 : 0, c.skips ? 1 : 0, c.backwards ? 1 : 0].join('_')
 }
 
+//A setup in words -- "Anakin Skywalker · Boonta Training Course · 3 laps · mirrored" -- for places
+//that name a sponsorship rather than pose it as a challenge
+exports.setupName = function (setup) {
+    const c = setup?.conditions ?? {}
+    return [
+        racers[setup?.racer]?.name ?? 'Unknown racer',
+        tracks[setup?.track]?.name ?? 'Unknown track',
+        `${c.laps ?? 3} lap${c.laps == 1 ? '' : 's'}`,
+        c.nu ? 'no upgrades' : null,
+        c.skips ? 'skips' : null,
+        c.mirror ? 'mirrored' : null,
+        c.backwards ? 'backwards' : null
+    ].filter(Boolean).join(' · ')
+}
+
+//A syndicate is a player's sponsoring body. Until someone names theirs it goes by this.
+exports.defaultSyndicateName = function (player_name, db, except_user_key = null) {
+    //a name too long for "'s Syndicate" goes by the name alone, rather than a chopped-off suffix
+    const player = player_name ?? 'Someone'
+    const base = `${player}'s Syndicate`.length <= 32 ? `${player}'s Syndicate` : player.slice(0, 32)
+    let name = base, n = 2
+    while (exports.syndicateNameTaken(db, name, except_user_key)) {
+        name = `${base.slice(0, 29)} ${n++}`
+    }
+    return name
+}
+
+exports.syndicateNameTaken = function (db, name, except_user_key = null) {
+    const wanted = String(name).trim().toLowerCase()
+    return Object.entries(db.user ?? {}).some(([key, u]) => key !== except_user_key && u?.random?.syndicate?.name?.trim().toLowerCase() == wanted)
+}
+
+//The syndicate a member sponsors through, for display: their own if they've founded one, and
+//otherwise their name, so a sponsorship made before syndicates existed still reads right
+exports.syndicateOf = function (db, member_id) {
+    const u = Object.values(db.user ?? {}).find(u => u?.discordID == member_id)
+    const s = u?.random?.syndicate
+    return s?.name ? { name: s.name, emoji: s.emoji || '📢', founded: true } : { name: u?.name ?? 'Unknown sponsor', emoji: '📢', founded: false }
+}
+
+//Sponsoring founds a syndicate if the player doesn't have one yet
+exports.ensureSyndicate = function ({ db, database, user_key, player_name }) {
+    if (db.user?.[user_key]?.random?.syndicate?.name) {
+        return
+    }
+    database.ref(`users/${user_key}/random/syndicate`).set({ name: exports.defaultSyndicateName(player_name, db), emoji: '📢', motto: '', founded: Date.now() })
+}
+
+//Record a new sponsorship as a stake in its setup: the price paid, added to whatever that member
+//already has in it
+exports.addStake = function ({ database, setup, member_id, amount }) {
+    const id = exports.deedId(setup)
+    if (!id || !(amount > 0)) {
+        return
+    }
+    database.ref(`challenge/deeds/${id}`).transaction(deed => {
+        deed = deed ?? { track: setup.track, racer: setup.racer, conditions: { ...setup.conditions }, created: Date.now() }
+        deed.stakes = deed.stakes ?? {}
+        deed.stakes[member_id] = (Number(deed.stakes[member_id]) || 0) + amount
+        return deed
+    })
+}
+
+//The lead sponsor: whoever has put the most into the setup; a tie goes to the faster time on it
+exports.leadSponsor = function (db, setup) {
+    const stakes = db.ch.deeds?.[exports.deedId(setup)]?.stakes ?? {}
+    const most = Math.max(0, ...Object.values(stakes).map(Number))
+    const tied = Object.keys(stakes).filter(m => Number(stakes[m]) == most && most > 0)
+    if (tied.length < 2) {
+        return tied[0] ?? null
+    }
+    const fastest = Object.values(db.ch.times ?? {})
+        .filter(t => tied.includes(String(t.user)) && exports.matchingChallenge(t, setup))
+        .sort((a, b) => Number(a.time) - Number(b.time))[0]
+    return fastest ? String(fastest.user) : tied[0]
+}
+
+//A sponsor payout, on the ledger: what each syndicate earned from which setup and when
+exports.recordLedger = function ({ database, current_challenge, challenge_id, kind, racer, shares }) {
+    const paid = (shares ?? []).filter(s => s.amount > 0)
+    if (!paid.length) {
+        return
+    }
+    database.ref('challenge/ledger').push({
+        deed: exports.deedId(current_challenge),
+        challenge: challenge_id ?? null,
+        date: Date.now(),
+        kind,
+        racer: racer ?? null,
+        amount: paid.reduce((sum, s) => sum + s.amount, 0),
+        shares: Object.fromEntries(paid.map(s => [s.id, s.amount]))
+    })
+}
+
 //The sponsors of the setup as it stands, and the card's sponsor line. Both are rebuilt every
 //time rather than kept from the roll: a bribe that moved the challenge off a sponsored setup
 //used to leave the old setup's sponsors, title and sponsor time on it.
@@ -463,7 +557,7 @@ exports.generateChallengeDescription = function ({ current_challenge, db, user_p
         expiration = "Expires <t:" + Math.round((current_challenge.created + duration) / 1000) + ":R>"
     }
 
-    desc = [exports.getFeedbackTally(db, current_challenge), (!current_challenge.completed && !current_challenge.rerolled ? expiration : ''), (current_challenge.sponsors ? exports.getSponsorsString(current_challenge) : ''), (current_challenge.predictions && !current_challenge.completed ? exports.getPredictors(current_challenge) : "")].filter(d => ![null, undefined, ''].includes(d)).join(" | ")
+    desc = [exports.getFeedbackTally(db, current_challenge), (!current_challenge.completed && !current_challenge.rerolled ? expiration : ''), (current_challenge.sponsors ? exports.getSponsorsString(current_challenge, db) : ''), (current_challenge.predictions && !current_challenge.completed ? exports.getPredictors(current_challenge) : "")].filter(d => ![null, undefined, ''].includes(d)).join(" | ")
 
     let formercotd = Object.values(db.ch.challenges).filter(challenge => challenge.created < current_challenge.created && challenge.type == 'cotd').map((c, i) => { return { index: i, ...c } }).filter(c => exports.matchingChallenge(c, current_challenge)) ?? null
     if (formercotd.length) {
@@ -533,8 +627,19 @@ exports.getPredictors = function (current_challenge) {
     return current_challenge.predictions ? "🔮 " + Object.values(current_challenge.predictions).map(p => p.name).join(", ") : ""
 }
 
-exports.getSponsorsString = function (current_challenge) {
-    return current_challenge.sponsor_earnings && Object.values(current_challenge.sponsor_earnings).length ? "📢 " + Object.keys(current_challenge.sponsor_earnings).map(key => `<@${key}> \`+📀${big_number(current_challenge.sponsor_earnings[key])}\``).join(", ") : ""
+//The card's sponsor line: the lead sponsor's syndicate and the rent racers pay here, then, once
+//it's paid out, what each syndicate earned from this challenge
+exports.getSponsorsString = function (current_challenge, db) {
+    const sponsors = Object.keys(current_challenge.sponsors ?? {})
+    if (!sponsors.length) {
+        return ''
+    }
+    const lead = exports.leadSponsor(db, current_challenge) ?? sponsors[0]
+    const label = id => { const s = exports.syndicateOf(db, id); return `${s.emoji} **${s.name}**` }
+    const rent = current_challenge.type == 'cotd' ? 'no rent on the daily' : `rent ${Math.round(truguts.sponsor_rent * 100)}%`
+    const paid = Object.entries(current_challenge.sponsor_earnings ?? {}).filter(([, v]) => Number(v) > 0)
+    return `Sponsored by ${label(lead)}${sponsors.length > 1 ? ` +${sponsors.length - 1}` : ''} · ${rent}` +
+        (paid.length ? ` · ${paid.map(([id, v]) => `${exports.syndicateOf(db, id).name} \`+📀${big_number(v)}\``).join(', ')}` : '')
 }
 
 exports.predictionScore = function (predicted_time, actual_time) {

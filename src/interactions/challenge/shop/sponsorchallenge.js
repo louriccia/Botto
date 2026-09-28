@@ -1,4 +1,5 @@
-const { initializeChallenge, sponsorComponents, sponsorEmbed } = require('../functions.js');
+const { initializeChallenge, sponsorComponents, sponsorEmbed, addStake, ensureSyndicate } = require('../functions.js');
+const { circuits } = require('../../../data/sw_racer/circuit.js');
 const { EmbedBuilder } = require('discord.js');
 
 exports.sponsorchallenge = async function ({ interaction, db, database, member_id, member_avatar, user_key, user_profile, botto_name, selection } = {}) {
@@ -30,5 +31,9 @@ exports.sponsorchallenge = async function ({ interaction, db, database, member_i
     const sponsorReply = await interaction.reply({ embeds: [sponsorEmbed(sponsorchallenge, user_profile, db)], components: sponsorComponents(user_profile, circuit, 1), ephemeral: true, withResponse: true })
     const sponsor = sponsorReply.resource.message
     database.ref('challenge/sponsorships').child(sponsor.id).set(sponsorchallenge)
+
+    //the price paid is the sponsor's stake in the setup, held through their syndicate
+    addStake({ database, setup: sponsorchallenge, member_id, amount: circuits[circuit]?.sponsor ?? 0 })
+    ensureSyndicate({ db, database, user_key, player_name: botto_name })
     return true
 }
