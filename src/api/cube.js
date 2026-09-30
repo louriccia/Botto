@@ -34,6 +34,37 @@ const byArm = fn => Object.fromEntries(actions.ARMS.map(k => [k, fn(k)]));
 
 // Everything the board needs in one response. The client renders from this and nothing else, so a
 // field missing here is a field the Activity cannot draw.
+const dressWeld = sp => ({
+    id: sp.id, name: sp.name, blurb: sp.blurb, welded: sp.welded, faces: sp.faces,
+});
+
+// A weld id, and nothing else a table node carries: the walk below reads every string on the node, and
+// `specialById` caches whatever it is asked, refusals included.
+const WELD_ID = /^[a-z0-9_-]+:[0-9]+(\+[a-z0-9_-]+:[0-9]+)+$/i;
+
+// **Every weld on the table that the player does not own**, which is a seat the Fusioncutter joined this
+// climb. It is not in `s.cubes`, so `welds` never carries it, and the client cannot dress a cube it has
+// no faces for. Walked rather than read off named fields, because a cube id rides in the set, the bag,
+// the line, a captor's hold and the parked throws, and a field missed here is a box with invented sides.
+const fusedOn = function (owned, nodes) {
+    const found = new Set();
+    const walk = function (v, depth) {
+        if (v == null || depth > 10) return;
+        if (typeof v === 'string') {
+            if (v.includes(engine.WELD_SEP) && !owned.has(v) && WELD_ID.test(v)) found.add(v);
+            return;
+        }
+        if (typeof v === 'object') for (const k of Object.keys(v)) walk(v[k], depth + 1);
+    };
+    for (const n of nodes) walk(n, 0);
+    // Keyed by the id as the table spells it, which is what the client looks the seat up by: the engine
+    // hands back its canonical spelling, and the two can differ.
+    return [...found]
+        .map(id => [id, engine.specialById(id)])
+        .filter(([, sp]) => sp && sp.welded)
+        .map(([id, sp]) => ({ ...dressWeld(sp), id }));
+};
+
 const boardOf = function (ctx, req) {
     const { profile, discordId } = req.player;
     const s = pstate.cubeState(profile);
@@ -165,9 +196,10 @@ const boardOf = function (ctx, req) {
         welds: s.cubes
             .map(id => engine.specialById(id))
             .filter(sp => sp && sp.welded)
-            .map(sp => ({
-                id: sp.id, name: sp.name, blurb: sp.blurb, welded: sp.welded, faces: sp.faces,
-            })),
+            .map(dressWeld),
+        // The table's welds the player does not own, built the same way. Its own list rather than more
+        // of `welds`, which is the player's rack and would put a seat from this climb on it.
+        fused: fusedOn(new Set(s.cubes), [live, dead, tie, shown]),
     };
 };
 
@@ -422,6 +454,7 @@ module.exports = function mountCube(app, ctx) {
     app.post('/roll', auth, rateLimit({ perMinute: 60 }), async (req, res) => {
         const ctx = ctxOf(req);
         const call = req.body?.call === 'red' ? 'red' : 'blue';
+
         const live = persist.ladderOf(ctx.db, ctx.discordId);
 
         // A throw parked by a premonition: the rung has already advanced and the cubes are already

@@ -11,6 +11,9 @@ const {
 const OTHER = { blue: 'red', red: 'blue' };
 exports.OTHER = OTHER;
 
+// Faces Ando Prime cannot hold: the Flamejet and Baroonda. See `case 'freeze'`.
+const FIREPROOF_ICE = new Set(['burn', 'scorch']);
+
 const WELD_SEP = '+';
 const PICK_SEP = ':';
 exports.WELD_SEP = WELD_SEP;
@@ -1280,6 +1283,7 @@ const resolveLine = function (line, call, bag, opts = {}) {
         const freshlyFreed = new Set();
         let was = final.map(faceIdOf);
         let wasMarks = stateKey(final);
+        const wasSealed = sealed;
         let noteAt = notes.length;
 
         let handed = 0;
@@ -1298,9 +1302,10 @@ const resolveLine = function (line, call, bag, opts = {}) {
             return giveTurn(x);
         };
         // **A new cube off an old one, made two ways.** Both inherit the scorch marks and the
-        // prisoners (deep-copied, or cracking one hold would empty both) and **never the ice**,
-        // which is a property of the original Ando Prime froze. What they disagree about is the
-        // handedness, and the disagreement is the difference between the two cubes that make them.
+        // prisoners (deep-copied, or cracking one hold would empty both). They come out thawed here;
+        // the Binder's `copied` puts the ice back on, because a clone is exact and a reflection is
+        // not. The other thing they disagree about is the handedness, and that disagreement is the
+        // difference between the two cubes that make them.
         const born = function (src, mirrored) {
             const x = { ...src, copy: false };
             x.slot = {
@@ -1353,6 +1358,16 @@ const resolveLine = function (line, call, bag, opts = {}) {
                 x.face = { ...f, id: f.mirrored, mirrored: f.id };
                 if (f.dir) x.face.dir = OTHER_DIR[f.dir];
             }
+            // **And the ice comes across too.** A clone is the cube on its left, and a held cube is
+            // held — so the copy is on ice in whichever of the two senses the original is: served on
+            // it and owing a thaw on its own turn, or frozen this walk and holding a face for the
+            // next throw. The held face is the copy's own, read after the flip above, so a cloned
+            // frozen Sebulba holds the engine it is actually showing. Only the Binder does this; a
+            // reflection still comes out thawed.
+            x.frozen = !!src.frozen;
+            x.onIce = !!src.onIce;
+            x.thawed = !!src.thawed;
+            if (src.slot && src.slot.frozen) x.slot.frozen = faceIdOf(x);
             return x;
         };
         const drawOne = function () {
@@ -1535,9 +1550,9 @@ const resolveLine = function (line, call, bag, opts = {}) {
             return out;
         };
 
-        // Which dome a seat is under, or -1 for open air.
-        const domeAt = function (k) {
-            const spans = domeSpans();
+        // Which dome a seat is under, or -1 for open air. `spans` is for a face that writes several
+        // seats in one turn and has to measure every write against the walls it started with.
+        const domeAt = function (k, spans = domeSpans()) {
             for (let d = 0; d < spans.length; d++) {
                 if (k >= spans[d].from && k <= spans[d].to) return d;
             }
@@ -1547,9 +1562,20 @@ const resolveLine = function (line, call, bag, opts = {}) {
         // Same dome, or open air on both sides — and -1 === -1 says the second of those, so there is
         // one comparison rather than two cases. A position sheltering under a dome the actor is not
         // standing in is unreachable, and so is the whole table seen from inside one.
-        const reaches = function (i, j) {
+        const reaches = function (i, j, spans = domeSpans()) {
             if (i === j) return true;
-            return domeAt(i) === domeAt(j);
+            return domeAt(i, spans) === domeAt(j, spans);
+        };
+
+        // **A seat past the tail is behind the wall too.** Appending used to be exempt, so a cube
+        // under a dome that ran to the end of the line could grow the line straight out through it
+        // — a Mirror inside wrote its copies into open air while one outside was turned away at the
+        // same wall. A new seat is a place like any other: it is under the dome of a shield standing
+        // last, since it becomes that shield's right-hand neighbour, and in the open otherwise.
+        // Only the first new seat can be the shield's neighbour; every one after it is open air.
+        const reachesNew = function (i) {
+            const tail = final.length - 1;
+            return domeAt(i) === (shielding(final[tail]) ? domeAt(tail) : -1);
         };
 
         // **The ice takes one hit** — anything that would destroy or overwrite a frozen cube shatters
@@ -1627,11 +1653,23 @@ const resolveLine = function (line, call, bag, opts = {}) {
                 // named for the frost — kept because nothing downstream reads it by any other name.
                 let froze = 0;
                 let walled = 0;
+                // **The walls are measured once, before the first write.** Reflecting a Gungan puts
+                // a second shield on the table, and measuring after it moved the dome partway
+                // through the Mirror's own turn — the same seat could be open for one copy and
+                // walled for the next. The line as it stood when the Mirror acted is what it reads,
+                // so it is also what it writes against.
+                const spans = domeSpans();
+                const end = final.length;
+                const firstNew = reachesNew(i);
+                const pastNew = domeAt(i, spans) === -1;
                 for (let k = 0; k < wanted; k++) {
                     const to = i + k + 1;
-                    // Writing onto an existing position is a reach; appending past the tail is not.
-                    if (to < final.length && !reaches(i, to)) {
+                    const ok = to < end ? reaches(i, to, spans) : (to === end ? firstNew : pastNew);
+                    if (!ok) {
                         walled += 1;
+                        // A new seat that cannot be written cannot be stepped over either: every seat
+                        // past it would be conjured with a hole in front of it.
+                        if (to >= end) break;
                         continue;
                     }
                     if (spend(final[to])) {
@@ -1747,7 +1785,7 @@ const resolveLine = function (line, call, bag, opts = {}) {
                 // Flamejet but happily took an Electrocution made the immunity read as a property of
                 // the picture rather than of the cube. It is the cube.
                 if (final[j].face && ['burn', 'clone'].includes(final[j].face.kind)) {
-                    note(c, 'burn.fireproof');
+                    note(c, 'burn.fireproof', { at: j });
                     break;
                 }
                 if (!reaches(i, j)) {
@@ -1776,7 +1814,7 @@ const resolveLine = function (line, call, bag, opts = {}) {
                     note(c, 'clone.alone');
                     break;
                 }
-                if (hasRight && !reaches(i, to)) {
+                if (hasRight ? !reaches(i, to) : (hasLeft && !reachesNew(i))) {
                     note(c, 'clone.walled', { at: to, walledAt: [to] });
                     break;
                 }
@@ -2024,15 +2062,22 @@ const resolveLine = function (line, call, bag, opts = {}) {
                     break;
                 }
                 const iced = [];
+                // **Fire does not freeze.** A Flamejet or a Baroonda showing is the one face the ice
+                // cannot take — the same fire that thaws a held cube early cannot be held itself. By
+                // face and not by cube: the freeze holds the face that is up, and a Binder showing its
+                // clone has nothing burning on it.
+                const immuneAt = [];
                 for (const j of targets) {
                     const x = final[j];
                     if (x.frozen || !x.slot) continue;
+                    if (x.face && FIREPROOF_ICE.has(x.face.kind)) { immuneAt.push(j); continue; }
                     x.slot.frozen = faceIdOf(x);
                     x.frozen = true;
                     iced.push(j);
                 }
-                note(c, iced.length ? 'freeze' : 'freeze.already',
-                    { frozen: iced.length, both: iced.length > 1, at: i, hitAt: iced });
+                const kind = iced.length ? 'freeze' : (immuneAt.length ? 'freeze.immune' : 'freeze.already');
+                note(c, kind,
+                    { frozen: iced.length, both: iced.length > 1, at: i, hitAt: iced, immuneAt });
                 break;
             }
             case 'scorch': {
@@ -2067,6 +2112,12 @@ const resolveLine = function (line, call, bag, opts = {}) {
                 const bounce = function (j, why) { sparedAt.push(j); spared.push(why); };
                 for (const j of targets) {
                     const x = final[j];
+                    // **A face already burnt out has nothing left to burn.** The fire takes the face a
+                    // cube is standing on, and a charred cube is standing on one it took before — so
+                    // a second fire took another copy off the cube, one it was not showing. A copied
+                    // Baroonda beside a copied charred cube is where that comes up: every Mirror that
+                    // reflects a singe reflects the Baroonda that did it.
+                    if (x.charred) continue;
                     // **The whole Binder is fireproof, not just the Flamejet.** Half the cube being
                     // immune and the other half not made the immunity read as a bug on the face it
                     // did not cover; the cube is one object and answers as one.
@@ -2262,7 +2313,8 @@ const resolveLine = function (line, call, bag, opts = {}) {
         const marks = keyOf(st);
         const changed = now.length !== was.length
             || now.some((e, k) => e !== was[k])
-            || marks !== wasMarks;
+            || marks !== wasMarks
+            || sealed !== wasSealed;
         if (changed || notes.length > noteAt) {
             const step = {
                 faceIds: now, note: notes[noteAt] || null, at: at(c), ...st,

@@ -675,7 +675,7 @@ one dying five prestiges early.
 
 The old step also set the reroll price, which is scaled by the same figure: a prestige-8 reroll
 cost 📀977M at ×5 against 📀640k at ×2. Scaling rerolls with the ceiling is right; ×5 made it
-meaningless.
+meaningless. (Both are now also capped by the purse — see [rerolls](#29-rerolls).)
 
 **Prestige is offered, never forced.** Survive Level 5 once and the offer sits there indefinitely;
 you can keep playing a collapsed road at the old stake ceiling as long as you like, Agains past the
@@ -1439,6 +1439,23 @@ mean buying at 📀100 and cashing in at the cap. 📀2,500 at prestige 0, doubl
 counter of its own: the stock *is* the escalation, so spending them brings the price back down.
 That matters more than it looks, because a stocked reroll is the strongest thing in the mode.
 
+**But never more than half the purse** (`rerollShare`, before the ×1.5), and never under 📀2,500. The
+ceiling is only what a player *could* stake; under it, the purse is what they can actually put behind
+a roll, and so is everything a reroll can save. At prestige 8 a ceiling-priced reroll was 📀640k —
+thirty-two stakes for a player holding 📀20k. Half the purse is roughly what one is worth at its
+strongest: all-in on Level 1, a reroll turns a coin flip into about 75%, half a purse of expectation.
+Buying shrinks the purse the next price is taken from, so a purse-limited player tops out around two.
+
+This does let a reroll bought while poor be spent after getting rich, and that is accepted, because
+it was never closed: a reroll bought at prestige 0 for 📀2,500 has always been good on a prestige-8
+stake. **A banked reroll is honoured at any stake, at the price it was bought for.** An earlier cut
+had each bought reroll remember the stake it covered and charge the gap on the game over screen; it
+was dropped before shipping, because insurance that sends a bill after the crash is not insurance.
+
+The **weld reroll** follows the same rule with a 10% share (`weldRerollShare`): the ceiling price, but
+never more than a tenth of the purse, floored at 📀2,500. It is a sink paid for again and again on the
+chase, so it takes a smaller bite.
+
 A purchase goes on the lifetime **spend** with `recordSpent` rather than on the loss ledger — it is
 a price, not a wager — so `won - lost - spent` still reconciles against the balance the mode has
 moved. See [the start screen](#23-the-start-screen).
@@ -1913,7 +1930,7 @@ Five more things fall out of that table worth keeping:
   Bribe **+0.05** — but holding both is worth **+0.10**, the same as the Nudge alone. They fight
   over the same rolls in both directions: the Nudge raises the bar the bribe has to beat (his cube
   now pays 0.6× the standing, not 0.4×), and the bribe's price ladder means only the first one or
-  two per prestige are worth buying anyway. If they should stack, the knobs are `bribeShare` down
+  two per run are worth buying anyway (the ladder resets when a run starts). If they should stack, the knobs are `bribeShare` down
   or `bribeStep` down. The Bribe still earns its slot on something the EV doesn't measure — it is
   the only way to make a tie *certain*, which is worth more than its EV when a deep standing is
   riding on it.

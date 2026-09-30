@@ -220,37 +220,58 @@ exports.browserAuthCallback = ctx => async function (req, res) {
     if (!CLIENT_SECRET || !JWT_SECRET || !OAUTH_REDIRECT) {
         return res.status(503).send('Sign-in is not configured on this server.');
     }
-    const { code, state } = req.query || {};
-    if (typeof code !== 'string' || !code) return res.status(400).send('Discord sent no code.');
+    const { code, state, error } = req.query || {};
 
+    // Signature checked, expiry read separately. An expired state is still one *we* wrote, so its
+    // return address is as trustworthy as a fresh one — what it can no longer do is vouch for the
+    // code that came with it, so an expired state never gets a token, only a way back.
     let target;
+    let expired = false;
     try {
-        target = jwt.verify(String(state || ''), JWT_SECRET).r;
+        target = jwt.verify(String(state || ''), JWT_SECRET, { ignoreExpiration: true }).r;
+        expired = jwt.decode(String(state)).exp * 1000 <= Date.now();
     } catch (err) {
-        return res.status(400).send('That sign-in has expired. Start it again.');
+        // Unsigned or forged: there is nowhere trustworthy to send them, so this one stays a page.
+        return res.status(400).send('That sign-in link is broken. Open the cube again to start over.');
     }
     // Re-checked rather than trusted from the signature. The allow-list is configuration and can
     // have changed since the state was minted; a signature only proves *we* wrote it, not that it
     // is still somewhere we are willing to send an account.
     if (!allowedRedirect(target)) return res.status(400).send('That is not somewhere this can send you.');
 
+    // Everything from here that goes wrong goes wrong *on the site*, where the player has a button,
+    // rather than as bare text on this service's domain.
+    const home = (fragment) => {
+        const back = new URL(target);
+        // Appended to whatever fragment was already there rather than replacing it, so a redirect
+        // back to a routed page keeps its route.
+        back.hash = `${back.hash ? `${back.hash.replace(/^#/, '')}&` : ''}${fragment}`;
+        return res.redirect(back.toString());
+    };
+
+    // Lingered on Discord's consent screen, or came back to this URL with Back. They were plainly
+    // trying to sign in, so start them over rather than asking them to.
+    if (expired) {
+        return res.redirect(`${req.baseUrl}/auth/discord?redirect=${encodeURIComponent(target)}`);
+    }
+    // Pressed Cancel on Discord. Sent home with a reason rather than restarted, or Cancel would
+    // just be a slower way of saying yes.
+    if (error) return home('cubeError=cancelled');
+    if (typeof code !== 'string' || !code) return home('cubeError=failed');
+
     let discordUser;
     try {
         ({ user: discordUser } = await exchange(code, OAUTH_REDIRECT));
     } catch (err) {
+        // Usually a refresh of this URL: a code is single-use, so the second exchange is refused.
         console.error('[api] browser code exchange failed:', err.response?.data || err.message);
-        return res.status(401).send('Discord would not accept that sign-in.');
+        return home('cubeError=failed');
     }
 
     const name = discordUser.global_name || discordUser.username;
     const { userKey } = await resolvePlayer(ctx.db, ctx.database, discordUser.id, name);
     const token = mintToken(discordUser.id, userKey);
-
-    const back = new URL(target);
-    // Appended to whatever fragment was already there rather than replacing it, so a redirect back
-    // to a routed page keeps its route.
-    back.hash = `${back.hash ? `${back.hash.replace(/^#/, '')}&` : ''}cubeToken=${encodeURIComponent(token)}`;
-    return res.redirect(back.toString());
+    return home(`cubeToken=${encodeURIComponent(token)}`);
 };
 
 // Verifies the JWT and puts the live profile on the request. Every route but the exchange goes

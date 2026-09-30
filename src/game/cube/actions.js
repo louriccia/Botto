@@ -313,6 +313,15 @@ exports.startRun = function (ctx, { call }) {
     persist.clearLadder(database, db, discordId);
     moveTruguts({ transaction: 'w', amount: stake });
 
+    // **The bribe ladder is per run.** It used to reset only on prestige, so two bought ties priced
+    // the pick out for everything left of the prestige — 1.5× a step against a 1.03× opening is
+    // 17× fair by the seventh. Scoped to the run, the step still stops a run buying every tie.
+    if (s.bribes) {
+        const patch = {};
+        pstate.resetBribes(s, patch);
+        persist.writeCube(ctx.profileRef, profile, patch);
+    }
+
     return {
         ok: true,
         staked: stake,
@@ -741,14 +750,16 @@ exports.buyReroll = function (ctx) {
     const { s, db, profile, profileRef, discordId } = ctx;
     if (!s.buyReroll) return refuse('locked', 'You cannot buy rerolls yet.');
     if (persist.ladderOf(db, discordId)) return refuse('run_live', 'Not while a run is live.');
-    const cost = s.rerollCost;
+    const cost = pstate.rerollCostFor(s.prestige, s.rerolls, balanceOf(profile));
     const paid = chargeTruguts(ctx, cost);
     if (!paid.ok) return paid;
     const patch = {};
     pstate.addReroll(s, patch, 1);
     pstate.recordSpent(s, patch, cost);
     persist.writeCube(profileRef, profile, patch);
-    return { ok: true, rerolls: s.rerolls, spent: cost, nextCost: s.rerollCost, balance: balanceOf(profile) };
+    const balance = balanceOf(profile);
+    s.rerollCost = pstate.rerollCostFor(s.prestige, s.rerolls, balance);
+    return { ok: true, rerolls: s.rerolls, spent: cost, nextCost: s.rerollCost, balance };
 };
 
 exports.buySkin = function (ctx, { id }) {
@@ -852,8 +863,8 @@ exports.rerollWeld = function (ctx, { id, paying = 'truguts', major = null, keep
     if (!parents) return refuse('not_a_weld', 'That is not a welded cube.');
 
     const points = paying === 'points';
-    const cost = points ? 0 : s.weldRerollCost;
     const balance = balanceOf(profile);
+    const cost = points ? 0 : pstate.weldRerollCostFor(s.prestige, balance);
     if (points && s.points < 1) return refuse('no_points', 'You have no build tokens to spend. A prestige pays one.');
     if (!points && cost > balance) {
         return refuse('insufficient', `That costs ${cost} but you only have ${balance}.`, { cost, balance });

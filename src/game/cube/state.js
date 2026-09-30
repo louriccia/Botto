@@ -32,13 +32,24 @@ exports.OFF_RACK = OFF_RACK;
 const maxStakeFor = prestige => config.maxStake * (config.maxStakeStep ** prestige);
 exports.maxStakeFor = maxStakeFor;
 
-const rerollCostFor = (prestige, stock = 0) => Math.floor(
-    config.rerollCost * (config.maxStakeStep ** prestige) * (config.rerollPriceStep ** stock),
+// Both reroll prices scale with the stake ceiling, but never charge more than a share of the purse.
+// The ceiling is only what a player *could* stake; under it, the purse is what they can actually put
+// behind a roll, and a ceiling price there was a multiple of everything they own. Never under the
+// prestige-0 price, and without a balance it is the ceiling price, which is what the tuning scripts read.
+const cappedByPurse = (base, prestige, share, balance) => Math.min(
+    base * (config.maxStakeStep ** prestige),
+    Math.max(base, share * Math.max(0, balance)),
+);
+
+// A bought reroll is honoured at any stake, so its price is settled once, here, and never revisited.
+// ×1.5 for every reroll already in stock.
+const rerollCostFor = (prestige, stock = 0, balance = Infinity) => Math.floor(
+    cappedByPurse(config.rerollCost, prestige, config.rerollShare, balance) * (config.rerollPriceStep ** stock),
 );
 exports.rerollCostFor = rerollCostFor;
 
-const weldRerollCostFor = prestige => Math.floor(
-    config.weldRerollCost * (config.maxStakeStep ** prestige),
+const weldRerollCostFor = (prestige, balance = Infinity) => Math.floor(
+    cappedByPurse(config.weldRerollCost, prestige, config.weldRerollShare, balance),
 );
 exports.weldRerollCostFor = weldRerollCostFor;
 
@@ -248,6 +259,8 @@ exports.cubeState = function (user_profile) {
     const comb = combOf(c, prestige);
     const maxStake = maxStakeFor(prestige);
     const stored = Math.floor(Number(c.stake) || 0);
+    const stake = Math.min(stored >= config.minStake ? stored : config.defaultStake, maxStake);
+    const balance = (Number(user_profile?.truguts_earned) || 0) - (Number(user_profile?.truguts_spent) || 0);
     const collected = Object.entries(COLLECTED)
         .filter(([flag]) => effects[flag])
         .map(([, id]) => id)
@@ -274,7 +287,7 @@ exports.cubeState = function (user_profile) {
         slots: engine.bagSize(),
         rerolls: stock,
         buyReroll: !!c.buyReroll,
-        rerollCost: rerollCostFor(prestige, stock),
+        rerollCost: rerollCostFor(prestige, stock, balance),
         scrap: !!c.scrap,
         double: !!c.double,
         pressTier,
@@ -285,7 +298,7 @@ exports.cubeState = function (user_profile) {
         premonition: !!c.premonition,
         shuffle: !!c.shuffle,
         sidebet: !!c.sidebet,
-        weldRerollCost: weldRerollCostFor(prestige),
+        weldRerollCost: weldRerollCostFor(prestige, balance),
         weldSeen,
         ties: Object.fromEntries(TIE_KEYS.map(k => [k, count(c.ties?.[k])])),
         week: windowOf(c?.week, weekKey()),
@@ -307,7 +320,7 @@ exports.cubeState = function (user_profile) {
         faces: (c.faces && typeof c.faces === 'object') ? c.faces : {},
         prestige,
         points: count(c.points),
-        stake: Math.min(stored >= config.minStake ? stored : config.defaultStake, maxStake),
+        stake,
         maxStake,
         turn: Number(c.turn) || 0,
         unlocked,
@@ -752,14 +765,12 @@ exports.applyPrestige = function (s, patch) {
     s.unlocked = 0;
     s.clears = 0;
     s.maxStake = maxStakeFor(s.prestige);
-    s.rerollCost = rerollCostFor(s.prestige);
     s.points += 1;
     patch.prestige = s.prestige;
     patch.unlocked = 0;
     patch.clears = 0;
     patch.points = s.points;
-    s.bribes = 0;
-    patch.bribes = 0;
+    exports.resetBribes(s, patch);
     s.comb = [...s.comb, exports.pressWinner(s)];
     patch.comb = s.comb;
     s.pick = true;
@@ -849,6 +860,11 @@ exports.setLoadout = function (s, patch, ids) {
 exports.addReroll = function (s, patch, n) {
     s.rerolls = Math.max(0, s.rerolls + n);
     patch.rerolls = s.rerolls;
+};
+
+exports.resetBribes = function (s, patch) {
+    s.bribes = 0;
+    patch.bribes = 0;
 };
 
 exports.addBribe = function (s, patch) {

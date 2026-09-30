@@ -172,6 +172,33 @@ const PLAY = [
         check: r => (noteOf(r, 'mirror').walled === 1 ? null : 'the write was not turned away'),
     },
     {
+        // The other half of the same wall. Seats 1–3 are under the dome and the Mirror stands in
+        // it, so the Gungan and the Greed it reflects fill the dome's one open seat and the second
+        // copy is turned away at the edge — rather than conjured into open air past the tail.
+        id: 'mirror.walled.out',
+        say: 'standing under a dome cannot grow the line out through its wall',
+        cubes: [P(), C('greed', 'greed'), C('gungan', 'shield'), C('mirror', 'mirror')],
+        want: ['mirror'],
+        len: 4,
+        check: r => {
+            const n = noteOf(r, 'mirror');
+            return n.copied === 0 && n.walled === 1 ? null : `copied ${n.copied}, walled ${n.walled}`;
+        },
+    },
+    {
+        // A shield standing last shelters the seat that does not exist yet, so a Mirror beside it
+        // conjures exactly that one and is stopped at the next.
+        id: 'mirror.walled.tail',
+        say: 'under a dome ending at a shield fills the shield\'s open side and stops',
+        cubes: [P(), P(), C('greed', 'greed'), C('mirror', 'mirror'), C('gungan', 'shield')],
+        want: ['mirror'],
+        len: 6,
+        check: r => {
+            const n = noteOf(r, 'mirror');
+            return n.made === 1 && n.walled === 1 ? null : `made ${n.made}, walled ${n.walled}`;
+        },
+    },
+    {
         id: 'mirror.blessed',
         say: 'spends a blessing rather than writing over the cube wearing it',
         cubes: [C('greed', 'greed'), C('mirror', 'mirror'), P({ blessed: true })],
@@ -320,6 +347,8 @@ const PLAY = [
         cubes: [C('binder', 'burn'), C('binder', 'clone')],
         want: ['burn.fireproof'],
         medley: true,
+        // The seat is what the board pops `Immune!` over.
+        check: r => (noteOf(r, 'burn.fireproof').at === 1 ? null : 'the refusal named no seat'),
     },
     {
         id: 'burn.walled',
@@ -378,6 +407,24 @@ const PLAY = [
         check: r => (r.mirrored[2] === false ? null : 'the Binder handed back a mirrored cube'),
     },
     {
+        id: 'clone.keeps.ice',
+        say: 'copies a held cube held — a print of the ice as well as the cube',
+        // Ando Prime freezes the cube to the Binder's left this walk, so it is holding a face for
+        // the next throw when the Binder reads it; the Binder sits out of his reach.
+        cubes: [C('octahedron', 'freeze'), RED(), C('binder', 'clone'), P()],
+        want: ['freeze', 'clone'],
+        check: r => (r.frozen[1] ? null : 'the original was not held')
+            || (r.frozen[3] ? null : 'the copy came out thawed'),
+    },
+    {
+        id: 'clone.keeps.ice.turned',
+        say: 'holds the engine the copy shows, not the one it was cut from',
+        cubes: [C('octahedron', 'freeze'), C('sebulba', 'engine:left'), C('binder', 'clone'), P()],
+        want: ['freeze', 'clone'],
+        check: r => (r.frozen[3] ? null : 'the copy came out thawed')
+            || (r.line[3] === 'engine:right' ? null : `the copy shows ${r.line[3]}`),
+    },
+    {
         id: 'clone.alone',
         say: 'with no neighbour either side has nothing to do',
         cubes: [C('binder', 'clone')],
@@ -419,6 +466,13 @@ const PLAY = [
         cubes: [C('greed', 'greed'), C('binder', 'clone'), P(), C('gungan', 'shield')],
         want: ['clone.walled'],
         medley: true,
+    },
+    {
+        id: 'clone.walled.out',
+        say: 'at the tail of a dome cannot append its copy out through the wall',
+        cubes: [P(), C('gungan', 'shield'), C('binder', 'clone')],
+        want: ['clone.walled'],
+        len: 3,
     },
     {
         id: 'clone.prisoners',
@@ -842,6 +896,29 @@ const PLAY = [
         medley: true,
     },
     {
+        id: 'freeze.immune',
+        say: 'cannot hold a Flamejet or a Baroonda — fire does not freeze',
+        // Fire on the right, because a fire standing left of Ando Prime burns him before he acts.
+        cubes: [C('octahedron', 'freeze'), C('binder', 'burn')],
+        want: ['freeze.immune'],
+        check: r => (!r.frozen[1] ? null : 'the ice took a Flamejet'),
+    },
+    {
+        id: 'freeze.immune.lava',
+        say: 'cannot hold a Baroonda either',
+        cubes: [C('octahedron', 'freeze'), C('octahedron', 'scorch')],
+        want: ['freeze.immune'],
+        check: r => (!r.frozen[1] ? null : 'the ice took a Baroonda'),
+    },
+    {
+        id: 'freeze.half',
+        say: 'holds the neighbour it can and names the one it could not',
+        cubes: [C('greed', 'greed'), C('octahedron', 'freeze'), C('binder', 'burn')],
+        want: ['freeze'],
+        check: r => (r.frozen[0] && !r.frozen[2] && (noteOf(r, 'freeze').immuneAt || []).includes(2)
+            ? null : 'wanted the Greed held and the Flamejet named immune'),
+    },
+    {
         id: 'freeze.nothing',
         say: 'alone, has nobody to hold',
         cubes: [C('octahedron', 'freeze')],
@@ -870,6 +947,14 @@ const PLAY = [
         medley: true,
         check: r => (r.burned[0].length === 1 ? null : 'no face came off')
             || (r.charred[0] === true ? null : 'the charred face still counted'),
+    },
+    {
+        id: 'scorch.charred',
+        say: 'leaves a face it already burnt out alone, reflected Baroonda and all',
+        cubes: [C('greed', 'greed'), C('octahedron', 'scorch'), C('greed', 'greed'), C('mirror', 'mirror')],
+        want: ['scorch', 'mirror'],
+        check: r => (r.burned[4].length === 1 && r.burned[6].length === 1
+            ? null : 'the copy lost a second face to the copied fire'),
     },
     {
         id: 'scorch.nothing',
@@ -1617,7 +1702,7 @@ const hunt = async function (fails, wanted) {
 const ALL_NOTES = [
     'side', 'wild', 'greed', 'seam', 'boost', 'mult', 'heat', 'guide', 'shortcut', 'reroll',
     'mirror', 'mirror.nothing', 'mirror.noroom', 'invert',
-    'end', 'end.shielded', 'broken',
+    'end', 'end.shielded', 'broken', 'broken.blessed',
     'burn', 'burn.nothing', 'burn.fireproof', 'burn.walled', 'burn.iced', 'burn.blessed',
     'clone', 'clone.alone', 'clone.walled', 'clone.blessed', 'clone.destroy', 'clone.append',
     'clone.noroom',
@@ -1629,7 +1714,7 @@ const ALL_NOTES = [
     'haul', 'haul.nothing', 'haul.walled', 'haul.rubble',
     'purge', 'purge.nothing',
     'engine', 'engine.walled', 'engine.nothing', 'engine.already', 'engine.iced',
-    'freeze', 'freeze.already', 'freeze.nothing', 'thaw',
+    'freeze', 'freeze.already', 'freeze.immune', 'freeze.nothing', 'thaw',
     'scorch', 'scorch.nothing', 'scorch.spared',
     'vault', 'jail', 'jail.nothing',
     'plunge', 'plunge.nothing',

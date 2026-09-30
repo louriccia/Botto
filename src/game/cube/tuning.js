@@ -89,7 +89,7 @@ exports.SPECIALS = [
         ],
     },
     {
-        id: 'gungan', name: 'Gungan Shield Cube',
+        id: 'gungan', name: 'Fambaa Cube',
         blurb: 'Every face raises a dome over itself and both its neighbours. Nothing crosses it in '
             + 'either direction — and only a cube already inside it can bring the shield down. '
             + 'Domes that touch fuse into one wider dome.',
@@ -467,7 +467,9 @@ exports.cube = {
     weldPurity: 0.01,
     weldMemory: 2,
     weldRerollCost: 2500,
+    weldRerollShare: 0.1,
     rerollCost: 2500,
+    rerollShare: 0.5,
     rerollPriceStep: 1.5,
 };
 
