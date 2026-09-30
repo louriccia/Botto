@@ -2,8 +2,8 @@
 
 > *"Two cubes, one seat."* — until you need two cubes.
 
-**Status: built. Covered by `scripts/cubeSplit.js`; no press screen, so a weld is still unreachable in
-production and the pick has nothing to act on until there is one.**
+**Status: built and on screen.** Covered by `scripts/cubeSplit.js`. The pick is now the Fusioncutter:
+one charge either splits a weld or joins two neighbours into one seat (`joinAt`; `scripts/cubeJoin.js`).
 
 The rules are implemented — `splitAt` / `canSplitAt` in the engine, `splittable` and the `splitting`
 branch of `alterShown` in the actions, `split` on `POST /held`, and the button, the marked cubes and the

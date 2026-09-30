@@ -1,6 +1,6 @@
 # Interaction Revisions — Triage Of The Matrix Notes
 
-**Status: §2 is built. §4 is not.** It takes the notes written against
+**Status: §2 and §4 are built, bar §4.4b.** It takes the notes written against
 `docs/face-interaction-matrix.md` and sorts them into what the engine already did, what has now been
 changed, and what is still open.
 
@@ -11,7 +11,8 @@ changed, and what is still open.
   the largest mover in the re-priced book.
 - **§5** — the whole side-bet book **re-measured, re-priced and re-banded** at 40,000 climbs.
 - **§4.7** — cubes are **named instances**, so two identical cubes are two cubes on the wire.
-- **§4.4** (repair faces) and **§4.5** (a persistent `mirrored` status) are still open.
+- **§4.4** (the Scavenger's repair rider) and **§4.5** (a persistent `mirrored` status) are **implemented**.
+  **§4.4b**, faces that repair, is still open.
 
 Vocabulary, because three of these names are not in the engine:
 

@@ -2,13 +2,12 @@
 
 > *"We'll let fate decide."* — six faces of it, and fate picks which six.
 
-**Status: built and measured. No screen, so nobody can press anything yet.**
+**Status: built, measured and on screen.**
 
 The rules are implemented — `rollWeld` / `buildWeld` / `weldSpace` in the engine, `weldCubes` /
 `recutWeld` / `unweldCube` in the state layer, `weldCubes` / `rerollWeld` / `unweld` in the actions,
-and `POST /weld`, `/weld/reroll`, `/weld/break` on the API. Coverage is `scripts/cubeWeld.js`. What
-does not exist is the **Activity screen**, so no player can reach any of it and the mode is unchanged
-in production.
+and `POST /weld`, `/weld/reroll`, `/weld/break` on the API. Coverage is `scripts/cubeWeld.js`. The
+Activity presses from the rack, and `weldview.js` draws the press at work.
 
 The earlier **pooled** prototype — a twelve-sided weld carrying every face of both parents, with a
 `weldBurns` dial removing one downside face — is gone from the engine.
