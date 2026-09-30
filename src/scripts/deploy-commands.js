@@ -12,6 +12,7 @@
 //   node deploy-commands.js --list                 show what's registered vs. what's here
 //   node deploy-commands.js --global               deploy globally (this is the real one)
 //   node deploy-commands.js --guild <id>           deploy to one guild, for testing
+//   node deploy-commands.js --guild <id> --only a,b   deploy just those commands to one guild
 //   node deploy-commands.js --clear-guild <id>     remove a guild's own registrations
 //
 // Requires clientId and token in .env. Safe to re-run: every mode is a PUT, which
@@ -20,6 +21,7 @@
 require('dotenv').config({ path: __dirname + '/../../.env' })
 
 const { REST, Routes } = require('discord.js');
+const { swe1r_guild } = require('../data/discord/guild.js');
 const fs = require('node:fs');
 const path = require('node:path');
 
@@ -86,14 +88,25 @@ async function show(label, route) {
 }
 
 (async () => {
-	const [mode, arg] = process.argv.slice(2);
+	const [mode, arg, flag, list] = process.argv.slice(2);
 	// A guild deploy is for testing, which is exactly what the held-back commands are for.
-	const { commands, skipped, broken } = loadCommands({ applyExcludes: mode !== '--guild' });
+	const loaded = loadCommands({ applyExcludes: mode !== '--guild' });
+	const { skipped, broken } = loaded;
+	// **`--only` is how a held-back command reaches a real guild ahead of the global set.** A plain
+	// guild deploy carries every command, which in a guild that already sees the global set shows each
+	// one twice.
+	const only = flag === '--only' ? (list || '').split(',').map(n => n.trim()).filter(Boolean) : null;
+	const commands = only ? loaded.commands.filter(c => only.includes(c.name)) : loaded.commands;
+	if (only && commands.length !== only.length) {
+		const missing = only.filter(n => !commands.some(c => c.name === n));
+		console.error(`--only names commands that are not here: ${missing.join(' ')}`);
+		process.exit(1);
+	}
 
 	console.log(`Found ${commands.length} command(s) in ${COMMAND_DIR}`);
 	console.log(`  ${names(commands)}`);
 	if (skipped.length) console.log(`  excluded from global: ${skipped.join(' ')}`);
-	if (mode === '--guild' && EXCLUDE.length) {
+	if (mode === '--guild' && !only && EXCLUDE.length) {
 		console.log(`  including ${EXCLUDE.join(' ')} — guild deploys carry the held-back commands`);
 	}
 	for (const b of broken) {
@@ -104,10 +117,18 @@ async function show(label, route) {
 	try {
 		if (mode === '--global') {
 			const before = await rest.get(Routes.applicationCommands(clientID));
+			// **The Activity's entry point is carried over, not dropped.** Discord creates `/launch` itself
+			// when Activities are enabled, and this repo holds it back, so a bulk overwrite that left it
+			// out would delete the only way into the Activity, or be refused for trying.
+			const entry = before
+				.filter(b => b.type === 4 && !commands.some(c => c.name === b.name))
+				.map(({ id, name, description, type, handler, integration_types, contexts }) => ({ id, name, description, type, handler, integration_types, contexts }));
+			const body = [...commands, ...entry];
+			if (entry.length) console.log(`  keeping the registered entry point: ${names(entry)}`);
 			const added = commands.filter(c => !before.some(b => b.name === c.name)).map(c => c.name);
-			const removed = before.filter(b => !commands.some(c => c.name === b.name)).map(b => b.name);
+			const removed = before.filter(b => !body.some(c => c.name === b.name)).map(b => b.name);
 
-			const data = await rest.put(Routes.applicationCommands(clientID), { body: commands });
+			const data = await rest.put(Routes.applicationCommands(clientID), { body });
 			console.log(`Deployed ${data.length} command(s) globally.`);
 			if (added.length) console.log(`  added:   ${added.map(n => '/' + n).join(' ')}`);
 			if (removed.length) console.log(`  removed: ${removed.map(n => '/' + n).join(' ')}`);
@@ -120,7 +141,7 @@ async function show(label, route) {
 			if (!arg) return console.error('--guild needs a guild id.');
 			const data = await rest.put(Routes.applicationGuildCommands(clientID, arg), { body: commands });
 			console.log(`Deployed ${data.length} command(s) to guild ${arg} (instant).`);
-			console.log('Note: a guild copy sits alongside the global set - expect duplicates for any shared name.');
+			if (!only) console.log('Note: a guild copy sits alongside the global set - expect duplicates for any shared name.');
 			return;
 		}
 
@@ -134,7 +155,7 @@ async function show(label, route) {
 		// --list, and the no-argument default.
 		console.log('Currently registered:');
 		await show('global', Routes.applicationCommands(clientID));
-		for (const [label, id] of [['test guild', '1135800421290627112'], ['secret guild', '1199872145354915920']]) {
+		for (const [label, id] of [['SWE1R guild', swe1r_guild], ['test guild', '1135800421290627112'], ['secret guild', '1199872145354915920']]) {
 			await show(`${label} (${id})`, Routes.applicationGuildCommands(clientID, id));
 		}
 		if (mode !== '--list') {
