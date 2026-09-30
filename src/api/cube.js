@@ -286,15 +286,15 @@ module.exports = function mountCube(app, ctx) {
     // -----------------------------------------------------------------------
 
     // Inside Discord: the Embedded SDK hands over a code and this exchanges it.
-    app.post('/auth/token', tokenHandler(ctx));
+    app.post('/auth/token', rateLimit({ perMinute: 120, shared: true }), tokenHandler(ctx));
 
     // In a browser: an ordinary OAuth redirect, run by this service, so the Activity is playable as
     // a page on the site by anyone logged in there. Both flows end at the same cube token and the
     // same player — see the note in `auth.js` for why the site's own session is not reused.
     //
     // Unauthenticated by necessity, like the exchange above: they *are* the sign-in.
-    app.get('/auth/discord', browserAuthStart);
-    app.get('/auth/callback', browserAuthCallback(ctx));
+    app.get('/auth/discord', rateLimit({ perMinute: 120, shared: true }), browserAuthStart);
+    app.get('/auth/callback', rateLimit({ perMinute: 120, shared: true }), browserAuthCallback(ctx));
 
     // -----------------------------------------------------------------------
     // Static data
@@ -349,13 +349,13 @@ module.exports = function mountCube(app, ctx) {
         skins: SKIN_SETS,
     };
 
-    app.get('/tuning', requireAuth(ctx), (req, res) => res.json(tuningResponse));
+    app.get('/tuning', requireAuth(ctx), rateLimit({ perMinute: 30 }), (req, res) => res.json(tuningResponse));
 
     // -----------------------------------------------------------------------
     // The board
     // -----------------------------------------------------------------------
 
-    app.get('/state', auth, async (req, res) => {
+    app.get('/state', auth, rateLimit({ perMinute: 60 }), async (req, res) => {
         try {
             res.json(boardOf(ctx, req));
         } catch (err) {

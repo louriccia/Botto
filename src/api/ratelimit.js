@@ -17,10 +17,13 @@ const buckets = new Map();
 // attempts a minute would silently cap rolling at ten a minute too.
 let nextId = 0;
 
-exports.rateLimit = ({ perMinute }) => {
+// `shared` is one bucket for everyone, for the routes that run before anyone is signed in. An IP is no
+// key there: behind Discord's proxy one address can be a whole channel, and the forwarded one is
+// whatever the caller says it is.
+exports.rateLimit = ({ perMinute, shared = false }) => {
     const route = `r${nextId += 1}`;
     return function (req, res, next) {
-        const key = `${route}:${req.player?.discordId || req.ip}`;
+        const key = shared ? route : `${route}:${req.player?.discordId || req.ip}`;
         const now = Date.now();
         const b = buckets.get(key);
         if (!b || now > b.until) {

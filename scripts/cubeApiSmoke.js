@@ -548,6 +548,15 @@ const check = function (name, ok, detail) {
         r.status === 402 && r.json.code === 'insufficient', `${r.status} ${r.text}`);
     PLAYER.random.truguts_earned = held;
 
+    // Last, because it spends the shared sign-in bucket for everyone. Each of these would have been a
+    // call to Discord made with the bot's own credentials.
+    let limited = null;
+    for (let i = 0; i < 125 && !limited; i++) {
+        const x = await call('POST', '/cube/auth/token', { body: {} });
+        if (x.status === 429) limited = i;
+    }
+    check('sign-in is capped across everyone', limited !== null && limited <= 120, `first 429 at ${limited}`);
+
     server.close();
     const failed = results.filter(x => !x.ok);
     console.log(`\n${results.length - failed.length}/${results.length} checks passed.`);
