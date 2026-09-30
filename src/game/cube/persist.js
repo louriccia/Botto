@@ -23,10 +23,13 @@ const pruned = function (value) {
 };
 
 // Writes are un-awaited, so failure is this file's business. `.catch` covers the trip, `try` covers
-// the synchronous throw above.
+// the synchronous throw above. Either way the mirror already holds the write and the database does
+// not, so the log is the only record of what a restart would lose.
 const fireAndForget = function (what, write) {
     try {
-        write().catch(() => { });
+        write().catch((err) => {
+            console.error(`[cube] ${what} did not reach the database:`, err.message);
+        });
     } catch (err) {
         console.error(`[cube] ${what} was refused by the database:`, err.message);
     }

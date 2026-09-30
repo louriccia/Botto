@@ -4047,12 +4047,13 @@ exports.manageTruguts = function ({ user_profile, profile_ref, transaction, amou
     } else if (transaction == 'r') {
         user_profile.truguts_spent -= amount
     }
+    //the mirror already holds the new totals, so a failed write is only recoverable from this log
     profile_ref.update({
         truguts_spent: user_profile.truguts_spent,
         truguts_earned: user_profile.truguts_earned
-    })
+    }).catch(err => console.error(`manageTruguts write failed for ${user_profile.name} (${transaction} ${amount}; now earned ${user_profile.truguts_earned}, spent ${user_profile.truguts_spent}):`, err.message))
     if (transaction == 'w' && purchase) {
-        profile_ref.child("purchases").push(purchase)
+        profile_ref.child("purchases").push(purchase).catch(err => console.error(`manageTruguts purchase log failed for ${user_profile.name}:`, err.message))
     }
     return user_profile
 }
