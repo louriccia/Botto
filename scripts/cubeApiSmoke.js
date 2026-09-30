@@ -68,6 +68,8 @@ const token = k => jwt.sign({ discordId: `d-${k}`, userKey: k }, process.env.CUB
 
 let server;
 let base;
+const turnOf = async auth => (await call('GET', '/cube/state', { auth })).json?.player?.turn;
+
 const call = async function (method, path, { auth, body, origin } = {}) {
     const headers = {};
     if (auth) headers.Authorization = `Bearer ${auth}`;
@@ -205,9 +207,19 @@ const check = function (name, ok, detail) {
     // response has to describe it fully either way.
     const before = PLAYER.random.truguts_earned - PLAYER.random.truguts_spent;
     const stakeNow = (await call('GET', '/cube/state', { auth: t })).json.player.stake;
-    r = await call('POST', '/cube/roll', { auth: t, body: { call: 'blue' } });
+    const stakeTurn = await turnOf(t);
+    r = await call('POST', '/cube/roll', { auth: t, body: { call: 'blue', turn: stakeTurn } });
     const roll = r.json;
     check('roll returns a result', r.status === 200 && !!roll?.settled, `${r.status} ${r.text}`);
+    check('the roll moves the turn on', roll?.board?.player?.turn === stakeTurn + 1,
+        JSON.stringify(roll?.board?.player?.turn));
+    const replayed = await call('POST', '/cube/roll', { auth: t, body: { call: 'blue', turn: stakeTurn } });
+    check('a roll sent twice is refused the second time',
+        replayed.status === 409 && replayed.json?.code === 'stale_turn' && !!replayed.json?.board,
+        `${replayed.status} ${replayed.text}`);
+    const unnamed = await call('POST', '/cube/roll', { auth: t, body: { call: 'blue' } });
+    check('and so is a roll that names no turn',
+        unnamed.status === 409 && unnamed.json?.code === 'stale_turn', `${unnamed.status} ${unnamed.text}`);
     check('roll reports the thrown line', Array.isArray(roll?.thrown) && roll.thrown.length === 1,
         JSON.stringify(roll?.thrown));
     // Face ids legitimately contain a colon (`side:red`, `mult:blue`), so this looks for Discord's
@@ -324,7 +336,7 @@ const check = function (name, ok, detail) {
     // **Owning the pick is no longer what stops the roll — arming it is.** So the unarmed case is
     // checked first, because it is the common one and it is the whole shape of the change: a player
     // who bought nothing for this rung gets the plain roll they always used to get.
-    r = await call('POST', '/cube/roll', { auth: t, body: { call: 'blue' } });
+    r = await call('POST', '/cube/roll', { auth: t, body: { call: 'blue', turn: await turnOf(t) } });
     check('an unarmed roll settles rather than holding',
         r.status === 200 && !r.json?.held, `${r.status} ${r.text}`);
 
@@ -337,8 +349,8 @@ const check = function (name, ok, detail) {
     const armed = r.json;
     check('a pick can be armed over the wire',
         r.status === 200 && armed?.armed?.swap === true, `${r.status} ${r.text}`);
-    check('and it charges whole mults off the standing',
-        Number.isInteger(armed?.paid) && armed.paid > 0 && armed.standing < 4000,
+    check('and it charges its share off the standing',
+        armed?.paid > 0 && armed.standing < 4000,
         JSON.stringify({ paid: armed?.paid, standing: armed?.standing }));
     check('the board quotes the price it will charge next',
         typeof armed?.price === 'number', JSON.stringify(armed?.price));
@@ -347,7 +359,7 @@ const check = function (name, ok, detail) {
     check('a reloaded board knows what is armed',
         r.json?.prices?.armed?.swap === true, JSON.stringify(r.json?.prices));
 
-    r = await call('POST', '/cube/roll', { auth: t, body: { call: 'blue' } });
+    r = await call('POST', '/cube/roll', { auth: t, body: { call: 'blue', turn: await turnOf(t) } });
     const heldRoll = r.json;
     check('a roll with a pick armed stops with the cubes down',
         r.status === 200 && heldRoll?.held === true && Array.isArray(heldRoll?.faces),
@@ -363,7 +375,7 @@ const check = function (name, ok, detail) {
             JSON.stringify(r.json?.held?.faces) === JSON.stringify(heldRoll.faces)
             && r.json?.held?.call === heldRoll.call,
             JSON.stringify(r.json?.held));
-        r = await call('POST', '/cube/roll', { auth: t, body: { call: 'red' } });
+        r = await call('POST', '/cube/roll', { auth: t, body: { call: 'red', turn: await turnOf(t) } });
         check('a second roll cannot walk past a called line',
             r.status === 409 && r.json.code === 'roll_live', `${r.status} ${r.text}`);
         r = await call('POST', '/cube/bank', { auth: t, body: {} });

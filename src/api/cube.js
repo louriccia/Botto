@@ -455,6 +455,17 @@ module.exports = function mountCube(app, ctx) {
         const ctx = ctxOf(req);
         const call = req.body?.call === 'red' ? 'red' : 'blue';
 
+        // **A roll names the turn it was pressed on.** The route both opens and pushes, so a second
+        // copy of one request — a double press, a retry, a second window — would otherwise find the
+        // run the first one left and push it, staking a standing nobody chose to risk.
+        if (req.body?.turn !== ctx.s.turn) {
+            return res.status(409).json({
+                error: 'That roll was already played. Here is the board as it stands.',
+                code: 'stale_turn',
+                board: boardOf(ctx, req),
+            });
+        }
+
         const live = persist.ladderOf(ctx.db, ctx.discordId);
 
         // A throw parked by a premonition: the rung has already advanced and the cubes are already
@@ -464,6 +475,7 @@ module.exports = function mountCube(app, ctx) {
             ? { ok: true, staked: 0, run: null }
             : (live ? actions.pushRun(ctx, { call }) : actions.startRun(ctx, { call }));
         if (!opened.ok) return refused(res, opened);
+        persist.writeCube(ctx.profileRef, ctx.profile, { turn: ctx.s.turn + 1 });
 
         // Whether the roll is on the books. Past this point the stake is not the API's to hand back:
         // the parked tie holds that same stake and pays out on it, so refunding as well credits the
