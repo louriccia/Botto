@@ -14,8 +14,8 @@
 //      afterwards and settled in a later request. `cubeLine.js` proves that for a thrown line; this
 //      proves it for one that has been taken apart.
 //
-// Then the refusals, which are the half a measurement cannot reach: a weld comes apart once a run, a
-// plain cube never does, and a frozen one is held shut.
+// Then the refusals, which are the half a measurement cannot reach: a weld comes apart once for each
+// time Split is armed, a plain cube never does, and a frozen one is held shut.
 //
 //   node scripts/cubeSplit.js [splits]
 //
@@ -172,31 +172,36 @@ const ctxWith = function (over) {
     return { s, db, database, discordId: 'me' };
 };
 
-const one = actions.alterShown(ctxWith({}), { split: 0 });
+// Split is armed for the rung before the cubes go down, and arming is what `alterShown` spends.
+const ARMED = { armed: { split: true } };
+
+const unarmed = actions.alterShown(ctxWith({}), { split: 0 });
+check(!unarmed.ok && unarmed.code === 'not_armed', 'a hold that armed nothing was split', unarmed.code);
+
+const cutting = ctxWith(ARMED);
+const one = actions.alterShown(cutting, { split: 0 });
 check(one.ok, 'a weld on a held line would not split', one.code);
 check((one.can?.split || []).length === 0, 'the split was still on offer after being spent');
 check(one.faces && one.faces.length === held.line.length + engine.weldParents(weldId).length - 1,
     'the held line came back the wrong length');
 
-const twice = actions.alterShown(ctxWith({ split: true }), { split: 0 });
-check(!twice.ok && twice.code === 'spent', 'a second split in one run was allowed', twice.code);
+// **One change per arming.** The split disarms itself, and the line is down and called, so the charge
+// cannot be bought back until the next rung.
+const twice = actions.alterShown(cutting, { split: 0 });
+check(!twice.ok && twice.code === 'not_armed', 'a second split on one arming was allowed', twice.code);
+const rearm = actions.arm(cutting, { pick: 'split' });
+check(!rearm.ok && rearm.code === 'roll_live', 'Split was armed again with the cubes down', rearm.code);
 
-// **One change per hold**, which is a different limit from once a run and refuses with its own code: the
-// run may have two picks left and this line has still had its one change. See `alterShown`.
-const again = actions.alterShown(ctxWith({ shown: null }), { split: 0 });
+const again = actions.alterShown(ctxWith({ ...ARMED, shown: null }), { split: 0 });
 check(!again.ok && again.code === 'nothing_shown', 'a hold with no line answered', again.code);
-const altered = ctxWith({});
-altered.db.ch.cube.ladders.me.shown.changed = true;
-const second = actions.alterShown(altered, { split: 0 });
-check(!second.ok && second.code === 'changed', 'a second change to one line was allowed', second.code);
 
-const plain = actions.alterShown(ctxWith({}), { split: 1 });
+const plain = actions.alterShown(ctxWith(ARMED), { split: 1 });
 check(!plain.ok && plain.code === 'not_a_weld', 'a plain cube was split', plain.code);
 
-const off = actions.alterShown(ctxWith({}), { split: 99 });
+const off = actions.alterShown(ctxWith(ARMED), { split: 99 });
 check(!off.ok && off.code === 'bad_split', 'a position off the line was split', off.code);
 
-const both = actions.alterShown(ctxWith({}), { split: 0, scrap: 1 });
+const both = actions.alterShown(ctxWith(ARMED), { split: 0, scrap: 1 });
 check(!both.ok && both.code === 'one_thing', 'two changes went through in one request', both.code);
 
 // Ice holds a weld shut — there is no honest answer to which parent inherits the held face.

@@ -313,6 +313,17 @@ const PLAY = [
         want: ['broken'],
         len: 1,
     },
+    {
+        id: 'broken.blessed',
+        say: 'held together by its own blessing, and re-rolled onto a face that is not a downside',
+        cubes: [C('multiplier', 'broken', { blessed: true }), P()],
+        want: ['broken.blessed'],
+        never: ['broken'],
+        len: 2,
+        check: r => (r.blessed[0] === false ? null : 'the blessing was not spent')
+            || (String(noteOf(r, 'broken.blessed').rolledFaceId).startsWith('mult:')
+                ? null : `it re-rolled onto ${noteOf(r, 'broken.blessed').rolledFaceId}`),
+    },
 
     // -----------------------------------------------------------------------
     // The Binder

@@ -139,13 +139,14 @@ console.log('\nTHE SPLIT — a fused seat comes apart into the cubes that went i
     eq('a blessing goes to one parent', [pg.blessed, pm.blessed].filter(Boolean).length, 1);
     eq('a reflection turns both', [pg.mirrored, pm.mirrored], [true, true]);
 
-    // The same hand-back for a weld out of the press, which used to come apart clean.
-    const pressed = engine.rollWeld(['greed', 'wild'], { tier: 1 });
-    const pf = engine.specialById(pressed).faces.find(f => f.from === 'wild');
+    // The same hand-back for a weld out of the press. A burn is kept by face id, so the pair shares none:
+    // two parents that both kept an `end` cannot say whose was burned.
+    const pressed = engine.rollWeld(['greed', 'multiplier'], { tier: 1 });
+    const pf = engine.specialById(pressed).faces.find(f => f.from === 'multiplier');
     const w = lineOf([slot(pressed, { burned: [pf.id] })]);
     const wp = engine.splitAt(w, 0);
     eq('a pressed weld hands its burns back too',
-        wp.find(c => c.slot.id === 'wild').slot.burned, [pf.id]);
+        wp.find(c => c.slot.id === 'multiplier').slot.burned, [pf.id]);
 }
 
 console.log('\nTHE WIRE — parked, picked up, and copied');

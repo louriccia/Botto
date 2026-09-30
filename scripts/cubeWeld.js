@@ -9,8 +9,8 @@
 //      chosen. This is the only control on how often a 5+1 exists, so it is asserted rather than
 //      assumed.
 //   3. **The press memory.** A reroll cannot hand back the last `weldMemory` cuts. The outcome
-//      spaces are tiny — a `gungan+wild` pairing has *two* distinct welds — so this is where the
-//      rule either works or silently does nothing.
+//      spaces are tiny — a `gungan+wild` pairing has *three* welds the press can cut — so this is
+//      where the rule either works or silently does nothing.
 //   4. **The actions.** Ownership, both currencies, and every refusal, through `actions.js` and
 //      Firebase-shaped storage.
 //   5. **EV.** Reported, not asserted, and bracketed: a rack where every weld kept its downside
@@ -56,27 +56,27 @@ const near = function (name, got, want, tol, detail = '') {
 // ---------------------------------------------------------------------------
 
 {
-    // **`wild:014`, not `wild:015`.** Wild is four wilds and two mines, so its faces sort to
-    // indices 0-3 wild / 4-5 end and the canonical spelling of "two wilds and a mine" takes the
-    // *first* mine position. `wild:015` is the same cube spelled differently and canonicalises to
+    // **`wild:013`, not `wild:014`.** Wild is three wilds and three mines, so its faces sort to
+    // indices 0-2 wild / 3-5 end and the canonical spelling of "two wilds and a mine" takes the
+    // *first* mine position. `wild:014` is the same cube spelled differently and canonicalises to
     // this id — asserted below, because that collapsing is the whole point of `canonIdx`.
-    const w = engine.specialById('greed:012+wild:014');
+    const w = engine.specialById('greed:012+wild:013');
     check('a weld is six faces', w.faces.length, 6);
     check('and they are its parents\'', w.faces.map(f => f.id),
         ['greed', 'greed', 'greed', 'wild', 'wild', 'end']);
     check('every face remembers its parent',
         [...new Set(w.faces.map(f => f.from))].sort(), ['greed', 'wild']);
     check('it knows what went into it', w.welded, ['greed', 'wild']);
-    check('the id is canonical', w.id, 'greed:012+wild:014');
+    check('the id is canonical', w.id, 'greed:012+wild:013');
     check('a non-canonical spelling collapses onto it',
-        engine.specialById('greed:012+wild:015').id, 'greed:012+wild:014');
+        engine.specialById('greed:012+wild:014').id, 'greed:012+wild:013');
 
-    // **The id names the cube, not the draw.** Wild's faces 0-4 are identical, so any three of them
+    // **The id names the cube, not the draw.** Greed's faces 0-4 are identical, so any three of them
     // are the same half and must collapse onto one spelling — otherwise "never hand back the same
     // weld" compares ids that differ while the cube does not.
-    check('identical faces collapse', engine.weldId([{ id: 'wild', idx: [1, 2, 3] }]), 'wild:012');
+    check('identical faces collapse', engine.weldId([{ id: 'greed', idx: [2, 3, 4] }]), 'greed:012');
     check('and so does the whole weld',
-        engine.specialById('greed:234+wild:123').id, engine.specialById('greed:012+wild:012').id);
+        engine.specialById('greed:234+wild:124').id, engine.specialById('greed:012+wild:013').id);
     check('parent order does not matter',
         engine.specialById('wild:012+greed:012').id, engine.specialById('greed:012+wild:012').id);
 
@@ -101,29 +101,24 @@ const near = function (name, got, want, tol, detail = '') {
 
     check('an ordinary cube is untouched', engine.specialById('greed').faces.length, 6);
     check('the die is untouched', engine.specialById('octahedron').faces.length, 8);
-    // Wild is 4 (two mines, per its re-cut) and the Gungan is 5 (one wipeout, since its mine came
-    // off — see its note in `tuning.js`). Both of these read 5 and 6 before those two changes.
+    // Wild is three wilds and three mines, and the Gungan is six shields with no downside at all.
     check('good faces are counted right',
         ['wild', 'multiplier', 'reroll', 'gungan'].map(id => engine.goodFaces(engine.specialById(id))),
-        [4, 4, 3, 5]);
+        [3, 4, 3, 6]);
 
     // The outcome spaces the press memory has to survive.
     //
-    // **All three of these grew, and none of it is a change to `spaceOf`.** A pairing's space is the
-    // product of its parents' distinct halves, so every face-list change upstream multiplies through:
-    // the Wild's second mine gave it two distinct halves where it had one, and the Gungan Shield's
-    // mine coming off took it from one half to two. The old numbers were 4 / 2 / 6.
-    //
-    // Verified against a brute-force enumeration — 400k presses a pairing, collecting distinct
-    // canonical ids — which agrees with `weldSpace` exactly on all six pairings tried. The counts
-    // moved because the cubes did; the arithmetic was never wrong.
-    check('greed+wild has six distinct welds', engine.weldSpace(['greed', 'wild']), 6);
-    check('gungan+wild has six too', engine.weldSpace(['gungan', 'wild']), 6);
-    check('gungan+reroll has twelve', engine.weldSpace(['gungan', 'reroll']), 12);
+    // A pairing's space is the product of its parents' distinct three-face halves, so every face
+    // list multiplies through: Greed has two halves (three greeds, or two and its mine), Wild four
+    // (zero to three mines), the Gungan one, and the Reroll six.
+    check('greed+wild has eight distinct welds', engine.weldSpace(['greed', 'wild']), 8);
+    check('gungan+wild has four', engine.weldSpace(['gungan', 'wild']), 4);
+    check('gungan+reroll has six', engine.weldSpace(['gungan', 'reroll']), 6);
     // The routine space is what `rememberWeld` actually floors against, so it is worth pinning too.
+    // Each pairing has exactly one clean weld, which the press never cuts.
     check('and their routine spaces trail by the clean ones',
         [['greed', 'wild'], ['gungan', 'wild'], ['gungan', 'reroll']].map(p => engine.weldDrawSpace(p)),
-        [5, 5, 11]);
+        [7, 3, 5]);
 
     // The state layer has to carry a weld through, or nothing below can be measured at all.
     const s = pstate.cubeState({
@@ -214,9 +209,9 @@ const ROLLS = Math.max(60000, CLIMBS * 3);
 // ---------------------------------------------------------------------------
 //
 // The rule that matters and the one most easily written wrong. It applies to the **whole weld**: a
-// per-half version cannot work, because the Gungan Shield has exactly one possible half and a
-// `greed+wild` pairing has two per side — forcing both halves to change would leave a 2×2 pairing
-// oscillating between two of its four welds forever, with the other two unreachable.
+// per-half version cannot work, because the Gungan Shield has exactly one possible half and Greed
+// only two — forcing both halves to change would leave Greed flipping between its two halves
+// forever and a Gungan pairing with nothing it could ever press again.
 
 {
     for (const pair of [['greed', 'wild'], ['gungan', 'reroll'], ['gungan', 'wild'], ['boost', 'multiplier']]) {
