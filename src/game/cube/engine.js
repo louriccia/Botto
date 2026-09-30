@@ -206,6 +206,11 @@ exports.weldSpace = ids => spaceOf(ids, false);
 // the roll repeated inside its own memory.
 exports.weldDrawSpace = ids => spaceOf(ids, true);
 
+// Draws until one is allowed. The allowed cut can be a rare one — Gungan+Wild with the other two
+// remembered leaves only three Ratts, about one draw in twenty — and giving up returns a cut the rules
+// refuse, so the budget is sized for rare, not for typical.
+const WELD_DRAWS = 2000;
+
 exports.rollWeld = function (ids, {
     seen = [], tier = 1, major = null, keep = null,
 } = {}) {
@@ -223,7 +228,8 @@ exports.rollWeld = function (ids, {
     const anyDownside = parents.some(p => p.faces.some(f => DOWNSIDE.has(f.kind)));
 
     let last = null;
-    for (let attempt = 0; attempt < 60; attempt++) {
+    let kept = null;
+    for (let attempt = 0; attempt < WELD_DRAWS; attempt++) {
         const take = rollSplit(ids.length, tier);
         if (!take) return null;
         const order = orderFor(parents.length, major);
@@ -239,11 +245,12 @@ exports.rollWeld = function (ids, {
         });
         const keeps = picks.some((pk, k) => pk.idx.some(i => DOWNSIDE.has(parents[k].faces[i].kind)));
         last = weldId(picks);
-        if (block.has(last)) continue;
         if (anyDownside && !keeps) continue;
+        kept = last;
+        if (block.has(last)) continue;
         return last;
     }
-    return last;
+    return kept || last;
 };
 
 const JAILERS = new Set(
