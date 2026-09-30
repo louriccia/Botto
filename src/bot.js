@@ -223,12 +223,6 @@ client.once(Events.ClientReady, async () => {
     // leaderboard bucket so the first user-triggered race view is a hot cache hit.
     leaderboardCache.warm().catch(() => { })
 
-    // The bot's own HTTP surface, backing the chance cube Discord Activity. Started here rather
-    // than at module load so it can answer for the client's readiness, and because everything it
-    // serves reads the Firebase mirror that is warm by now. See src/api/index.js for why it lives
-    // in this process rather than in botto-api.
-    startApi({ client, db, database })
-
     const minuteUpdater = async () => {
         try {
             Object.keys(db.user).filter(key => db.user[key]?.random?.items).forEach(key => completeRepairs({ user_profile: db.user[key].random, profile_ref: database.ref(`users/${key}/random`), client, member: db.user[key].discordID }))
@@ -453,5 +447,11 @@ process.on('unhandledRejection', (error) => {
 client.on('error', (error) => {
     reportError('Client Error', error);
 });
+
+// The bot's own HTTP surface, backing the chance cube Discord Activity. Bound before the login rather
+// than on ready: Heroku kills a web dyno that has not taken $PORT within 60 seconds, and a slow Discord
+// login would crash-loop the bot. Routes answer `warming` until the mirror loads. See src/api/index.js
+// for why it lives in this process rather than in botto-api.
+startApi({ client, db, database })
 
 client.login(process.env.token);
