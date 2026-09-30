@@ -8,5 +8,3 @@ log.txt
 scripts/testTimes-backup-*.json
 monitor.js
 _bot*.log
-# Materialised by scripts/cubeParity.js while it runs, deleted on exit.
-.parity-reference.js
