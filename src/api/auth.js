@@ -90,6 +90,9 @@ exports.warnIfUnconfigured = function () {
 // direction. The **embedded** flow must omit it — an embedded app has nowhere to redirect to and
 // Discord does not expect one for that grant — while the **browser** flow must send exactly the URI
 // the authorize call was started with, or Discord rejects the exchange.
+// Under the Activity's own 20s sign-in wait, so a hung Discord answers as a refusal rather than a hang.
+const DISCORD_TIMEOUT_MS = 8000;
+
 const exchange = async function (code, redirectUri = null) {
     const body = new URLSearchParams({
         client_id: CLIENT_ID,
@@ -100,12 +103,14 @@ const exchange = async function (code, redirectUri = null) {
     });
     const token = await axios.post(`${DISCORD_API}/oauth2/token`, body, {
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        timeout: DISCORD_TIMEOUT_MS,
     });
     const access = token.data?.access_token;
     if (!access) throw new Error('Discord returned no access token');
 
     const me = await axios.get(`${DISCORD_API}/users/@me`, {
         headers: { Authorization: `Bearer ${access}` },
+        timeout: DISCORD_TIMEOUT_MS,
     });
     return { access, user: me.data };
 };
@@ -121,6 +126,7 @@ const resolvePlayer = async function (db, database, discordId, name) {
     // connection to the real database.
     // eslint-disable-next-line global-require
     const { get_user_key_by_discord_id, initializePlayer, initializeUser } = require('../user.js');
+    if (!db.user) throw new Error('the users mirror has not loaded');
     let userKey = get_user_key_by_discord_id(db, discordId);
     if (!userKey) userKey = await initializeUser(database.ref('users'), discordId, name);
     let profile = db.user[userKey]?.random;
@@ -150,7 +156,13 @@ exports.tokenHandler = ctx => async function (req, res) {
     }
 
     const name = discordUser.global_name || discordUser.username;
-    const { userKey } = await resolvePlayer(ctx.db, ctx.database, discordUser.id, name);
+    let userKey;
+    try {
+        ({ userKey } = await resolvePlayer(ctx.db, ctx.database, discordUser.id, name));
+    } catch (err) {
+        console.error('[api] could not resolve the player:', err);
+        return res.status(503).json({ error: 'Botto could not find your profile. Try again in a few seconds.' });
+    }
 
     const token = mintToken(discordUser.id, userKey);
     return res.json({
@@ -269,7 +281,13 @@ exports.browserAuthCallback = ctx => async function (req, res) {
     }
 
     const name = discordUser.global_name || discordUser.username;
-    const { userKey } = await resolvePlayer(ctx.db, ctx.database, discordUser.id, name);
+    let userKey;
+    try {
+        ({ userKey } = await resolvePlayer(ctx.db, ctx.database, discordUser.id, name));
+    } catch (err) {
+        console.error('[api] could not resolve the player:', err);
+        return home('cubeError=failed');
+    }
     const token = mintToken(discordUser.id, userKey);
     return home(`cubeToken=${encodeURIComponent(token)}`);
 };

@@ -97,6 +97,18 @@ const check = function (name, ok, detail) {
     let r = await call('GET', '/health');
     check('health is open', r.status === 200 && r.json.ok === true, `${r.status} ${r.text}`);
 
+    // Before the users mirror loads, every player would look new.
+    const users = db.user;
+    db.user = null;
+    r = await call('POST', '/cube/auth/token', { body: { code: 'x' } });
+    check('sign-in waits for the users mirror',
+        r.status === 503 && r.json?.code === 'warming' && !!r.headers.get('retry-after'), `${r.status} ${r.text}`);
+    r = await call('GET', '/cube/state', { auth: token('KEY') });
+    check('and so does every other route', r.status === 503 && r.json?.code === 'warming', `${r.status} ${r.text}`);
+    r = await call('GET', '/health');
+    check('health still answers', r.status === 200, `${r.status} ${r.text}`);
+    db.user = users;
+
     r = await call('GET', '/cube/state');
     check('state refuses without a token', r.status === 401, `${r.status} ${r.text}`);
 

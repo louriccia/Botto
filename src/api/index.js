@@ -74,6 +74,14 @@ exports.createApi = function (ctx) {
     // hit directly — from a browser, from the smoke test, from curl — so keeping it is worth more
     // than picking whichever one the proxy happens to use this year.
     const cube = express.Router();
+    // **Nothing is served off a mirror that has not loaded.** The users node arrives some time after
+    // boot, and until it does every player looks new: a sign-in would push a second user record for
+    // someone who already has one, and every authenticated route would read a null tree.
+    cube.use((req, res, next) => {
+        if (ctx.db.user) return next();
+        res.set('Retry-After', '5');
+        return res.status(503).json({ error: 'Botto is still waking up. Try again in a few seconds.', code: 'warming' });
+    });
     mountCube(cube, ctx);
     app.use('/cube', cube);
     app.use('/', cube);
