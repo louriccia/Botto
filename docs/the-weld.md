@@ -289,20 +289,27 @@ press is the one genuinely infuriating outcome available.
 Purchases go on the lifetime **spend** ledger via `recordSpent`, not the loss ledger — a weld is a
 price, not a wager — so `won - lost - spent` still reconciles.
 
-### 7.1 The chase, and how long it is
+### 7.1 There is no clean weld
 
-Rerolls expected to reach a weld with no downside face on it, at 3+3:
+**A cut keeps a downside face whenever either parent has one**, at every split, whatever is named, and
+the Fusioncutter's join obeys the same rule. Only a pairing with nothing to inherit — Mirror, Symbiont,
+Binder, the Gungan Shield and the Pit Droid between them — comes out clean, and it always does.
+
+A clean weld was the chase this section used to describe, and measured it was the most valuable thing in
+the mode. `scripts/cubeWeld.js`, seven welds pushed to the top of a prestige-4 road:
 
 ```
-  mirror+wild        2×        gungan+reroll      20×
-  greed+symbiont     2×        boost+multiplier   25×
-  binder+shortcut    2×        pitdroid+sebulba    5×
-  anakin+shmi        4×
+rack                        EV
+seven welds · as rolled     0.93
+seven welds · clean         2.01
+seven welds · kindest       0.93    one downside face kept, the best the press now cuts
 ```
 
-**Nobody designed that spread and it is the best thing about the mechanic.** Some welds perfect in two
-draws; `boost+multiplier` is a lifetime project. It falls straight out of how many downside faces the
-parents carry.
+A clean seven took about a hundred rerolls a weld. The purse cap walks the reroll price down to its
+📀2,500 floor as a chase spends, so the set cost about 📀1.75M at any prestige while the stake it paid
+on doubled with each, and it bought itself back within an evening from about prestige 7. Pricing
+cannot fix that without undoing what the purse cap is for, so the prize went instead. A reroll now
+chooses which good faces a weld carries around the one downside it keeps.
 
 ### 7.2 The complete rack
 

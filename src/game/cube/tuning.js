@@ -464,7 +464,6 @@ exports.cube = {
             { take: [4, 1, 1], weight: 1, tier: 4 },
         ],
     },
-    weldPurity: 0.01,
     weldMemory: 2,
     weldRerollCost: 2500,
     weldRerollShare: 0.1,

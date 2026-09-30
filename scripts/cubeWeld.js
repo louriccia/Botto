@@ -220,11 +220,9 @@ const ROLLS = Math.max(60000, CLIMBS * 3);
 
 {
     for (const pair of [['greed', 'wild'], ['gungan', 'reroll'], ['gungan', 'wild'], ['boost', 'multiplier']]) {
-        // **The press's own floor, not the whole space.** `weldPurity` keeps all but 1% of presses to
-        // welds carrying a downside face, so the memory is floored against `weldDrawSpace` — and a test
-        // that reproduced the old `weldSpace` floor would demand no repeats from a pairing with one
-        // routine outcome, which is not a rule the game has. Gungan+Wild is exactly that pairing: two
-        // distinct welds, one of which keeps Wild's mine.
+        // **The press's own floor, not the whole space.** A cut keeps a downside whenever a parent has
+        // one, so the memory is floored against `weldDrawSpace` — and a test that reproduced the
+        // `weldSpace` floor would demand no repeats from a pairing the press can only cut a few ways.
         const space = engine.weldDrawSpace(pair);
         const cap = Math.max(0, Math.min(config.weldMemory, space - 1));
         let held = [];
@@ -453,6 +451,7 @@ const makeWorld = function (cube = {}) {
         const world = makeWorld({
             cubes: Object.fromEntries(rack.map(id => [id, true])),
             equipped: rack,
+            nudge: false,
         });
         const inBag = engine.fillBag(pstate.cubeState(world.profile).equipped).filter(Boolean);
         if (rack.length && inBag.length !== Math.min(rack.length, engine.bagSize())) {
@@ -511,36 +510,29 @@ const makeWorld = function (cube = {}) {
         ['anakin', 'shmi'], ['boost', 'multiplier'], ['pitdroid', 'sebulba'],
     ];
 
-    // **Brackets, built rather than rolled.** A player cannot ask for a clean weld — they reroll
-    // toward one — so the two ends of the range are constructed directly and the rolled rack sits
-    // between them. The gap is what a reroll is buying.
-    const bracket = function (lucky, tag) {
+    // **Brackets, built rather than rolled.** A player cannot ask for a weld — they reroll toward one
+    // — so the two ends of what the press can hand out are constructed directly and the rolled rack
+    // sits between them. The gap is what a reroll is buying. The kind end still carries the one
+    // downside face the press never lets a weld drop.
+    const bracket = function (lucky) {
         return PAIRS.map(([a, b]) => {
-            const A = SPECIALS.find(s => s.id === a);
-            const B = SPECIALS.find(s => s.id === b);
-            const pick = (sp) => {
+            const picks = [a, b].map((id) => {
+                const sp = SPECIALS.find(s => s.id === id);
                 const good = sp.faces.map((f, i) => [f, i]).filter(([f]) => !isDown(f)).map(([, i]) => i);
                 const bad = sp.faces.map((f, i) => [f, i]).filter(([f]) => isDown(f)).map(([, i]) => i);
-                return (lucky ? [...good, ...bad] : [...bad, ...good]).slice(0, 3);
-            };
-            // Registered as a synthetic cube so the engine throws it without a real weld id — the
-            // id would name the positions, and these are chosen rather than rolled.
-            const id = `br${tag}_${a}_${b}`;
-            SPECIALS.push({
-                id,
-                name: `${A.name}/${B.name}`,
-                blurb: 'bracket',
-                faces: [
-                    ...pick(A).map(i => ({ ...A.faces[i], from: a })),
-                    ...pick(B).map(i => ({ ...B.faces[i], from: b })),
-                ],
+                return { id, bad, idx: (lucky ? [...good, ...bad] : [...bad, ...good]).slice(0, 3) };
             });
-            return id;
+            const kept = picks.some(p => p.idx.some(i => p.bad.includes(i)));
+            const carrier = picks.find(p => p.bad.length);
+            if (lucky && carrier && !kept) carrier.idx = [...carrier.idx.slice(0, 2), carrier.bad[0]];
+            // A real weld id with the positions chosen rather than rolled. The engine indexes
+            // `SPECIALS` once at load, so a cube pushed onto it here would never be found.
+            return engine.weldId(picks.map(p => ({ id: p.id, idx: p.idx })));
         });
     };
 
-    const UNLUCKY = bracket(false, 'U');
-    const LUCKY = bracket(true, 'L');
+    const UNLUCKY = bracket(false);
+    const LUCKY = bracket(true);
     // What the press actually hands you with no rerolling at all.
     const ROLLED = PAIRS.map(p => engine.rollWeld(p, { tier: 4 }));
     const EIGHT = WELDABLE.slice(0, 8);
@@ -553,7 +545,7 @@ const makeWorld = function (cube = {}) {
         ['eight unwelded · picked', PICKED],
         ['seven welds · unlucky', UNLUCKY],
         ['seven welds · as rolled', ROLLED],
-        ['seven welds · lucky', LUCKY],
+        ['seven welds · kindest', LUCKY],
         ['seven welds + the die', [...LUCKY, 'octahedron']],
     ];
 
@@ -573,46 +565,18 @@ const makeWorld = function (cube = {}) {
             + `${ev.toFixed(3)}   ${(ev / base).toFixed(3)}   ${tie.toFixed(2).padStart(6)}`);
     }
     console.log('');
-    // **The chase is the sink.** `weldPurity` is what a downside-free weld costs to reach, and the
-    // interesting column is the last one: `weldRerollCost` scales with the stake ceiling, so at the
-    // prestige a printing purse reaches, the chase is priced in multiples of that purse.
-    //
-    // `was` is the rate before the dial existed — the raw combinatorics of the cut, which is what the
-    // press used to hand out. A quarter for two one-mine cubes, and a coin flip for anything welded to a
-    // parent with no downside face to inherit. `now` is measured, not asserted, because the rule lives in
-    // `rollWeld` and this file's job is to disbelieve it.
-    console.log('  the chase · reaching a weld with no downside face on it');
-    console.log('    weld                     was     now    rerolls   at prestige 33');
-    const choose = (n, k) => (k < 0 || k > n ? 0 : Array.from({ length: k })
-        .reduce((acc, _, i) => (acc * (n - i)) / (i + 1), 1));
-    const price = config.weldRerollCost * (config.maxStakeStep ** 33);
+    // **No weld drops every downside face its parents carry**, at any tier and whatever is named.
     const TRIALS = 200000;
-    for (const [a, b] of PAIRS) {
-        const was = [a, b].reduce((acc, id) => {
-            const sp = SPECIALS.find(s => s.id === id);
-            const good = sp.faces.filter(f => !isDown(f)).length;
-            return acc * (choose(good, 3) / choose(sp.faces.length, 3));
-        }, 1);
-        let clean = 0;
-        for (let i = 0; i < TRIALS; i++) {
-            const sp = engine.specialById(engine.rollWeld([a, b], { tier: 1 }));
-            if (sp && !sp.faces.some(isDown)) clean += 1;
-        }
-        const now = clean / TRIALS;
-        const cost = now ? (1 / now) * price : 0;
-        console.log(`    ${`${a}+${b}`.padEnd(22)}  ${was.toFixed(3)}   ${now.toFixed(3)}`
-            + `   ${now ? `${(1 / now).toFixed(0)}×`.padStart(6) : ' never'}`
-            + `   ${now ? `📀${(cost / 1e12).toFixed(0)}T` : '—'}`);
+    let clean = 0;
+    for (let i = 0; i < TRIALS; i++) {
+        const pair = PAIRS[i % PAIRS.length];
+        const tier = 1 + (i % 4);
+        const sp = engine.specialById(engine.rollWeld(pair, { tier, major: i % 2 }));
+        if (sp && !sp.faces.some(isDown)) clean += 1;
     }
+    check('a weld of a downside-carrier never comes out clean', clean, 0);
     // A pairing where neither parent carries a downside face has nothing to inherit, so the rule cannot
-    // touch it and every weld of it is clean. That is not a leak — it is two cubes that were already
-    // permanent being welded into one permanent cube.
-    //
-    // **This used to be `mirror+gungan` and the Gungan Shield no longer qualifies**, because it traded
-    // its mine for a wipeout and a wipeout is a downside face — see its note in `tuning.js`. The cubes
-    // that still carry nothing to inherit are Mirror, Symbiont, Binder, the Pit Droid and the Octahedron,
-    // so the invariant holds on a pair drawn from those; naming a live pair rather than a permanently
-    // clean *cube* is what stopped this reading as a regression when the Gungan changed shape.
+    // touch it and every weld of it is clean: two cubes that were already permanent, welded into one.
     check('a pairing with no downside to inherit is always clean',
         engine.specialById(engine.rollWeld(['mirror', 'binder'], { tier: 1 })).faces.some(isDown), false);
     console.log('');
@@ -626,7 +590,7 @@ const makeWorld = function (cube = {}) {
     // passed by a caller — `weldCubes` and `rerollWeld` built every weld in the game blind — so these
     // two rows are here to stop that being true again quietly. `pressPicks` in the actions is the
     // translation above this; this measures the engine below it.
-    console.log('  the named shares · naming the major half halves the chase');
+    console.log('  the named shares · naming the major half');
     const shareOf = (id, who) => (id.split('+').map(s => s.split(':')).find(s => s[0] === who) || [])[1].length;
     const majorRate = function (opts) {
         let uneven = 0;

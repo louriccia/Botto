@@ -146,10 +146,10 @@ const orderFor = function (n, major) {
     return order;
 };
 
-const pickWith = function (parent, want, from, faceId) {
-    const pool = from || Array.from({ length: parent.faces.length }, (_, i) => i);
+const pickWith = function (parent, want, faceId) {
+    const pool = Array.from({ length: parent.faces.length }, (_, i) => i);
     const hits = pool.filter(i => parent.faces[i].id === faceId);
-    if (!hits.length || want < 1) return pickIdx(parent.faces.length, want, from);
+    if (!hits.length || want < 1) return pickIdx(parent.faces.length, want);
     const anchor = hits[crypto.randomInt(0, hits.length)];
     const rest = pool.filter(i => i !== anchor);
     return [anchor, ...pickIdx(parent.faces.length, want - 1, rest)].sort((a, b) => a - b);
@@ -200,10 +200,10 @@ const spaceOf = function (ids, routine) {
 };
 exports.weldSpace = ids => spaceOf(ids, false);
 
-// What the press *routinely* produces, which is not the whole space: `weldPurity` confines all but
-// ~1% of presses to welds carrying a downside, so the clean ones come off the total before
-// `rememberWeld` floors against it. Flooring against the whole space let the memory exclude the only
-// weld a pairing could produce, and the roll repeated inside its own memory.
+// What the press can produce, which is not the whole space: a cut keeps a downside whenever either
+// parent has one, so the clean welds come off the total before `rememberWeld` floors against it.
+// Flooring against the whole space let the memory exclude the only weld a pairing could produce, and
+// the roll repeated inside its own memory.
 exports.weldDrawSpace = ids => spaceOf(ids, true);
 
 exports.rollWeld = function (ids, {
@@ -217,15 +217,10 @@ exports.rollWeld = function (ids, {
 
     const block = new Set(seen);
 
+    // **A cut keeps a downside whenever either parent has one.** A clean weld is worth about twice a
+    // pressed one, and a reroll costs the same at every prestige while the stake it pays on doubles, so
+    // a chase toward one would pay for itself within an evening at any depth.
     const anyDownside = parents.some(p => p.faces.some(f => DOWNSIDE.has(f.kind)));
-    // **Rolled once for the press, not once per attempt** — sixty attempts each at 1% would let the
-    // rare case through about half the time. When it fires the draw is *confined* to the good faces,
-    // so `weldPurity` is the rate a clean weld appears; merely lifting the constraint would make the
-    // real rate `weldPurity × P(clean by chance)` — 0.25% for Greed+Wild against 0.04% for Mult+Boost.
-    let pure = anyDownside && chance(config.weldPurity);
-    const goodIdx = parents.map(p => p.faces
-        .map((f, i) => (DOWNSIDE.has(f.kind) ? -1 : i))
-        .filter(i => i >= 0));
 
     let last = null;
     for (let attempt = 0; attempt < 60; attempt++) {
@@ -234,24 +229,18 @@ exports.rollWeld = function (ids, {
         const order = orderFor(parents.length, major);
         const picks = parents.map((p, k) => {
             const want = Math.min(take[order[k]] ?? take[take.length - 1], p.faces.length);
-            const from = pure && goodIdx[k].length >= want ? goodIdx[k] : null;
             const anchor = keep && keep.parent === k ? keep.faceId : null;
             return {
                 id: p.id,
                 idx: anchor
-                    ? pickWith(p, want, from, anchor)
-                    : pickIdx(p.faces.length, want, from),
+                    ? pickWith(p, want, anchor)
+                    : pickIdx(p.faces.length, want),
             };
         });
         const keeps = picks.some((pk, k) => pk.idx.some(i => DOWNSIDE.has(parents[k].faces[i].kind)));
         last = weldId(picks);
-        if (block.has(last)) {
-            // The memory can decline the jackpot: a pure draw is confined to the good faces, so it
-            // produces the *same* clean weld every attempt. Offered once, then the press cuts normally.
-            pure = false;
-            continue;
-        }
-        if (anyDownside && !pure && !keeps) continue;
+        if (block.has(last)) continue;
+        if (anyDownside && !keeps) continue;
         return last;
     }
     return last;
@@ -767,7 +756,7 @@ exports.splitAt = function (line, at) {
 
 // **Fusing: two neighbours into one seat, for the rest of the climb.** Cut the way the press cuts —
 // the same split table at the player's press tier, and the same rule that a cut carries a downside
-// whenever either cube still has one, bar `weldPurity` — but out of each cube's **live** faces only,
+// whenever either cube still has one — but out of each cube's **live** faces only,
 // so a burned face or a spent heat stays gone rather than coming back on the fused cube. The originals
 // ride inside the new seat untouched, marks and all, and a split hands them back.
 //
@@ -793,14 +782,12 @@ exports.joinCut = function (slots, tier = 1) {
     if (parents.some(p => !p || p.noWeld)) return null;
     const live = slots.map((sl, k) => rollFaces(parents[k], sl));
     const anyDownside = live.some(fs => fs.some(f => DOWNSIDE.has(f.kind)));
-    const pure = anyDownside && chance(config.weldPurity);
     let last = null;
     for (let attempt = 0; attempt < 60; attempt++) {
         const take = rollSplit(slots.length, tier) || slots.map(() => 3);
         const order = orderFor(slots.length, null);
         const picks = parents.map((p, k) => {
-            const pool = live[k].filter(f => !pure || !DOWNSIDE.has(f.kind));
-            const from = pool.length ? pool : live[k];
+            const from = live[k];
             const want = Math.min(take[order[k]] ?? take[take.length - 1], from.length);
             const chosen = pickIdx(from.length, want).map(i => from[i].id);
             const used = new Set();
@@ -812,7 +799,7 @@ exports.joinCut = function (slots, tier = 1) {
             return { id: p.id, idx, keeps: chosen.some(fid => DOWNSIDE.has((p.faces.find(f => f.id === fid) || {}).kind)) };
         });
         last = weldId(picks);
-        if (!anyDownside || pure || picks.some(pk => pk.keeps)) return last;
+        if (!anyDownside || picks.some(pk => pk.keeps)) return last;
     }
     return last;
 };

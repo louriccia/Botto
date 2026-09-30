@@ -95,10 +95,9 @@ It is the mirror of Scrap, which is what makes it cheap to build:
 
 **The parents come back whole, mines included.**
 
-`weldPurity` is `0.01`. The entire truguts sink of the mode is players paying `weldRerollCost` — 📀2,500
-scaled by the stake ceiling, 📀21.5T at prestige 33 — for a cut that dropped its parents' downside
-faces. §7 of `the-weld.md` prices the chase; the measurement it turns on is that one surviving mine
-roughly halves a weld's EV:
+A weld keeps a downside face whenever either parent has one (`the-weld.md` §7.1), and a Split hands both
+parents back whole, downsides included. The measurement that prices it is that one surviving
+mine roughly halves a weld's EV:
 
 ```
 wild+greed weld        EV
@@ -277,8 +276,8 @@ the named shares            the keeper
 ```
 
 The first pair is the halving `weldSplits` promised: a useful 5+1 goes from one press in 220 to one in 110.
-The second is measured on a face that is neither certain nor a downside, because `weldPurity` holds a mine
-on 99% of welds and a downside face therefore has no room to show a difference.
+The second is measured on a face that is neither certain nor a downside, because every weld of a
+downside-carrier holds a mine and a downside face therefore has no room to show a difference.
 
 Both are dropped rather than refused when they cannot apply — `keep` when The Keeper is not owned,
 `major` when the cut comes out even — so a client that sends them early presses exactly as it always
@@ -481,9 +480,9 @@ honest statement about balance is the one in §2.1, which is that the mechanic h
 
 ## References
 
-- `docs/the-weld.md` — the press, the splits, the purity dial, the chase
+- `docs/the-weld.md` — the press, the splits, and why there is no clean weld
 - `docs/chance-cube.md` — the shipped mode
-- `src/game/cube/tuning.js` — `TREE`, `weldSplits`, `weldPurity`, `weldTiers`
+- `src/game/cube/tuning.js` — `TREE`, `weldSplits`, `weldTiers`
 - `src/game/cube/engine.js` — `parseWeld`, `weldParents`, `rollWeld`, `orderFor`, `pickWith`,
   `throwSet`, `relineFrom`, `encodeLine`
 - `src/game/cube/actions.js` — `alterShown`, `holdRoll`, `parkThrow`, `takeThrow`, `weldCubes`,

@@ -1,5 +1,5 @@
-// Measures the dials that decide whether the mode is a sink or a faucet: `levelStep`, `nudgeLean` and
-// `weldPurity` — and prices the racks they act on.
+// Measures the dials that decide whether the mode is a sink or a faucet, `levelStep` and `nudgeLean`,
+// and prices the racks they act on.
 //
 // It exists because they were shipped on reasoning rather than measurement, and were wrong in the same
 // direction. The mode paid one holder 20T → 800T in an afternoon at ~1% of purse a roll, and no single
@@ -209,37 +209,3 @@ for (const n of [0.60, 0.575, 0.55, 0.525, 0.51, 0.50]) {
         + `   ${evening(on.g).padStart(9)}${n === shippedNudge ? '   ← shipped' : ''}`);
 }
 config.nudgeLean = shippedNudge;
-
-// ---------------------------------------------------------------------------
-// 5. weldPurity — the rate, and what the chase is worth as a sink
-// ---------------------------------------------------------------------------
-//
-// `scripts/cubeWeld.js` owns the weld's invariants; this is only the half that belongs to the economy.
-// The point of the dial is not its EV — by 1% the expected weld has bottomed out — it is that the chase
-// is the first thing in the mode priced in multiples of a whale's purse.
-
-const DOWN = new Set(['end', 'broken']);
-const WELDS = [
-    ['greed', 'wild'], ['wild', 'shortcut'], ['wild', 'gungan'], ['multiplier', 'boost'],
-];
-console.log('\n\nweldPurity — the jackpot rate, and the sink behind it');
-console.log(`  weldPurity ${config.weldPurity} · weldRerollCost 📀${config.weldRerollCost.toLocaleString()}`
-    + ` scaled by maxStakeStep^prestige`);
-console.log('  pairing                measured   rerolls   at prestige 20      at prestige 33');
-const TRIES = 100000;
-for (const pair of WELDS) {
-    let clean = 0;
-    for (let i = 0; i < TRIES; i++) {
-        const sp = engine.specialById(engine.rollWeld(pair, { tier: 1 }));
-        if (sp && !sp.faces.some(f => DOWN.has(f.kind))) clean += 1;
-    }
-    const rate = clean / TRIES;
-    const n = rate ? 1 / rate : 0;
-    const at = pr => (rate ? n * config.weldRerollCost * (config.maxStakeStep ** pr) : 0);
-    console.log(`  ${pair.join('+').padEnd(22)}   ${(rate * 100).toFixed(2).padStart(5)}%`
-        + `   ${`${n.toFixed(0)}×`.padStart(6)}`
-        + `   ${`📀${(at(20) / 1e9).toFixed(1)}B`.padStart(14)}`
-        + `      ${`📀${(at(33) / 1e12).toFixed(0)}T`.padStart(9)}`);
-}
-console.log('\n  A pairing with no downside face on either parent — Mirror + Gungan Shield — is untouched:');
-console.log('  there is nothing to inherit, so every weld of it is clean and always was.');

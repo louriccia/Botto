@@ -8,7 +8,7 @@
 //   1. **Nothing else on the line moves.** The two neighbours become one seat and every other
 //      position is face for face and name for name what it was.
 //   2. **The cut comes out of what is left.** A burned face or a spent heat never reappears on the
-//      fused cube, and a cut still carries a downside whenever one is live, bar `weldPurity`.
+//      fused cube, and a cut still carries a downside whenever one is live.
 //   3. **Splitting a fused seat returns the originals** — the same names and the same marks — plus
 //      whatever the seat picked up while fused, handed to the parent whose face it landed on.
 //   4. **It survives being written down**, parked and picked back up, and a copy of a fused seat is
@@ -98,8 +98,7 @@ console.log('\nTHE CUT — out of what is left, and a downside when there is one
         if (!engine.specialById(id).faces.some(f => DOWNSIDE.has(f.kind))) clean++;
     }
     const rate = clean / trials;
-    ok('a cut keeps a downside whenever one is live, bar weldPurity',
-        rate < config.weldPurity * 3 + 0.002, `${(rate * 100).toFixed(2)}% clean against weldPurity ${config.weldPurity}`);
+    ok('a cut keeps a downside whenever one is live', rate === 0, `${(rate * 100).toFixed(2)}% clean`);
 
     const noDown = engine.joinCut([slot('gungan'), slot(greed.id, { burned: [...greed.burned] })], 1);
     ok('a pair with no live downside still fuses', !!engine.specialById(noDown));
