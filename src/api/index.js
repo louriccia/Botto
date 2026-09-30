@@ -35,7 +35,7 @@ const allowedOrigin = function (origin) {
     if (/^https:\/\/[0-9]+\.discordsays\.com$/.test(origin)) return true;
     if (SITE_ORIGINS.includes(origin)) return true;
     // The Vite dev server, for building the Activity before it is proxied.
-    if (/^http:\/\/localhost:\d+$/.test(origin)) return true;
+    if (process.env.NODE_ENV !== 'production' && /^http:\/\/localhost:\d+$/.test(origin)) return true;
     return false;
 };
 
