@@ -707,8 +707,9 @@ exports.achievementProgress = function ({ db, player } = {}) {
     achievements.bounty_hunter.count = exports.bountyAchievement(db, player)
     achievements.bankroller_clan.count = exports.sponsorAchievement(db, player)
     achievements.force_sight.count = exports.predictionAchievement(db, player)
-    let user_profile = Object.values(db.user).find(u => u.discordID == player)
-    achievements.big_time_swindler.count = user_profile.truguts_earned + user_profile.truguts_spent
+    //challenge truguts live on the user's random profile, not the top-level user
+    let user_profile = Object.values(db.user).find(u => u.discordID == player)?.random
+    achievements.big_time_swindler.count = (Number(user_profile?.truguts_earned) || 0) + (Number(user_profile?.truguts_spent) || 0)
 
     return achievements
 }
@@ -1796,7 +1797,8 @@ exports.racerSelector = function ({ customid, placeholder, min, max, description
         racer_selector.addOptions({
             label: racer.name,
             value: String(racer.racernum - 1),
-            description: descriptions ? descriptions[i].substring(0, 50) : racer.pod.substring(0, 50),
+            //descriptions are indexed by racer id, not the speed-sorted index
+            description: descriptions ? descriptions[racer.racernum - 1].substring(0, 50) : racer.pod.substring(0, 50),
             emoji: {
                 name: racer.flag.split(":")[1],
                 id: racer.flag.split(":")[2].replace(">", "")
@@ -2471,6 +2473,18 @@ exports.inventoryEmbed = function ({ user_profile, selection, name, avatar }) {
             }
 
         }
+        if (section.value == 'collections' && ![null, undefined, ''].includes(s_selection)) {
+            let selected_collection = collections[Number(s_selection)]
+            if (selected_collection && !user_profile.effects?.[selected_collection.key] && exports.collectionReward({ user_profile })[selected_collection.key]) {
+                let conflicts = exports.collectionClaimConflicts({ user_profile, collection: selected_collection })
+                if (conflicts.length) {
+                    myEmbed.addFields({
+                        name: '⚠️ Claiming locks items other collections need',
+                        value: conflicts.map(c => `**${c.name}** — also needed for ${c.collections.join(', ')}`).join('\n').slice(0, 1024)
+                    })
+                }
+            }
+        }
         if (section.abilities.length) {
             myEmbed.addFields({
                 name: 'Additional Effects', value: section.abilities.map(a => {
@@ -2857,6 +2871,8 @@ exports.inventoryComponents = function ({ user_profile, selection, db, interacti
 
 exports.Collections = function () {
     const coll = [...collections].sort((a, b) => a.items.length - b.items.length)
+    //the planet faces carry track data but belong only to the Grand Circuit
+    const faces = collections.find(c => c.key == 'grand_circuit')?.items ?? []
     planets.forEach((planet, p) => {
         coll.push({
             name: planet.name,
@@ -2868,7 +2884,7 @@ exports.Collections = function () {
             //capped at 25 (Discord select menu limit); membership is the first 25 in
             //item.js order, so append new planet items to the END of item.js or they'll
             //shift the cut-off and retroactively change who has completed the collection
-            items: items.filter(i => i.track.map(track => tracks[track].planet == p).includes(true) && i.track.length < 25).slice(0, 25).map(i => i.id)
+            items: items.filter(i => !faces.includes(i.id) && i.track.map(track => tracks[track].planet == p).includes(true) && i.track.length < 25).slice(0, 25).map(i => i.id)
         })
     })
 
@@ -2887,11 +2903,14 @@ exports.itemComponents = function ({ user_profile, selection }) {
         rare: { score: 2, emoji: '🟪' },
         legendary: { score: 3, emoji: '🟡' }
     }
+    //a name is revealed once ever owned, but only a free copy counts toward the collection
+    const owned = Object.values(user_profile.items ?? {})
+    const free_ids = exports.availableItemsforCollection({ user_profile }).map(i => i.id)
     let options = items.filter(i => coll[selected_collection]?.items.includes(i.id))
         .sort((a, b) => raritymap[a.rarity].score - raritymap[b.rarity].score)
         .map(i => (
             {
-                label: user_profile.items ? Object.values(user_profile.items).map(i => i.id).includes(i.id) ? i.name : '???' : '???',
+                label: owned.some(o => o.id == i.id) ? free_ids.includes(i.id) ? i.name : `${i.name} (${owned.some(o => o.id == i.id && o.locked && exports.usableItem({ item: o })) ? 'locked' : 'gone'})` : '???',
                 value: String(i.id),
                 emoji: raritymap[i.rarity].emoji,
                 description: `📀${number_with_commas(i.value)} (${i.rarity}) `
@@ -4071,8 +4090,9 @@ exports.randomChallengeItem = function ({ user_profile, current_challenge, db, m
     let random_item = rarity_pool[Math.floor(Math.random() * rarity_pool.length)]
 
     //if it's a dup, there's a chance it will be replaced with a new item
-    //(only live items count -- scrapped/fed/used copies aren't dups)
-    let owned_ids = user_profile.items ? Object.values(user_profile.items).filter(item => exports.usableItem({ item })).map(item => item.id) : []
+    //(only live items count -- scrapped/fed/used copies aren't dups, and neither are
+    //copies locked into a claimed collection, since another collection may still need one)
+    let owned_ids = user_profile.items ? Object.values(user_profile.items).filter(item => exports.usableItem({ item }) && !item.locked).map(item => item.id) : []
     if (owned_ids.includes(random_item.id) && Math.random() < (sarlacc || user_profile.effects?.favor_ancients ? 0.85 : 0.15)) {
         let new_pool = rarity_pool.filter(item => !owned_ids.includes(item.id))
         if (new_pool.length) {
@@ -4162,6 +4182,43 @@ exports.collectionReward = function ({ user_profile }) {
         }
     })
     return rewards
+}
+
+//the specific live items a claim locks
+//(the chance cube needs 3 of each side; other collections one of each id)
+exports.collectionLockKeys = function ({ user_profile, collection }) {
+    let available = exports.availableItemsforCollection({ user_profile })
+    let lock_keys = []
+    if (collection.key == 'chance_cube') {
+        [95, 96].forEach(id => {
+            lock_keys.push(...available.filter(i => i.id == id).slice(0, 3).map(i => i.key))
+        })
+    } else {
+        [...new Set(collection.items)].forEach(id => {
+            let match = available.find(i => i.id == id && !lock_keys.includes(i.key))
+            if (match) {
+                lock_keys.push(match.key)
+            }
+        })
+    }
+    return lock_keys
+}
+
+//items a claim would lock the last free copy of, with the other unclaimed collections that still need them
+//(shared items are by design: the player chooses which collection to redeem, or finds duplicates)
+exports.collectionClaimConflicts = function ({ user_profile, collection }) {
+    let lock_keys = exports.collectionLockKeys({ user_profile, collection })
+    let remaining = exports.availableItemsforCollection({ user_profile }).filter(i => !lock_keys.includes(i.key))
+    let others = exports.Collections().filter(c => c.key != collection.key && !user_profile.effects?.[c.key])
+    let conflicts = []
+    ;[...new Set(lock_keys.map(k => user_profile.items[k].id))].forEach(id => {
+        let left = remaining.filter(i => i.id == id).length
+        let needing = others.filter(c => c.key == 'chance_cube' ? [95, 96].includes(id) && left < 3 : c.items.includes(id) && !left)
+        if (needing.length) {
+            conflicts.push({ name: items.find(i => i.id == id)?.name ?? String(id), collections: needing.map(c => c.name) })
+        }
+    })
+    return conflicts
 }
 
 exports.collectionRewardEmbed = function ({ key, name, avatar }) {
